@@ -9,6 +9,8 @@ import { WebhookEvent } from '@octokit/webhooks-types'
 
 const systemInstruction = `
 You are a software engineer.
+
+If there is any typo, try to fix it.
 If any command failed, stop the task and return a message with the prefix of "ERROR:".
 
 You can read a file using a command such as cat, head or tail.
