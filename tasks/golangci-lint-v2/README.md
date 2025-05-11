@@ -8,7 +8,7 @@ Update the linting tool `github.com/golangci/golangci-lint` to v2.
 
 ### 1. Update go.mod
 
-Run the following command to update `go.mod`:
+Run the following commands to update `go.mod`:
 
 ```bash
 go get -tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
