@@ -124,7 +124,7 @@ const execFunction = async (functionCall: FunctionCall, workspace: string): Prom
   const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
     cwd: workspace,
     ignoreReturnCode: true,
-    input: stdin ? Buffer.from(stdin) : undefined,
+    input: Buffer.from(stdin ?? ''),
   })
   return {
     id: functionCall.id,
