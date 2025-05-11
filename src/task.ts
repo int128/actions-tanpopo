@@ -1,3 +1,4 @@
+import assert from 'assert'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as fs from 'fs/promises'
@@ -5,11 +6,14 @@ import * as path from 'path'
 import { Context } from './github.js'
 import { ContentListUnion, FunctionCall, FunctionDeclaration, FunctionResponse, GoogleGenAI, Type } from '@google/genai'
 import { WebhookEvent } from '@octokit/webhooks-types'
-import assert from 'assert'
 
 const systemInstruction = `
 You are a software engineer.
 If any command failed, stop the task and return a message with the prefix of "ERROR:".
+
+You can read a file using a command such as cat, head or tail.
+You can find a keyword in a file or directory using a command such as grep.
+You can modify a file using a command such as patch, sed or awk.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
@@ -18,9 +22,8 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
   const prompt = `
 Follow the task instruction.
 The next part of this message contains the task instruction.
-
-- The current working directory contains the code to be modified.
-- The task instruction is located at ${context.workspace}/${taskDir}/README.md.
+The current working directory contains the code to be modified.
+The task instruction is located at ${context.workspace}/${taskDir}/README.md.
 `
 
   const taskReadme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
@@ -77,6 +80,10 @@ const execFunctionDeclaration: FunctionDeclaration = {
           description: 'The arguments to the command',
         },
       },
+      stdin: {
+        type: Type.STRING,
+        description: 'The standard input to the command',
+      },
     },
     required: ['command'],
   },
@@ -101,7 +108,7 @@ const execFunctionDeclaration: FunctionDeclaration = {
 
 const execFunction = async (functionCall: FunctionCall, workspace: string): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { command, args } = functionCall.args
+  const { command, args, stdin } = functionCall.args
   assert(typeof command === 'string', `command must be a string but got ${typeof command}`)
   if (args !== undefined) {
     assert(Array.isArray(args), `args must be an array but got ${typeof args}`)
@@ -110,9 +117,14 @@ const execFunction = async (functionCall: FunctionCall, workspace: string): Prom
       `args must be strings but got ${args.join()}`,
     )
   }
+  if (stdin !== undefined) {
+    assert(typeof stdin === 'string', `stdin must be a string but got ${typeof stdin}`)
+    core.info(`Executing a command with stdin:\n${stdin}`)
+  }
   const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
     cwd: workspace,
     ignoreReturnCode: true,
+    input: stdin ? Buffer.from(stdin) : undefined,
   })
   return {
     id: functionCall.id,
