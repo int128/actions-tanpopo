@@ -10,12 +10,7 @@ import { WebhookEvent } from '@octokit/webhooks-types'
 const systemInstruction = `
 You are a software engineer.
 
-If there is any typo, try to fix it.
 If any command failed, stop the task and return a message with the prefix of "ERROR:".
-
-You can read a file using a command such as cat, head or tail.
-You can find a keyword in a file or directory using a command such as grep.
-You can modify a file using a command such as patch, sed or awk.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
@@ -66,7 +61,13 @@ The task instruction is located at ${context.workspace}/${taskDir}/README.md.
 }
 
 const execFunctionDeclaration: FunctionDeclaration = {
-  description: `Run a shell command in the workspace. Typical Linux commands are available, such as grep or sed.`,
+  description: `
+Run a shell command in the workspace.
+Typical Linux commands are available.
+You can read a file using a command such as cat, head or tail.
+You can find a keyword in a file or directory using a command such as grep.
+You can modify a file using a command such as patch, sed or awk.
+`,
   name: 'exec',
   parameters: {
     type: Type.OBJECT,
@@ -84,7 +85,7 @@ const execFunctionDeclaration: FunctionDeclaration = {
       },
       stdin: {
         type: Type.STRING,
-        description: 'The standard input to the command',
+        description: 'The standard input to the command. Set non-empty string only if the command requires stdin',
       },
     },
     required: ['command'],
