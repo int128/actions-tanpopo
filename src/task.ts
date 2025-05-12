@@ -10,7 +10,9 @@ import { WebhookEvent } from '@octokit/webhooks-types'
 const systemInstruction = `
 You are a software engineer.
 
-If any command failed, stop the task and return a message with the prefix of "ERROR:".
+- If any command failed, stop the task and return a message with the prefix of "ERROR:".
+- To read the code, use cat command for whole file. Use head and tail commands for partial file.
+- To modify the code, create a patch file and apply it to the codebase.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
@@ -38,7 +40,10 @@ The task instruction is located at ${context.workspace}/${taskDir}/README.md.
       contents,
       config: {
         systemInstruction: [systemInstruction],
-        tools: [{ functionDeclarations: [execFunctionDeclaration] }],
+        tools: [
+          { functionDeclarations: [execFunctionDeclaration] },
+          { functionDeclarations: [createTemporaryFileFunctionDeclaration] },
+        ],
       },
     })
     if (response.functionCalls) {
@@ -46,6 +51,14 @@ The task instruction is located at ${context.workspace}/${taskDir}/README.md.
         if (functionCall.name === execFunctionDeclaration.name) {
           contents.push({ role: 'model', parts: [{ functionCall }] })
           contents.push({ role: 'user', parts: [{ functionResponse: await execFunction(functionCall, workspace) }] })
+        } else if (functionCall.name === createTemporaryFileFunctionDeclaration.name) {
+          contents.push({ role: 'model', parts: [{ functionCall }] })
+          contents.push({
+            role: 'user',
+            parts: [{ functionResponse: await createTemporaryFileFunction(functionCall, context) }],
+          })
+        } else {
+          throw new Error(`unknown function call: ${functionCall.name}`)
         }
       }
     } else if (response.text) {
@@ -61,13 +74,7 @@ The task instruction is located at ${context.workspace}/${taskDir}/README.md.
 }
 
 const execFunctionDeclaration: FunctionDeclaration = {
-  description: `
-Run a shell command in the workspace.
-Typical Linux commands are available.
-You can read a file using a command such as cat, head or tail.
-You can find a keyword in a file or directory using a command such as grep.
-You can modify a file using a command such as patch, sed or awk.
-`,
+  description: `Run a shell command in the workspace. Typical Linux commands are available such as find, grep or sed`,
   name: 'exec',
   parameters: {
     type: Type.OBJECT,
@@ -82,10 +89,6 @@ You can modify a file using a command such as patch, sed or awk.
           type: Type.STRING,
           description: 'The arguments to the command',
         },
-      },
-      stdin: {
-        type: Type.STRING,
-        description: 'The standard input to the command. Set non-empty string only if the command requires stdin',
       },
     },
     required: ['command'],
@@ -111,7 +114,7 @@ You can modify a file using a command such as patch, sed or awk.
 
 const execFunction = async (functionCall: FunctionCall, workspace: string): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { command, args, stdin } = functionCall.args
+  const { command, args } = functionCall.args
   assert(typeof command === 'string', `command must be a string but got ${typeof command}`)
   if (args !== undefined) {
     assert(Array.isArray(args), `args must be an array but got ${typeof args}`)
@@ -120,14 +123,9 @@ const execFunction = async (functionCall: FunctionCall, workspace: string): Prom
       `args must be strings but got ${args.join()}`,
     )
   }
-  if (stdin !== undefined) {
-    assert(typeof stdin === 'string', `stdin must be a string but got ${typeof stdin}`)
-    core.info(`Executing a command with stdin:\n${stdin}`)
-  }
   const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
     cwd: workspace,
     ignoreReturnCode: true,
-    input: Buffer.from(stdin ?? ''),
   })
   return {
     id: functionCall.id,
@@ -136,6 +134,51 @@ const execFunction = async (functionCall: FunctionCall, workspace: string): Prom
       stdout,
       stderr,
       exitCode,
+    },
+  }
+}
+
+const createTemporaryFileFunctionDeclaration: FunctionDeclaration = {
+  description: `Create a temporary file.`,
+  name: 'createTemporaryFile',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      content: {
+        type: Type.STRING,
+        description: 'The content of the temporary file',
+      },
+    },
+    required: ['content'],
+  },
+  response: {
+    type: Type.OBJECT,
+    properties: {
+      tempfile: {
+        type: Type.STRING,
+        description: 'The absolute path to the temporary file',
+      },
+    },
+    required: ['tempfile'],
+  },
+}
+
+const createTemporaryFileFunction = async (
+  functionCall: FunctionCall,
+  context: Context<WebhookEvent>,
+): Promise<FunctionResponse> => {
+  assert(functionCall.args)
+  const { content } = functionCall.args
+  assert(typeof content === 'string', `content must be a string but got ${typeof content}`)
+  const tempdir = await fs.mkdtemp(path.join(context.runnerTemp, 'task-'))
+  const tempfile = path.join(tempdir, 'tempfile')
+  await fs.writeFile(tempfile, content)
+  core.info(`Temporary file created at ${tempfile}\n----\n${content}\n----`)
+  return {
+    id: functionCall.id,
+    name: functionCall.name,
+    response: {
+      tempfile,
     },
   }
 }
