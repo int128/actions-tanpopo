@@ -4,6 +4,7 @@ import * as exec from '@actions/exec'
 import * as fs from 'fs/promises'
 import * as git from './git.js'
 import * as path from 'path'
+import { applyTask } from './task.js'
 import { Octokit } from '@octokit/action'
 import { Context, contextIsPullRequestEvent } from './github.js'
 import { PullRequestEvent, WebhookEvent } from '@octokit/webhooks-types'
@@ -25,77 +26,77 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
   })
   const taskDirs = new Set(files.map((file) => path.dirname(file.filename)).filter((dir) => dir.startsWith('tasks/')))
   core.info(`Found task directories: ${[...taskDirs].join(', ')}`)
-
-  const pullLinks = []
+  const createdPulls = []
   for (const taskDir of taskDirs) {
-    const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
+    const repositories = await listRepositoriesForTask(taskDir)
     for (const repository of repositories) {
-      const pull = await applyTask(taskDir, repository, octokit, context)
+      const pull = await createOrUpdatePullRequestForTask(taskDir, repository, octokit, context)
       if (pull) {
-        pullLinks.push(`- ${pull.html_url}`)
+        createdPulls.push(`- ${pull.html_url}`)
       }
     }
   }
-  if (pullLinks.length > 0) {
+  if (createdPulls.length > 0) {
     await octokit.rest.issues.createComment({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: context.payload.number,
-      body: pullLinks.join('\n'),
+      body: createdPulls.join('\n'),
     })
   }
 }
+
+const listRepositoriesForTask = async (taskDir: string) =>
+  parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
 
 const parseRepositoriesFile = (repositories: string): string[] => [
   ...new Set(
     repositories
       .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line !== '' && !line.startsWith('#')),
+      .map((line) => line.replace(/#.*$/, '').trim())
+      .filter((line) => line !== ''),
   ),
 ]
 
-const applyTask = async (taskDir: string, repository: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
-  const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-
+const createOrUpdatePullRequestForTask = async (
+  taskDir: string,
+  repository: string,
+  octokit: Octokit,
+  context: Context<WebhookEvent>,
+) => {
   const readme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
   const taskName = readme.match(/# (.+)/)?.[1]
   assert(taskName, 'README.md must have a title')
 
-  const workspace = await fs.mkdtemp(`${context.runnerTemp}/actions-tanpopo-bot-`)
+  const workspace = await fs.mkdtemp(`${context.runnerTemp}/actions-tanpopo-`)
   core.info(`Created a workspace at ${workspace}`)
-
   await git.clone(repository, workspace, context)
 
-  await exec.exec('bash', ['-eux', '-o', 'pipefail', `${context.workspace}/${taskDir}/task.sh`], { cwd: workspace })
+  await applyTask(taskDir, workspace, context)
 
   const gitStatus = await git.status(workspace)
   if (gitStatus === '') {
     return
   }
+
+  const baseBranch = (await git.getDefaultBranch(workspace)) ?? 'main'
+  const headBranch = `bot--${taskDir.replaceAll(/[^\w]/g, '-')}`
+  const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
   await exec.exec('git', ['add', '.'], { cwd: workspace })
   await exec.exec('git', ['config', 'user.name', context.actor], { cwd: workspace })
   await exec.exec('git', ['config', 'user.email', `${context.actor}@users.noreply.github.com`], { cwd: workspace })
-  await exec.exec('git', ['commit', '--quiet', '-m', `Apply ${taskDir}`, '-m', `GitHub Actions: ${workflowRunUrl}`], {
-    cwd: workspace,
-  })
+  await exec.exec('git', ['commit', '--quiet', '-m', taskName, '-m', workflowRunUrl], { cwd: workspace })
   await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
-  const headBranch = `bot--${taskDir.replaceAll(/[^\w]/g, '-')}`
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${headBranch}`], {
-    cwd: workspace,
-  })
-
-  const defaultBranch = (await git.getDefaultBranch(workspace)) ?? 'main'
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${headBranch}`], { cwd: workspace })
   const [owner, repo] = repository.split('/')
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
     title: taskName,
     head: headBranch,
-    base: defaultBranch,
+    base: baseBranch,
     body: readme,
   })
-
   await octokit.rest.pulls.requestReviewers({
     owner,
     repo,

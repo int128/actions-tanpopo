@@ -10,7 +10,7 @@ int128/kauthproxy
 # int128/oauth2cli
 # int128/oauth2dev
 # int128/oauth2-github-app
-int128/ghcp
+# int128/ghcp
 # int128/slack-docker
 # int128/kustomtree
 # int128/go-release-action
