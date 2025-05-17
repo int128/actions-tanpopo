@@ -15,8 +15,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1
       '@google/genai':
-        specifier: 0.12.0
-        version: 0.12.0
+        specifier: 0.14.1
+        version: 0.14.1
       '@octokit/action':
         specifier: 7.0.2
         version: 7.0.2
@@ -271,8 +271,8 @@ packages:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
 
-  '@google/genai@0.12.0':
-    resolution: {integrity: sha512-SJtCHac+HPgmwELpJpPKbaV4rk397bS2D42XgFR2NBEARDKd/79RcaRUFFd55pYUJ+gfaz9Bv6KYoiz/P6eZKA==}
+  '@google/genai@0.14.1':
+    resolution: {integrity: sha512-BZ93j4XcvsLEX5RkYE1RqrXLpuzEuH5VGY0geRrHjfpLP3ijDepGePg/iJ7kMSPOTXFYNMeTruNyoTB6TXXgnA==}
     engines: {node: '>=18.0.0'}
 
   '@humanfs/core@0.19.1':
@@ -1397,7 +1397,7 @@ snapshots:
 
   '@fastify/busboy@2.1.1': {}
 
-  '@google/genai@0.12.0':
+  '@google/genai@0.14.1':
     dependencies:
       google-auth-library: 9.15.1
       ws: 8.18.2
