@@ -10,9 +10,7 @@ import { WebhookEvent } from '@octokit/webhooks-types'
 const systemInstruction = `
 You are a software engineer.
 
-- If any command failed, stop the task and return a message with the prefix of "ERROR:".
-- To read the code, use cat command for whole file. Use head and tail commands for partial file.
-- To modify the code, create a patch file and apply it to the codebase.
+If any command failed, stop the task and return a message with the prefix of "ERROR:".
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
@@ -21,8 +19,9 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
   const prompt = `
 Follow the task instruction.
 The next part of this message contains the task instruction.
+
 The current working directory contains the code to be modified.
-The task instruction is located at ${context.workspace}/${taskDir}/README.md.
+The task instruction file is located at ${context.workspace}/${taskDir}/README.md.
 `
 
   const taskReadme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
@@ -91,7 +90,7 @@ const execFunctionDeclaration: FunctionDeclaration = {
         },
       },
     },
-    required: ['command'],
+    required: ['command', 'args'],
   },
   response: {
     type: Type.OBJECT,
@@ -109,6 +108,7 @@ const execFunctionDeclaration: FunctionDeclaration = {
         description: 'The exit code of the command. 0 means success, non-zero means failure',
       },
     },
+    required: ['stdout', 'stderr', 'exitCode'],
   },
 }
 
@@ -116,13 +116,11 @@ const execFunction = async (functionCall: FunctionCall, workspace: string): Prom
   assert(functionCall.args)
   const { command, args } = functionCall.args
   assert(typeof command === 'string', `command must be a string but got ${typeof command}`)
-  if (args !== undefined) {
-    assert(Array.isArray(args), `args must be an array but got ${typeof args}`)
-    assert(
-      args.every((arg) => typeof arg === 'string'),
-      `args must be strings but got ${args.join()}`,
-    )
-  }
+  assert(Array.isArray(args), `args must be an array but got ${typeof args}`)
+  assert(
+    args.every((arg) => typeof arg === 'string'),
+    `args must be strings but got ${args.join()}`,
+  )
   const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
     cwd: workspace,
     ignoreReturnCode: true,

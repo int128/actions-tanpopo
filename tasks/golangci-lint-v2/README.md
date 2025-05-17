@@ -18,10 +18,10 @@ go mod tidy
 
 ### 2. Update Makefile
 
-If `Makefile` exists, run the following command to update it to v2:
+Run the following command to update `Makefile`:
 
 ```bash
-sed -i -e 's|github.com/golangci/golangci-lint/cmd/golangci-lint|github.com/golangci/golangci-lint/v2/cmd/golangci-lint|g' Makefile
+sed -i -e 's|github.com/golangci/golangci-lint/cmd/golangci-lint|golangci-lint|g' Makefile
 ```
 
 ### 3. Fix the lint errors
