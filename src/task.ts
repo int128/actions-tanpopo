@@ -47,18 +47,11 @@ The task instruction file is located at ${context.workspace}/${taskDir}/README.m
     })
     if (response.functionCalls) {
       for (const functionCall of response.functionCalls) {
-        if (functionCall.name === execFunctionDeclaration.name) {
-          contents.push({ role: 'model', parts: [{ functionCall }] })
-          contents.push({ role: 'user', parts: [{ functionResponse: await execFunction(functionCall, workspace) }] })
-        } else if (functionCall.name === createTemporaryFileFunctionDeclaration.name) {
-          contents.push({ role: 'model', parts: [{ functionCall }] })
-          contents.push({
-            role: 'user',
-            parts: [{ functionResponse: await createTemporaryFileFunction(functionCall, context) }],
-          })
-        } else {
-          throw new Error(`unknown function call: ${functionCall.name}`)
-        }
+        contents.push({ role: 'model', parts: [{ functionCall }] })
+        contents.push({
+          role: 'user',
+          parts: [{ functionResponse: await handleFunctionCall(functionCall, workspace, context) }],
+        })
       }
     } else if (response.text) {
       core.info(`🤖: ${response.text}`)
@@ -69,6 +62,23 @@ The task instruction file is located at ${context.workspace}/${taskDir}/README.m
     } else {
       throw new Error(`no content from the model: ${response.promptFeedback?.blockReasonMessage}`)
     }
+  }
+}
+
+const handleFunctionCall = async (
+  functionCall: FunctionCall,
+  workspace: string,
+  context: Context<WebhookEvent>,
+): Promise<FunctionResponse> => {
+  switch (functionCall.name) {
+    case execFunctionDeclaration.name:
+      return await execFunction(functionCall, workspace)
+    case createTemporaryFileFunctionDeclaration.name:
+      return await createTemporaryFileFunction(functionCall, context)
+    case applyPatchFunctionDeclaration.name:
+      return await applyPatchFunction(functionCall)
+    default:
+      throw new Error(`unknown function call: ${functionCall.name}`)
   }
 }
 
@@ -177,6 +187,45 @@ const createTemporaryFileFunction = async (
     name: functionCall.name,
     response: {
       tempfile,
+    },
+  }
+}
+
+const applyPatchFunctionDeclaration: FunctionDeclaration = {
+  description: `Apply a patch to a file.`,
+  name: 'applyPatch',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      patch: {
+        type: Type.STRING,
+        description: 'The patch to apply',
+      },
+    },
+    required: ['patch'],
+  },
+  response: {
+    type: Type.OBJECT,
+    properties: {
+      error: {
+        type: Type.STRING,
+        description: 'The error message if the patch failed. Empty if the patch succeeded',
+      },
+    },
+    required: ['error'],
+  },
+}
+
+const applyPatchFunction = async (functionCall: FunctionCall): Promise<FunctionResponse> => {
+  assert(functionCall.args)
+  const { patch } = functionCall.args
+  assert(typeof patch === 'string', `patch must be a string but got ${typeof patch}`)
+  const { stderr, exitCode } = await exec.getExecOutput('patch', [], { input: Buffer.from(patch) })
+  return {
+    id: functionCall.id,
+    name: functionCall.name,
+    response: {
+      error: exitCode === 0 ? '' : stderr,
     },
   }
 }
