@@ -11,6 +11,7 @@ const systemInstruction = `
 You are a software engineer.
 
 If any command failed, stop the task and return a message with the prefix of "ERROR:".
+Use applyPatch tool to edit files.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
