@@ -10,7 +10,7 @@ import { WebhookEvent } from '@octokit/webhooks-types'
 const systemInstruction = `
 You are a software engineer.
 
-If any command failed, stop the task and return a message with the prefix of "ERROR:".
+If the task failed, stop the task and return a message with the prefix of "ERROR:".
 Use applyPatch tool to edit files.
 `
 
