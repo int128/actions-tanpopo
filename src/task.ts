@@ -26,10 +26,7 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       model: 'gemini-2.5-flash-preview-05-20',
       contents,
       config: {
-        systemInstruction: [
-          systemInstruction,
-          `The task instruction file is located at ${context.workspace}/${taskDir}/README.md.`,
-        ],
+        systemInstruction: [systemInstruction],
         tools: [{ functionDeclarations: functions.functions.map((tool) => tool.declaration) }],
       },
     })
