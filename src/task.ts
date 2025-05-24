@@ -7,38 +7,29 @@ import { WebhookEvent } from '@octokit/webhooks-types'
 import { ContentListUnion, GoogleGenAI } from '@google/genai'
 
 const systemInstruction = `
-You are a software engineer.
+You are an agent for software development.
+Follow the task instruction.
 
+The current working directory contains the code to be modified.
 If the task failed, stop the task and return a message with the prefix of "ERROR:".
-Use applyPatch tool to edit files.
+If you need to modify the code, use "applyPatch" function.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
   const ai = new GoogleGenAI({ apiKey: process.env.BOT_GEMINI_API_KEY })
-
-  const prompt = `
-Follow the task instruction.
-The next part of this message contains the task instruction.
-
-The current working directory contains the code to be modified.
-The task instruction file is located at ${context.workspace}/${taskDir}/README.md.
-`
-
   const taskReadme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
-  const contents: ContentListUnion = [
-    {
-      role: 'user',
-      parts: [{ text: prompt }, { text: taskReadme }],
-    },
-  ]
+  const contents: ContentListUnion = [{ role: 'user', parts: [{ text: taskReadme }] }]
 
   for (;;) {
     core.info('🤖 Thinking...')
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents,
       config: {
-        systemInstruction: [systemInstruction],
+        systemInstruction: [
+          systemInstruction,
+          `The task instruction file is located at ${context.workspace}/${taskDir}/README.md.`,
+        ],
         tools: [{ functionDeclarations: functions.functions.map((tool) => tool.declaration) }],
       },
     })
