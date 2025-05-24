@@ -7,7 +7,7 @@ Manage the version of linting tool `github.com/golangci/golangci-lint` by aqua.
 
 ## Prerequisites
 
-If `go.mod` contains `github.com/golangci/golangci-lint`, run this task.
+If `tools/go.mod` contains `github.com/golangci/golangci-lint`, run this task.
 Otherwise, you don't need to run this task.
 
 ## Procedure
@@ -48,6 +48,8 @@ If the lint job exists, modify it as follows:
 
 - If the job runs golangci-lint by `go tool`, replace it with `golangci-lint run`.
 - If the job uses `actions/setup-go`, fetch the Go version from `go.mod` and set it to `go-version`.
+
+Here is an example of how to modify the workflow:
 
 Before:
 
