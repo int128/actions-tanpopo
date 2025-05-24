@@ -57,6 +57,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const { stderr, exitCode } = await exec.getExecOutput('patch', ['--strip', '1'], {
     input: Buffer.from(patch),
     cwd: context.workspace,
+    ignoreReturnCode: true,
   })
   return {
     id: functionCall.id,
