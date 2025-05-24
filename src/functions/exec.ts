@@ -21,7 +21,7 @@ export const declaration: FunctionDeclaration = {
         },
       },
     },
-    required: ['command', 'args'],
+    required: ['command'],
   },
   response: {
     type: Type.OBJECT,
@@ -47,11 +47,13 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   assert(functionCall.args)
   const { command, args } = functionCall.args
   assert(typeof command === 'string', `command must be a string but got ${typeof command}`)
-  assert(Array.isArray(args), `args must be an array but got ${typeof args}`)
-  assert(
-    args.every((arg) => typeof arg === 'string'),
-    `args must be strings but got ${args.join()}`,
-  )
+  if (args !== undefined) {
+    assert(Array.isArray(args), `args must be an array but got ${typeof args}`)
+    assert(
+      args.every((arg) => typeof arg === 'string'),
+      `args must be strings but got ${args.join()}`,
+    )
+  }
   const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
     cwd: context.workspace,
     ignoreReturnCode: true,
