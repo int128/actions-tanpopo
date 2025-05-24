@@ -37,7 +37,9 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const tempdir = await fs.mkdtemp(path.join(context.context.runnerTemp, 'task-'))
   const tempfile = path.join(tempdir, 'tempfile')
   await fs.writeFile(tempfile, content)
-  core.info(`Temporary file created at ${tempfile}\n----\n${content}\n----`)
+  core.startGroup(`Created a temporary file: ${tempfile}`)
+  core.info(content)
+  core.endGroup()
   return {
     id: functionCall.id,
     name: functionCall.name,

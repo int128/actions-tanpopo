@@ -25,6 +25,13 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
     per_page: 100,
   })
   const taskDirs = new Set(files.map((file) => path.dirname(file.filename)).filter((dir) => dir.startsWith('tasks/')))
+
+  if (taskDirs.size === 0) {
+    core.info('Running the smoke test')
+    await createOrUpdatePullRequestForTask('tasks/example', 'int128/actions-tanpopo', octokit, context)
+    return
+  }
+
   core.info(`Found task directories: ${[...taskDirs].join(', ')}`)
   const createdPulls = []
   for (const taskDir of taskDirs) {

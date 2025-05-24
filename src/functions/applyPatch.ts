@@ -1,4 +1,5 @@
 import assert from 'assert'
+import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
@@ -50,9 +51,13 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   assert(functionCall.args)
   const { patch } = functionCall.args
   assert(typeof patch === 'string', `patch must be a string but got ${typeof patch}`)
+  core.startGroup(`Patch`)
+  core.info(patch)
+  core.endGroup()
   const { stderr, exitCode } = await exec.getExecOutput('patch', ['--strip', '1'], {
     input: Buffer.from(patch),
     cwd: context.workspace,
+    ignoreReturnCode: true,
   })
   return {
     id: functionCall.id,
