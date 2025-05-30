@@ -79,6 +79,18 @@ const createOrUpdatePullRequestForTask = async (
   core.info(`Created a workspace at ${workspace}`)
   await git.clone(repository, workspace, context)
 
+  const precondition = await exec.exec('bash', [path.join(taskDir, 'precondition.sh')], {
+    cwd: workspace,
+    ignoreReturnCode: true,
+  })
+  if (precondition === 99) {
+    core.info(`Skip the task by precondition.sh`)
+    return
+  }
+  if (precondition !== 0) {
+    throw new Error(`precondition failed with exit code ${precondition}`)
+  }
+
   await applyTask(taskDir, workspace, context)
 
   const gitStatus = await git.status(workspace)

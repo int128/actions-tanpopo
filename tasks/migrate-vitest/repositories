@@ -35,7 +35,7 @@ int128/comment-action
 # int128/datadog-actions-metrics
 # int128/kustomize-action
 # int128/issues-action
-# int128/update-generated-files-action
+int128/update-generated-files-action
 # int128/create-commit-action
 # int128/wait-for-docker-image-action
 # int128/create-ecr-repository-action
