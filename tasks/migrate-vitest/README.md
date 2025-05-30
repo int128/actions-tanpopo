@@ -11,32 +11,21 @@ This task migrates the project from Jest to Vitest.
 ## Prerequisite
 
 If the workspace has `vitest.config.ts`, you don't need to do this task.
-Stop immediately.
+Stop.
 
 ## Steps
 
-Remove the Jest dependencies.
+Run the following script:
 
 ```bash
+#!/bin/bash
+set -eux -o pipefail
+
 pnpm remove @types/jest jest ts-jest eslint-plugin-jest
 rm jest.config.js
-```
-
-Add the Vitest dependencies.
-
-```bash
 pnpm add -D vitest @vitest/eslint-plugin
-```
 
-Fix `package.json`.
-
-```bash
 perl -i -pne 's/"jest"/"vitest"/' package.json
-```
-
-Fix `eslint.config.js`.
-
-```bash
 perl -i -pne "s/^import jest .+/import vitest from '\@vitest\/eslint-plugin'/" eslint.config.js
 perl -i -pne "s/jest\.configs\[.+/vitest.configs.recommended,/" eslint.config.js
 ```
@@ -55,7 +44,7 @@ export default defineConfig({
 
 Apply the following steps to the files of glob pattern `**/*.test.ts`:
 
-- If the test file has the following function calls, you need to import them.
+- If a test file has the following function calls, you need to import them.
   - `expect()`
   - `it()`
   - `describe()`
