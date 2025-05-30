@@ -79,7 +79,7 @@ const createOrUpdatePullRequestForTask = async (
   core.info(`Created a workspace at ${workspace}`)
   await git.clone(repository, workspace, context)
 
-  const precondition = await exec.exec('bash', [path.join(taskDir, 'precondition.sh')], {
+  const precondition = await exec.exec('bash', [path.join(context.workspace, taskDir, 'precondition.sh')], {
     cwd: workspace,
     ignoreReturnCode: true,
   })
