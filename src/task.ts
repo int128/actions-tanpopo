@@ -13,6 +13,7 @@ Follow the task instruction.
 If you encounter any problem, stop the task and return a message with the prefix of "ERROR:".
 
 The current working directory contains the code to be modified.
+If you need to run a script, create a temporary file and use "exec" function to run it.
 If you need to modify the code, use "applyPatch" function.
 `
 

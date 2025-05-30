@@ -42,12 +42,13 @@ export default defineConfig({
 })
 ```
 
-Apply the following steps to the files of glob pattern `**/*.test.ts`:
+Update the files of glob pattern `**/*.test.ts` as follows:
 
-- If a test file has the following function calls, you need to import them.
+- If a test file has the following function calls, add an import declaration to the first line of the file. For example, add `import { expect } from 'vitest'`.
   - `expect()`
   - `it()`
   - `describe()`
   - `test()`
-- To import functions, add an import declaration to the first line of the file.
-  For example, add `import { expect } from 'vitest'`.
+- If a test file has the following function calls, migrate it from Jest to Vitest.
+  - `jest.mock()`
+  - `jest.mocked()`
