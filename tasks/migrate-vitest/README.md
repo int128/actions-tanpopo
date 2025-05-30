@@ -15,7 +15,7 @@ Stop.
 
 ## Steps
 
-Run the following script:
+Create a temporary file of the following content and run it:
 
 ```bash
 #!/bin/bash
