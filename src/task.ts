@@ -55,7 +55,7 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
 const retryTooManyRequests = async <T>(f: () => Promise<T>) => {
   for (let i = 0; ; i++) {
     try {
-      return f()
+      return await f()
     } catch (e: unknown) {
       if (i > 3) {
         throw e
