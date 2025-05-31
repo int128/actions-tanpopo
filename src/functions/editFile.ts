@@ -21,12 +21,12 @@ export const declaration: FunctionDeclaration = {
         type: Type.INTEGER,
         description: 'The number of line to replace. Start from 0.',
       },
-      content: {
+      lineContent: {
         type: Type.STRING,
         description: 'The content to replace the specified line. This can be multiple lines.',
       },
     },
-    required: ['filename', 'lineNumber', 'content'],
+    required: ['filename', 'lineNumber', 'lineContent'],
   },
   response: {
     type: Type.OBJECT,
@@ -42,10 +42,10 @@ export const declaration: FunctionDeclaration = {
 
 export const call = async (functionCall: FunctionCall, context: Context): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { filename, lineNumber, content } = functionCall.args
+  const { filename, lineNumber, lineContent } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
   assert(typeof lineNumber === 'number', `lineNumber must be a number but got ${typeof lineNumber}`)
-  assert(typeof content === 'string', `content must be a string but got ${typeof content}`)
+  assert(typeof lineContent === 'string', `lineContent must be a string but got ${typeof lineContent}`)
   const absolutePath = path.join(context.workspace, filename)
   const originalFile = await fs.readFile(absolutePath, 'utf-8')
   const lines = originalFile.split('\n')
@@ -57,8 +57,8 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   core.info(`--- ${filename}@${lineNumber}`)
   core.info(lines[lineNumber])
   core.info(`+++ ${filename}@${lineNumber}`)
-  core.info(content)
-  lines[lineNumber] = content
+  core.info(lineContent)
+  lines[lineNumber] = lineContent
   await fs.writeFile(absolutePath, lines.join('\n'), 'utf-8')
   core.info(`Wrote ${lines.length} lines to ${filename}`)
   return {
