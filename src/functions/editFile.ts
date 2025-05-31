@@ -5,7 +5,7 @@ import * as path from 'path'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
-const description = `Edit a file in the workspace.`
+const description = `Edit an existing file in the workspace.`
 
 export const declaration: FunctionDeclaration = {
   description,
@@ -15,7 +15,7 @@ export const declaration: FunctionDeclaration = {
     properties: {
       filename: {
         type: Type.STRING,
-        description: 'The path to the file to edit.',
+        description: 'The path to the file to edit. The file must exist.',
       },
       lineNumber: {
         type: Type.INTEGER,
@@ -49,11 +49,11 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const absolutePath = path.join(context.workspace, filename)
   const originalFile = await fs.readFile(absolutePath, 'utf-8')
   const lines = originalFile.split('\n')
+  core.info(`Total ${lines.length} lines in ${filename}`)
   assert(
     lineNumber >= 0 && lineNumber < lines.length,
     `lineNumber must be between 0 and ${lines.length - 1}, but got ${lineNumber}`,
   )
-  core.info(`Total ${lines.length} lines in ${filename}`)
   core.startGroup(`Original line ${lineNumber} in ${filename}`)
   core.info(lines[lineNumber])
   core.endGroup()
