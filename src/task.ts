@@ -63,7 +63,10 @@ const retryTooManyRequests = async <T>(f: () => Promise<T>) => {
       if (e instanceof Error) {
         const m = e.message.match(/429 Too Many Requests.+"retryDelay":"(\d+)s"/)
         if (m) {
-          const seconds = Number.parseInt(m[1])
+          let seconds = Number.parseInt(m[1])
+          if (seconds < 1) {
+            seconds = 30
+          }
           core.warning(`Retry after ${seconds}s: ${e}`)
           await new Promise((resolve) => setTimeout(resolve, seconds * 1000))
           continue
