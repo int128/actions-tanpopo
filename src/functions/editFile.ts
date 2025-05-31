@@ -5,7 +5,7 @@ import * as path from 'path'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
-const description = `Edit an existing file in the workspace.`
+const description = `Replace a line of an existing file in the workspace.`
 
 export const declaration: FunctionDeclaration = {
   description,
@@ -49,20 +49,18 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const absolutePath = path.join(context.workspace, filename)
   const originalFile = await fs.readFile(absolutePath, 'utf-8')
   const lines = originalFile.split('\n')
-  core.info(`Total ${lines.length} lines in ${filename}`)
+  core.info(`Read ${lines.length} lines from ${filename}`)
   assert(
     lineNumber >= 0 && lineNumber < lines.length,
     `lineNumber must be between 0 and ${lines.length - 1}, but got ${lineNumber}`,
   )
-  core.startGroup(`Original line ${lineNumber} in ${filename}`)
+  core.info(`--- ${filename}@${lineNumber}`)
   core.info(lines[lineNumber])
-  core.endGroup()
-  core.startGroup(`Replacing line ${lineNumber} in ${filename}`)
+  core.info(`+++ ${filename}@${lineNumber}`)
   core.info(content)
-  core.endGroup()
   lines[lineNumber] = content
   await fs.writeFile(absolutePath, lines.join('\n'), 'utf-8')
-  core.startGroup(`Wrote ${lines.length} lines to ${filename}`)
+  core.info(`Wrote ${lines.length} lines to ${filename}`)
   return {
     id: functionCall.id,
     name: functionCall.name,
