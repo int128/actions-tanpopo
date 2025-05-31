@@ -31,12 +31,16 @@ export const declaration: FunctionDeclaration = {
   response: {
     type: Type.OBJECT,
     properties: {
-      totalLines: {
-        type: Type.STRING,
+      totalLinesBeforeEdit: {
+        type: Type.INTEGER,
+        description: 'The total number of lines in the file before the edit.',
+      },
+      totalLinesAfterEdit: {
+        type: Type.INTEGER,
         description: 'The total number of lines in the file after the edit.',
       },
     },
-    required: ['totalLines'],
+    required: ['totalLinesBeforeEdit', 'totalLinesAfterEdit'],
   },
 }
 
@@ -47,8 +51,9 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   assert(typeof lineNumber === 'number', `lineNumber must be a number but got ${typeof lineNumber}`)
   assert(typeof lineContent === 'string', `lineContent must be a string but got ${typeof lineContent}`)
   const absolutePath = path.join(context.workspace, filename)
-  const originalFile = await fs.readFile(absolutePath, 'utf-8')
-  const lines = originalFile.split('\n')
+  const originalContent = await fs.readFile(absolutePath, 'utf-8')
+
+  const lines = originalContent.split('\n')
   core.info(`Read ${lines.length} lines from ${filename}`)
   assert(
     lineNumber >= 0 && lineNumber < lines.length,
@@ -59,13 +64,17 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   core.info(`+++ ${filename}@${lineNumber}`)
   core.info(lineContent)
   lines[lineNumber] = lineContent
-  await fs.writeFile(absolutePath, lines.join('\n'), 'utf-8')
-  core.info(`Wrote ${lines.length} lines to ${filename}`)
+
+  const newContent = lines.join('\n')
+  await fs.writeFile(absolutePath, newContent, 'utf-8')
+  const newContentLines = newContent.split('\n')
+  core.info(`Wrote ${newContentLines.length} lines to ${filename}`)
   return {
     id: functionCall.id,
     name: functionCall.name,
     response: {
-      totalLines: lines.length,
+      totalLinesBeforeEdit: lines.length,
+      totalLinesAfterEdit: newContentLines.length,
     },
   }
 }
