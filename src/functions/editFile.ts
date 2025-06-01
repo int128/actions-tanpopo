@@ -31,16 +31,12 @@ export const declaration: FunctionDeclaration = {
   response: {
     type: Type.OBJECT,
     properties: {
-      totalLinesBeforeEdit: {
-        type: Type.INTEGER,
-        description: 'The total number of lines in the file before the edit.',
-      },
-      totalLinesAfterEdit: {
-        type: Type.INTEGER,
-        description: 'The total number of lines in the file after the edit.',
+      newContent: {
+        type: Type.STRING,
+        description: 'The content of the file after the edit.',
       },
     },
-    required: ['totalLinesBeforeEdit', 'totalLinesAfterEdit'],
+    required: ['newContent'],
   },
 }
 
@@ -73,8 +69,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     id: functionCall.id,
     name: functionCall.name,
     response: {
-      totalLinesBeforeEdit: lines.length,
-      totalLinesAfterEdit: newContentLines.length,
+      newContent,
     },
   }
 }
