@@ -61,7 +61,7 @@ Here is the recommendation for the migration:
 
 - If you use `jest.mock`, replace it with `vi.mock`.
 - You need to explicitly import the test functions such as `describe`, `it`, and `expect` in the test files.
-  To import them, add the following line to the top of each test file:
+  To import them, insert the following line to the top of a test file:
   ```ts
   import { describe, it, expect } from 'vitest'
   ```
