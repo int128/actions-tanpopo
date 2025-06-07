@@ -26,10 +26,20 @@ export const declaration: FunctionDeclaration = {
       lines: {
         type: Type.ARRAY,
         items: {
-          type: Type.STRING,
+          type: Type.OBJECT,
+          properties: {
+            row: {
+              type: Type.INTEGER,
+              description: 'The 1-based index of the line in the file. For example, the first line is 1.',
+            },
+            line: {
+              type: Type.STRING,
+              description: 'A line read from the file. This string does not include a trailing newline character.',
+            },
+          },
+          required: ['line'],
         },
-        description:
-          'The array of lines read from the file. Each line is a string without a trailing newline character.',
+        description: 'The array of lines read from the file.',
       },
     },
     required: ['lines'],
@@ -42,9 +52,11 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
   const absolutePath = path.join(context.workspace, filename)
   const content = await fs.readFile(absolutePath, 'utf-8')
-  const lines = content.split('\n')
+  const lines = content.split('\n').map((line, index) => ({ row: index + 1, line }))
   core.startGroup(`🤖 Reading ${filename} (${lines.length} lines)`)
-  core.info(content)
+  for (const { row, line } of lines) {
+    core.info(`${row}: ${line}`)
+  }
   core.endGroup()
   return {
     id: functionCall.id,

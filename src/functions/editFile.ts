@@ -17,9 +17,9 @@ export const declaration: FunctionDeclaration = {
         type: Type.STRING,
         description: 'The path to the file to be edited. The file must already exist in the workspace.',
       },
-      operations: {
+      patches: {
         type: Type.ARRAY,
-        description: `An array of operations to perform on the file. Each operation specifies a line to edit.`,
+        description: `An array of patches to perform on the file. Each patch specifies a line to edit.`,
         items: {
           type: Type.OBJECT,
           properties: {
@@ -45,22 +45,22 @@ To delete the specified line, provide an empty array.
         },
       },
     },
-    required: ['filename', 'operations'],
+    required: ['filename', 'patches'],
   },
   response: {},
 }
 
 export const call = async (functionCall: FunctionCall, context: Context): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { filename, operations } = functionCall.args
+  const { filename, patches } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
-  assert(Array.isArray(operations), `operations must be an array but got ${typeof operations}`)
+  assert(Array.isArray(patches), `patches must be an array but got ${typeof patches}`)
 
   const absolutePath = path.join(context.workspace, filename)
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
   const lines = originalContent.split('\n')
 
-  for (const { row, newLine } of operations) {
+  for (const { row, newLine } of patches) {
     assert(typeof row === 'number', `row must be a number but got ${typeof row}`)
     assert(Array.isArray(newLine), `newLine must be an array but got ${typeof newLine}`)
     assert(
