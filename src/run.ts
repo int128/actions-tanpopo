@@ -27,7 +27,7 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
   const taskDirs = new Set(files.map((file) => path.dirname(file.filename)).filter((dir) => dir.startsWith('tasks/')))
   if (taskDirs.size === 0) {
     core.info('Running the smoke test')
-    await createOrUpdatePullRequestForTask('tasks/example', 'int128/actions-tanpopo', octokit, context)
+    await processTask('tasks/example', octokit, context)
     return
   }
 
