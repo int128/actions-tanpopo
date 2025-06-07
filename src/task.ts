@@ -53,26 +53,27 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
 }
 
 const retryTooManyRequests = async <T>(f: () => Promise<T>) => {
-  for (let i = 0; ; i++) {
+  for (let attempt = 0; ; attempt++) {
     try {
       return await f()
-    } catch (e: unknown) {
-      if (i > 3) {
-        throw e
+    } catch (error: unknown) {
+      if (attempt > 3) {
+        throw error
       }
-      if (e instanceof Error) {
-        const m = e.message.match(/429 Too Many Requests.+"retryDelay":"(\d+)s"/)
+      if (error instanceof Error && error.message.includes('429 Too Many Requests')) {
+        let seconds = 30
+        const m = error.message.match(/"retryDelay":"(\d+)s"/)
         if (m) {
-          let seconds = Number.parseInt(m[1])
-          if (seconds < 1) {
-            seconds = 30
+          const s = Number.parseInt(m[1])
+          if (Number.isSafeInteger(s) && s > 0) {
+            seconds = s
           }
-          core.warning(`Retry after ${seconds}s: ${e}`)
-          await new Promise((resolve) => setTimeout(resolve, seconds * 1000))
-          continue
         }
+        core.warning(`Retry attempt ${attempt} after ${seconds}s: ${error}`)
+        await new Promise((resolve) => setTimeout(resolve, seconds * 1000))
+        continue
       }
-      throw e
+      throw error
     }
   }
 }

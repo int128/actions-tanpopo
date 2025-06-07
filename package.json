@@ -10,26 +10,26 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/exec": "1.1.1",
-    "@google/genai": "1.2.0",
+    "@google/genai": "1.4.0",
     "@octokit/action": "8.0.2",
     "@octokit/plugin-retry": "8.0.1"
   },
   "devDependencies": {
-    "@eslint/js": "9.27.0",
+    "@eslint/js": "9.28.0",
     "@octokit/webhooks-types": "7.6.1",
     "@tsconfig/node20": "20.1.5",
-    "@types/node": "20.17.52",
+    "@types/node": "20.19.0",
     "@vercel/ncc": "0.38.3",
     "@vitest/eslint-plugin": "1.2.1",
-    "eslint": "9.27.0",
-    "pnpm": "10.11.0",
+    "eslint": "9.28.0",
+    "pnpm": "10.11.1",
     "prettier": "3.5.3",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.33.0",
-    "vitest": "3.1.4"
+    "typescript-eslint": "8.33.1",
+    "vitest": "3.2.2"
   },
   "engines": {
     "node": "20.x"
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.11.1"
 }
