@@ -35,12 +35,12 @@ If this parameter is omitted, the specified line will be removed from the file.
   response: {
     type: Type.OBJECT,
     properties: {
-      newContent: {
-        type: Type.STRING,
-        description: 'The entire content of the file after the modification.',
+      rows: {
+        type: Type.INTEGER,
+        description: 'The number of lines in the file after editing.',
       },
     },
-    required: ['newContent'],
+    required: ['rows'],
   },
 }
 
@@ -76,7 +76,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     id: functionCall.id,
     name: functionCall.name,
     response: {
-      newContent,
+      rows: lines.length,
     },
   }
 }
