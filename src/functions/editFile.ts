@@ -5,7 +5,7 @@ import * as path from 'path'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
-const description = `Replace a line of an existing file in the workspace.`
+const description = `Edit a line of an existing file in the workspace.`
 
 export const declaration: FunctionDeclaration = {
   description,
@@ -15,36 +15,40 @@ export const declaration: FunctionDeclaration = {
     properties: {
       filename: {
         type: Type.STRING,
-        description: 'The path to the file to edit. The file must exist.',
+        description: 'The path to the file to be edited. The file must already exist in the workspace.',
       },
-      lineIndex: {
+      rowIndex: {
         type: Type.INTEGER,
-        description: 'The index of line to edit. Start from 0.',
+        description: 'The 1-based index of the line to edit. For example, to edit the first line, set this to 1.',
       },
       newLine: {
         type: Type.STRING,
-        description: 'The new content to replace the line. If this field is not provided, the line will be removed.',
+        description: `The new content for the specified line.
+A trailing newline character is not required.
+If an empty string is provided, the specified line will be replaced with an empty line.
+If this parameter is omitted, the specified line will be removed from the file.
+`,
       },
     },
-    required: ['filename', 'lineIndex'],
+    required: ['filename', 'rowIndex'],
   },
   response: {
     type: Type.OBJECT,
     properties: {
-      newContent: {
-        type: Type.STRING,
-        description: 'The content of the file after the edit.',
+      rows: {
+        type: Type.INTEGER,
+        description: 'The number of lines in the file after editing.',
       },
     },
-    required: ['newContent'],
+    required: ['rows'],
   },
 }
 
 export const call = async (functionCall: FunctionCall, context: Context): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { filename, lineIndex, newLine } = functionCall.args
+  const { filename, rowIndex, newLine } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
-  assert(typeof lineIndex === 'number', `lineIndex must be a number but got ${typeof lineIndex}`)
+  assert(typeof rowIndex === 'number', `rowIndex must be a number but got ${typeof rowIndex}`)
   assert(
     typeof newLine === 'string' || newLine === undefined,
     `newLine must be a string or undefined but got ${typeof newLine}`,
@@ -53,31 +57,26 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
 
   const lines = originalContent.split('\n')
-  core.info(`Read ${lines.length} lines from ${filename}`)
+  core.info(`Editing ${filename} at line ${rowIndex} (total ${lines.length} lines)`)
   assert(
-    lineIndex >= 0 && lineIndex < lines.length,
-    `lineIndex must be between 0 and ${lines.length - 1}, but got ${lineIndex}`,
+    rowIndex >= 1 && rowIndex <= lines.length,
+    `rowIndex must be between 1 and ${lines.length}, but got ${rowIndex}`,
   )
-  core.info(`--- ${filename} L${lineIndex}`)
-  core.info(lines[lineIndex])
-
+  core.info(`- ${lines[rowIndex - 1]}`)
   if (newLine !== undefined) {
-    core.info(`+++ ${filename} L${lineIndex}`)
-    core.info(newLine)
-    lines[lineIndex] = newLine
+    core.info(`+ ${newLine}`)
+    lines[rowIndex - 1] = newLine
   } else {
-    lines.splice(lineIndex, 1)
+    lines.splice(rowIndex - 1, 1)
   }
 
   const newContent = lines.join('\n')
   await fs.writeFile(absolutePath, newContent, 'utf-8')
-  const newContentLines = newContent.split('\n')
-  core.info(`Wrote ${newContentLines.length} lines to ${filename}`)
   return {
     id: functionCall.id,
     name: functionCall.name,
     response: {
-      newContent,
+      rows: lines.length,
     },
   }
 }

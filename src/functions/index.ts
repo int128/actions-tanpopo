@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import * as readFile from './readFile.js'
 import * as editFile from './editFile.js'
 import * as createTemporaryFile from './createTemporaryFile.js'
 import * as exec from './exec.js'
@@ -6,7 +7,7 @@ import * as github from '../github.js'
 import { WebhookEvent } from '@octokit/webhooks-types'
 import { FunctionCall, FunctionResponse } from '@google/genai'
 
-export const functions = [createTemporaryFile, editFile, exec]
+export const functions = [readFile, editFile, createTemporaryFile, exec]
 
 export type Context = {
   workspace: string
