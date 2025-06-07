@@ -57,7 +57,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
 
   const lines = originalContent.split('\n')
-  core.info(`Editing ${filename} at line ${rowIndex} (total ${lines.length} lines)`)
+  core.info(`🤖 Editing ${filename} at line ${rowIndex} (total ${lines.length} lines)`)
   assert(
     rowIndex >= 1 && rowIndex <= lines.length,
     `rowIndex must be between 1 and ${lines.length}, but got ${rowIndex}`,
