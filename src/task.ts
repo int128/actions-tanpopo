@@ -23,14 +23,16 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
 
   for (;;) {
     core.info('🤖 Thinking...')
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-preview-05-20',
-      contents,
-      config: {
-        systemInstruction: [systemInstruction],
-        tools: [{ functionDeclarations: functions.functions.map((tool) => tool.declaration) }],
-      },
-    })
+    const response = await retryTooManyRequests(() =>
+      ai.models.generateContent({
+        model: 'gemini-2.5-flash-preview-05-20',
+        contents,
+        config: {
+          systemInstruction: [systemInstruction],
+          tools: [{ functionDeclarations: functions.functions.map((tool) => tool.declaration) }],
+        },
+      }),
+    )
     if (response.functionCalls) {
       for (const functionCall of response.functionCalls) {
         contents.push({ role: 'model', parts: [{ functionCall }] })
@@ -47,6 +49,31 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       return
     } else {
       throw new Error(`no content from the model: ${response.promptFeedback?.blockReasonMessage}`)
+    }
+  }
+}
+
+const retryTooManyRequests = async <T>(f: () => Promise<T>) => {
+  for (let i = 0; ; i++) {
+    try {
+      return await f()
+    } catch (e: unknown) {
+      if (i > 3) {
+        throw e
+      }
+      if (e instanceof Error) {
+        const m = e.message.match(/429 Too Many Requests.+"retryDelay":"(\d+)s"/)
+        if (m) {
+          let seconds = Number.parseInt(m[1])
+          if (seconds < 1) {
+            seconds = 30
+          }
+          core.warning(`Retry after ${seconds}s: ${e}`)
+          await new Promise((resolve) => setTimeout(resolve, seconds * 1000))
+          continue
+        }
+      }
+      throw e
     }
   }
 }
