@@ -5,7 +5,7 @@ import * as path from 'path'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
-const description = `Replace a line of an existing file in the workspace.`
+const description = `Edit a line of an existing file in the workspace.`
 
 export const declaration: FunctionDeclaration = {
   description,
@@ -19,11 +19,15 @@ export const declaration: FunctionDeclaration = {
       },
       lineIndex: {
         type: Type.INTEGER,
-        description: 'The index of line to edit. Start from 0.',
+        description: 'The index of line to edit. Specify 0 to edit the first line of the file.',
       },
       newLine: {
         type: Type.STRING,
-        description: 'The new content to replace the line. If this field is not provided, the line will be removed.',
+        description: `The new line.
+The trailing newline character is not required.
+If this is empty, the line will be replaced with an empty line.
+If this is not provided, the line will be removed.
+`,
       },
     },
     required: ['filename', 'lineIndex'],
@@ -53,17 +57,14 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
 
   const lines = originalContent.split('\n')
-  core.info(`Read ${lines.length} lines from ${filename}`)
+  core.info(`Editing ${filename} at line ${lineIndex} (total ${lines.length} lines)`)
   assert(
     lineIndex >= 0 && lineIndex < lines.length,
     `lineIndex must be between 0 and ${lines.length - 1}, but got ${lineIndex}`,
   )
-  core.info(`--- ${filename} L${lineIndex}`)
-  core.info(lines[lineIndex])
-
+  core.info(`- ${lines[lineIndex]}`)
   if (newLine !== undefined) {
-    core.info(`+++ ${filename} L${lineIndex}`)
-    core.info(newLine)
+    core.info(`+ ${newLine}`)
     lines[lineIndex] = newLine
   } else {
     lines.splice(lineIndex, 1)
@@ -71,8 +72,6 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
 
   const newContent = lines.join('\n')
   await fs.writeFile(absolutePath, newContent, 'utf-8')
-  const newContentLines = newContent.split('\n')
-  core.info(`Wrote ${newContentLines.length} lines to ${filename}`)
   return {
     id: functionCall.id,
     name: functionCall.name,
