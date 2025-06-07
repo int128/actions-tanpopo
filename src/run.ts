@@ -25,36 +25,39 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
     per_page: 100,
   })
   const taskDirs = new Set(files.map((file) => path.dirname(file.filename)).filter((dir) => dir.startsWith('tasks/')))
-
   if (taskDirs.size === 0) {
     core.info('Running the smoke test')
-    await createOrUpdatePullRequestForTask('tasks/example', 'int128/actions-tanpopo', octokit, context)
+    await processTask('tasks/example', octokit, context)
     return
   }
 
-  core.info(`Found task directories: ${[...taskDirs].join(', ')}`)
-  const createdPulls = []
+  core.info(`Processing tasks: ${[...taskDirs].join(', ')}`)
   for (const taskDir of taskDirs) {
-    const repositories = await listRepositoriesForTask(taskDir)
-    for (const repository of repositories) {
-      const pull = await createOrUpdatePullRequestForTask(taskDir, repository, octokit, context)
-      if (pull) {
-        createdPulls.push(`- ${pull.html_url}`)
-      }
+    const pulls = await processTask(taskDir, octokit, context)
+    if (pulls.length > 0) {
+      await octokit.rest.issues.createComment({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        issue_number: context.payload.number,
+        body: pulls.map((pull) => `- ${pull.html_url}`).join('\n'),
+      })
     }
-  }
-  if (createdPulls.length > 0) {
-    await octokit.rest.issues.createComment({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: context.payload.number,
-      body: createdPulls.join('\n'),
-    })
   }
 }
 
-const listRepositoriesForTask = async (taskDir: string) =>
-  parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
+const processTask = async (taskDir: string, octokit: Octokit, context: Context<WebhookEvent>) => {
+  const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
+
+  const pulls = []
+  for (const repository of repositories) {
+    core.info(`=== ${repository}`)
+    const pull = await createOrUpdatePullRequestForTask(taskDir, repository, octokit, context)
+    if (pull) {
+      pulls.push(pull)
+    }
+  }
+  return pulls
+}
 
 const parseRepositoriesFile = (repositories: string): string[] => [
   ...new Set(
