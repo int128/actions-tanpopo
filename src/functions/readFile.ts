@@ -15,7 +15,7 @@ export const declaration: FunctionDeclaration = {
     properties: {
       filename: {
         type: Type.STRING,
-        description: 'The path to the file.',
+        description: 'The path to the file. The file must already exist in the workspace.',
       },
     },
     required: ['filename'],
