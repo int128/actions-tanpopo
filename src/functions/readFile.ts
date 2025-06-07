@@ -43,7 +43,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   const absolutePath = path.join(context.workspace, filename)
   const content = await fs.readFile(absolutePath, 'utf-8')
   const lines = content.split('\n')
-  core.startGroup(`Reading ${filename} (${lines.length} lines)`)
+  core.startGroup(`🤖 Reading ${filename} (${lines.length} lines)`)
   core.info(content)
   core.endGroup()
   return {
