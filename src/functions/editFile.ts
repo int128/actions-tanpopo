@@ -21,10 +21,9 @@ export const declaration: FunctionDeclaration = {
         type: Type.INTEGER,
         description: 'The index of line to edit. Start from 0.',
       },
-      lineContent: {
+      newLine: {
         type: Type.STRING,
-        description:
-          'The content to replace the specified line. This can be multiple lines. If this field is not provided, the line will be removed.',
+        description: 'The new content to replace the line. If this field is not provided, the line will be removed.',
       },
     },
     required: ['filename', 'lineIndex'],
@@ -43,12 +42,12 @@ export const declaration: FunctionDeclaration = {
 
 export const call = async (functionCall: FunctionCall, context: Context): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { filename, lineIndex, lineContent } = functionCall.args
+  const { filename, lineIndex, newLine } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
   assert(typeof lineIndex === 'number', `lineIndex must be a number but got ${typeof lineIndex}`)
   assert(
-    typeof lineContent === 'string' || lineContent === undefined,
-    `lineContent must be a string or undefined but got ${typeof lineContent}`,
+    typeof newLine === 'string' || newLine === undefined,
+    `newLine must be a string or undefined but got ${typeof newLine}`,
   )
   const absolutePath = path.join(context.workspace, filename)
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
@@ -62,10 +61,10 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   core.info(`--- ${filename} L${lineIndex}`)
   core.info(lines[lineIndex])
 
-  if (lineContent !== undefined) {
+  if (newLine !== undefined) {
     core.info(`+++ ${filename} L${lineIndex}`)
-    core.info(lineContent)
-    lines[lineIndex] = lineContent
+    core.info(newLine)
+    lines[lineIndex] = newLine
   } else {
     lines.splice(lineIndex, 1)
   }
