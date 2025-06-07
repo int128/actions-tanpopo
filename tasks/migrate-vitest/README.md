@@ -15,20 +15,25 @@ Stop.
 
 ## Steps
 
-Create a temporary file of the following content and run it:
+Replace Jest with Vitest packages:
 
 ```bash
-#!/bin/bash
-set -eux -o pipefail
-
 pnpm remove @types/jest jest ts-jest eslint-plugin-jest
 rm jest.config.js
 pnpm add -D vitest @vitest/eslint-plugin
-
-perl -i -pne 's/"jest"/"vitest"/' package.json
-perl -i -pne "s/^import jest .+/import vitest from '\@vitest\/eslint-plugin'/" eslint.config.js
-perl -i -pne "s/jest\.configs\[.+/vitest.configs.recommended,/" eslint.config.js
 ```
+
+Fix the configuration files as follows:
+
+- `package.json`
+  - Replace `jest` with `vitest`.
+- `eslint.config.js`
+  - Replace the import statement as follows:
+    - From `import jest from ...`
+    - To `import vitest from '@vitest/eslint-plugin'`
+  - Replace the configuration as follows:
+    - From `jest.configs['flat/recommended']`
+    - To `vitest.configs.recommended`
 
 Create `vitest.config.ts` as follows:
 
@@ -42,13 +47,10 @@ export default defineConfig({
 })
 ```
 
-Update the files of glob pattern `**/*.test.ts` as follows:
+Run the following command to check if the migration is successful:
 
-- If a test file has the following function calls, add an import declaration to the first line of the file. For example, add `import { expect } from 'vitest'`.
-  - `expect()`
-  - `it()`
-  - `describe()`
-  - `test()`
-- If a test file has the following function calls, migrate it from Jest to Vitest.
-  - `jest.mock()`
-  - `jest.mocked()`
+```bash
+pnpm run test
+```
+
+If any test fails, you need to fix the test code.
