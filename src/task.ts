@@ -13,7 +13,6 @@ Follow the task instruction.
 If you encounter any problem, stop the task and return a message with the prefix of "ERROR:".
 
 The current working directory contains the code to be modified.
-To find a keyword in the code, run "grep -n" command.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {

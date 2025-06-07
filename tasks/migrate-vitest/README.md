@@ -47,10 +47,21 @@ export default defineConfig({
 })
 ```
 
+### Migration
+
 Run the following command to check if the migration is successful:
 
 ```bash
 pnpm run test
+pnpm run lint
+pnpm run format
 ```
 
-If any test fails, you need to fix the test code.
+Here is the recommendation for the migration:
+
+- If you use `jest.mock`, replace it with `vi.mock`.
+- You need to explicitly import the test functions such as `describe`, `it`, and `expect` in the test files.
+  To import them, add the following line to the top of each test file:
+  ```ts
+  import { describe, it, expect } from 'vitest'
+  ```
