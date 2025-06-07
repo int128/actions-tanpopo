@@ -1,7 +1,7 @@
 # gh repo list --no-archived --source -l typescript -L 100 | cut "-d$(echo -ne '\t')" -f1 | sort
 
 # int128/actions-tanpopo
-int128/argocd-status-action
+# int128/argocd-status-action
 int128/assign-pull-request-reviewers-action
 int128/bedrock-action
 # int128/bntp
