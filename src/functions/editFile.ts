@@ -17,64 +17,66 @@ export const declaration: FunctionDeclaration = {
         type: Type.STRING,
         description: 'The path to the file to be edited. The file must already exist in the workspace.',
       },
-      rowIndex: {
-        type: Type.INTEGER,
-        description: 'The 1-based index of the line to edit. For example, to edit the first line, set this to 1.',
-      },
-      newLine: {
+      operations: {
         type: Type.ARRAY,
+        description: `An array of operations to perform on the file. Each operation specifies a line to edit.`,
         items: {
-          type: Type.STRING,
-          description: 'The content of the line. Do not include a newline character at the end.',
-        },
-        description: `An array of strings representing the new content for the specified line.
+          type: Type.OBJECT,
+          properties: {
+            row: {
+              type: Type.INTEGER,
+              description: 'The 1-based index of the line to edit. For example, to edit the first line, set this to 1.',
+            },
+            newLine: {
+              type: Type.ARRAY,
+              description: `An array of strings representing the new content for the specified line.
 To replace the specified line, provide [new line content].
 To append a new line after the specified line, provide [new line content, original line content].
 To insert a new line before the specified line, provide [original line content, new line content].
 To delete the specified line, provide an empty array.
 `,
+              items: {
+                type: Type.STRING,
+                description: 'The content of the line. Do not include a newline character at the end.',
+              },
+            },
+          },
+          required: ['row', 'newLine'],
+        },
       },
     },
-    required: ['filename', 'rowIndex', 'newLine'],
+    required: ['filename', 'operations'],
   },
-  response: {
-    type: Type.OBJECT,
-    properties: {
-      rows: {
-        type: Type.INTEGER,
-        description: 'The number of lines in the file after editing.',
-      },
-    },
-    required: ['rows'],
-  },
+  response: {},
 }
 
 export const call = async (functionCall: FunctionCall, context: Context): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { filename, rowIndex, newLine } = functionCall.args
+  const { filename, operations } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
-  assert(typeof rowIndex === 'number', `rowIndex must be a number but got ${typeof rowIndex}`)
-  assert(Array.isArray(newLine), `newLine must be an array but got ${typeof newLine}`)
-  assert(
-    newLine.every((line) => typeof line === 'string'),
-    `newLine must be an array of strings but got ${JSON.stringify(newLine)}`,
-  )
+  assert(Array.isArray(operations), `operations must be an array but got ${typeof operations}`)
 
   const absolutePath = path.join(context.workspace, filename)
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
   const lines = originalContent.split('\n')
-  core.info(`🤖 Editing ${filename} at line ${rowIndex} (total ${lines.length} lines)`)
-  assert(
-    rowIndex >= 1 && rowIndex <= lines.length,
-    `rowIndex must be between 1 and ${lines.length}, but got ${rowIndex}`,
-  )
 
-  core.info(`- ${lines[rowIndex - 1]}`)
-  if (newLine.length > 0) {
-    core.info(newLine.map((line) => `+ ${line}`).join('\n'))
-    lines[rowIndex - 1] = newLine.join('\n')
-  } else {
-    lines.splice(rowIndex - 1, 1)
+  for (const { row, newLine } of operations) {
+    assert(typeof row === 'number', `row must be a number but got ${typeof row}`)
+    assert(Array.isArray(newLine), `newLine must be an array but got ${typeof newLine}`)
+    assert(
+      newLine.every((line) => typeof line === 'string'),
+      `newLine must be an array of strings but got ${JSON.stringify(newLine)}`,
+    )
+
+    core.info(`🤖 Editing ${filename} at line ${row} (total ${lines.length} lines)`)
+    assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length}, but got ${row}`)
+    core.info(`- ${lines[row - 1]}`)
+    if (newLine.length > 0) {
+      core.info(newLine.map((line) => `+ ${line}`).join('\n'))
+      lines[row - 1] = newLine.join('\n')
+    } else {
+      lines.splice(row - 1, 1)
+    }
   }
 
   const newContent = lines.join('\n')
@@ -82,8 +84,6 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   return {
     id: functionCall.id,
     name: functionCall.name,
-    response: {
-      rows: lines.length,
-    },
+    response: {},
   }
 }
