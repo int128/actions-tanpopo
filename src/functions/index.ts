@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as readFile from './readFile.js'
 import * as editFile from './editFile.js'
 import * as createTemporaryFile from './createTemporaryFile.js'
@@ -18,5 +19,16 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   if (f === undefined) {
     throw new Error(`no such function ${functionCall.name}`)
   }
-  return await f.call(functionCall, context)
+  try {
+    return await f.call(functionCall, context)
+  } catch (error: unknown) {
+    core.error(`Error while calling ${functionCall.name}: ${String(error)}`)
+    return {
+      id: functionCall.id,
+      name: functionCall.name,
+      response: {
+        error: String(error),
+      },
+    }
+  }
 }
