@@ -13,7 +13,7 @@ Follow the task instruction.
 If you encounter any problem, stop the task and return a message with the prefix of "ERROR:".
 
 The current working directory contains the code to be modified.
-If you find or modify any code, exclude the paths in the .gitignore file.
+If you modify any code, respect the .gitignore file.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {

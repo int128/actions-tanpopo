@@ -58,15 +58,13 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   assert(functionCall.args)
   const { filename, patches } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
-  assert(Array.isArray(patches), `patches must be an array but got ${typeof patches}`)
+  assertIsPatchArray(patches)
 
   const absolutePath = path.join(context.workspace, filename)
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
   const lines = originalContent.split('\n')
 
-  for (const patch of patches) {
-    assertIsPatch(patch)
-    const { row, replace, insertBefore, insertAfter, remove } = patch
+  for (const { row, replace, insertBefore, insertAfter } of patches.filter((p) => !p.remove)) {
     assert(row > 0 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
     core.info(`🤖 Editing ${filename} at line ${row} (total ${lines.length} lines)`)
     core.info(`- ${lines[row - 1]}`)
@@ -79,11 +77,13 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     if (insertAfter !== undefined) {
       lines[row - 1] = [lines[row - 1], insertAfter].join('\n')
     }
-    if (remove) {
-      lines.splice(row - 1, 1)
-    } else {
-      core.info(`+ ${lines[row - 1]}`)
-    }
+    core.info(`+ ${lines[row - 1]}`)
+  }
+  // Remove lines after processing all patches to avoid index issues.
+  for (const { row } of patches.filter((p) => p.remove)) {
+    core.info(`🤖 Removing line ${row} from ${filename} (total ${lines.length} lines)`)
+    core.info(`- ${lines[row - 1]}`)
+    lines.splice(row - 1, 1)
   }
 
   const newContent = lines.join('\n')
@@ -119,5 +119,12 @@ function assertIsPatch(x: unknown): asserts x is Patch {
   }
   if ('remove' in x) {
     assert(typeof x.remove === 'boolean', `remove must be a boolean but got ${typeof x.remove}`)
+  }
+}
+
+function assertIsPatchArray(x: unknown): asserts x is Patch[] {
+  assert(Array.isArray(x), `patches must be an array but got ${typeof x}`)
+  for (const item of x) {
+    assertIsPatch(item)
   }
 }
