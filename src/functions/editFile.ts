@@ -1,9 +1,11 @@
 import assert from 'assert'
 import * as core from '@actions/core'
 import * as fs from 'fs/promises'
+import * as path from 'path'
+import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
-const description = `Edit a file in the workspace.`
+const description = `Replace a line of an existing file in the workspace.`
 
 export const declaration: FunctionDeclaration = {
   description,
@@ -13,58 +15,69 @@ export const declaration: FunctionDeclaration = {
     properties: {
       filename: {
         type: Type.STRING,
-        description: 'The path to the file to edit.',
+        description: 'The path to the file to edit. The file must exist.',
       },
-      lineNumber: {
+      lineIndex: {
         type: Type.INTEGER,
-        description: 'The number of line to replace. Start from 0.',
+        description: 'The index of line to edit. Start from 0.',
       },
-      content: {
+      newLine: {
         type: Type.STRING,
-        description: 'The content to replace the specified line. This can be multiple lines.',
+        description: 'The new content to replace the line. If this field is not provided, the line will be removed.',
       },
     },
-    required: ['filename', 'lineNumber', 'content'],
+    required: ['filename', 'lineIndex'],
   },
   response: {
     type: Type.OBJECT,
     properties: {
-      totalLines: {
+      newContent: {
         type: Type.STRING,
-        description: 'The total number of lines in the file after the edit.',
+        description: 'The content of the file after the edit.',
       },
     },
-    required: ['totalLines'],
+    required: ['newContent'],
   },
 }
 
-export const call = async (functionCall: FunctionCall): Promise<FunctionResponse> => {
+export const call = async (functionCall: FunctionCall, context: Context): Promise<FunctionResponse> => {
   assert(functionCall.args)
-  const { filename, lineNumber, content } = functionCall.args
+  const { filename, lineIndex, newLine } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
-  assert(typeof lineNumber === 'number', `lineNumber must be a number but got ${typeof lineNumber}`)
-  assert(typeof content === 'string', `content must be a string but got ${typeof content}`)
-  const originalFile = await fs.readFile(filename, 'utf-8')
-  const lines = originalFile.split('\n')
+  assert(typeof lineIndex === 'number', `lineIndex must be a number but got ${typeof lineIndex}`)
   assert(
-    lineNumber >= 0 && lineNumber < lines.length,
-    `lineNumber must be between 0 and ${lines.length - 1}, but got ${lineNumber}`,
+    typeof newLine === 'string' || newLine === undefined,
+    `newLine must be a string or undefined but got ${typeof newLine}`,
   )
-  core.info(`Total ${lines.length} lines in ${filename}`)
-  core.startGroup(`Original line ${lineNumber} in ${filename}`)
-  core.info(lines[lineNumber])
-  core.endGroup()
-  core.startGroup(`Replacing line ${lineNumber} in ${filename}`)
-  core.info(content)
-  core.endGroup()
-  lines[lineNumber] = content
-  await fs.writeFile(filename, lines.join('\n'), 'utf-8')
-  core.startGroup(`Wrote ${lines.length} lines to ${filename}`)
+  const absolutePath = path.join(context.workspace, filename)
+  const originalContent = await fs.readFile(absolutePath, 'utf-8')
+
+  const lines = originalContent.split('\n')
+  core.info(`Read ${lines.length} lines from ${filename}`)
+  assert(
+    lineIndex >= 0 && lineIndex < lines.length,
+    `lineIndex must be between 0 and ${lines.length - 1}, but got ${lineIndex}`,
+  )
+  core.info(`--- ${filename} L${lineIndex}`)
+  core.info(lines[lineIndex])
+
+  if (newLine !== undefined) {
+    core.info(`+++ ${filename} L${lineIndex}`)
+    core.info(newLine)
+    lines[lineIndex] = newLine
+  } else {
+    lines.splice(lineIndex, 1)
+  }
+
+  const newContent = lines.join('\n')
+  await fs.writeFile(absolutePath, newContent, 'utf-8')
+  const newContentLines = newContent.split('\n')
+  core.info(`Wrote ${newContentLines.length} lines to ${filename}`)
   return {
     id: functionCall.id,
     name: functionCall.name,
     response: {
-      totalLines: lines.length,
+      newContent,
     },
   }
 }
