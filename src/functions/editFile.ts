@@ -36,11 +36,11 @@ export const declaration: FunctionDeclaration = {
             },
             replacement: {
               type: Type.STRING,
-              description: `The text to replace the line with. Do not include any newline characters. Required for REPLACE operation.`,
+              description: `Required for REPLACE operation. The text to replace the line with. No newline character (\\n) is allowed.`,
             },
             insertion: {
               type: Type.STRING,
-              description: `The text to insert before the line. Do not include any newline characters. Required for INSERT_BEFORE operation.`,
+              description: `Required for INSERT_BEFORE operation. The text to insert before the line. No newline character (\\n) is allowed.`,
             },
           },
           required: ['row', 'operation'],
@@ -130,12 +130,14 @@ function assertIsPatch(x: unknown): asserts x is Patch {
       assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
       assert('replacement' in x, 'REPLACE patch must have a replacement')
       assert(typeof x.replacement === 'string', `replacement must be a string but got ${typeof x.replacement}`)
+      assert(!x.replacement.includes('\n'), 'replacement must not contain newline characters')
       return
     case 'INSERT_BEFORE':
       assert('row' in x, 'INSERT_BEFORE patch must have a row')
       assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
       assert('insertion' in x, 'INSERT_BEFORE patch must have an insertion')
       assert(typeof x.insertion === 'string', `insertion must be a string but got ${typeof x.insertion}`)
+      assert(!x.insertion.includes('\n'), 'insertion must not contain newline characters')
       return
     case 'DELETE':
       assert('row' in x, 'DELETE patch must have a row')
