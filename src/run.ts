@@ -118,32 +118,8 @@ const createOrUpdatePullRequestForTask = async (
   await exec.exec('git', ['commit', '--quiet', '-m', taskName, '-m', workflowRunUrl], { cwd: workspace })
   await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
 
-  const tempBranch = `${headBranch}-temp`
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
   const [owner, repo] = repository.split('/')
-  const { data: branch } = await octokit.rest.repos.getBranch({
-    owner,
-    repo,
-    branch: tempBranch,
-  })
-  const { data: commit } = await octokit.rest.git.createCommit({
-    owner,
-    repo,
-    message: branch.commit.commit.message,
-    tree: branch.commit.commit.tree.sha,
-    parents: branch.commit.parents.map((parent) => parent.sha),
-  })
-  await octokit.rest.git.updateRef({
-    owner,
-    repo,
-    ref: `heads/${tempBranch}`,
-    sha: commit.sha,
-    force: true,
-  })
-  await exec.exec('git', ['fetch', '--quiet', 'origin', `${tempBranch}:${tempBranch}`], { cwd: workspace })
-  await exec.exec('git', ['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${headBranch}`], { cwd: workspace })
-
+  await pushSignedCommit(owner, repo, headBranch, octokit, workspace)
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
@@ -160,6 +136,39 @@ const createOrUpdatePullRequestForTask = async (
   })
   core.info(`Requested review from ${context.actor} for pull request: ${pull.html_url}`)
   return pull
+}
+
+const pushSignedCommit = async (
+  owner: string,
+  repo: string,
+  headBranch: string,
+  octokit: Octokit,
+  workspace: string,
+) => {
+  const tempBranch = `${headBranch}--signing`
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
+  const { data: unsigned } = await octokit.rest.repos.getBranch({
+    owner,
+    repo,
+    branch: tempBranch,
+  })
+  const { data: signedCommit } = await octokit.rest.git.createCommit({
+    owner,
+    repo,
+    message: unsigned.commit.commit.message,
+    tree: unsigned.commit.commit.tree.sha,
+    parents: unsigned.commit.parents.map((parent) => parent.sha),
+  })
+  await octokit.rest.git.updateRef({
+    owner,
+    repo,
+    ref: `heads/${tempBranch}`,
+    sha: signedCommit.sha,
+    force: true,
+  })
+  await exec.exec('git', ['fetch', '--quiet', 'origin', `${tempBranch}:${tempBranch}`], { cwd: workspace })
+  await exec.exec('git', ['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${headBranch}`], { cwd: workspace })
 }
 
 type CreatePullRequest = NonNullable<Awaited<Parameters<Octokit['rest']['pulls']['create']>[0]>>
