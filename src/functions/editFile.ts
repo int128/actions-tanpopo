@@ -22,61 +22,28 @@ export const declaration: FunctionDeclaration = {
         description: `An array of patches to perform on the file.`,
         minItems: '1',
         items: {
-          anyOf: [
-            {
-              type: Type.OBJECT,
-              description: `Replace a line in the file.`,
-              properties: {
-                operation: {
-                  type: Type.STRING,
-                  enum: ['REPLACE'],
-                },
-                row: {
-                  type: Type.INTEGER,
-                  description: 'The 1-based index of the line in the original file.',
-                  minimum: 1,
-                },
-                replacement: {
-                  type: Type.STRING,
-                  description: `The text to replace the line with. Do not include any newline characters.`,
-                },
-              },
+          type: Type.OBJECT,
+          properties: {
+            row: {
+              type: Type.INTEGER,
+              description: 'The 1-based index of the line in the file.',
+              minimum: 1,
             },
-            {
-              type: Type.OBJECT,
-              description: `Insert a line into the file. The row indices of the file will be preserved after modification.`,
-              properties: {
-                operation: {
-                  type: Type.STRING,
-                  enum: ['INSERT_BEFORE'],
-                },
-                row: {
-                  type: Type.INTEGER,
-                  description: 'The 1-based index of the line to insert before.',
-                  minimum: 1,
-                },
-                insertion: {
-                  type: Type.STRING,
-                  description: `The text to insert into the file. Do not include any newline characters.`,
-                },
-              },
+            operation: {
+              type: Type.STRING,
+              description: `The operation to perform on the line.`,
+              enum: ['REPLACE', 'INSERT_BEFORE', 'DELETE'],
             },
-            {
-              type: Type.OBJECT,
-              description: `Delete a line from the file. The row indices of the file will be preserved after modification.`,
-              properties: {
-                operation: {
-                  type: Type.STRING,
-                  enum: ['DELETE'],
-                },
-                row: {
-                  type: Type.INTEGER,
-                  description: 'The 1-based index of the line to delete.',
-                  minimum: 1,
-                },
-              },
+            replacement: {
+              type: Type.STRING,
+              description: `The text to replace the line with. Do not include any newline characters. Required for REPLACE operation.`,
             },
-          ],
+            insertion: {
+              type: Type.STRING,
+              description: `The text to insert before the line. Do not include any newline characters. Required for INSERT_BEFORE operation.`,
+            },
+          },
+          required: ['row', 'operation'],
         },
       },
     },
