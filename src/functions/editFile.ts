@@ -76,9 +76,9 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     } else if (patch.operation === 'INSERT_BEFORE') {
       const { row, insertion } = patch
       assert(row >= 1 && row <= lines.length + 1, `row must be between 1 and ${lines.length + 1} but got ${row}`)
+      core.info(`${row}: + ${insertion}`)
       core.info(`${row}:   ${lines[row - 1]}`)
       lines[row - 1] = [insertion, lines[row - 1]].join('\n')
-      core.info(`${row}: + ${insertion}`)
     } else if (patch.operation === 'DELETE') {
       const { row } = patch
       assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
