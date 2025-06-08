@@ -37,7 +37,7 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
   }
 }
 
-const processTask = async (taskDir: string, octokit: Octokit, context: Context<WebhookEvent>) => {
+const processTask = async (taskDir: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   for (const repository of repositories) {
     core.info(`=== ${repository}`)
