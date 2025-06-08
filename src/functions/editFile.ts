@@ -26,7 +26,7 @@ export const declaration: FunctionDeclaration = {
           properties: {
             row: {
               type: Type.INTEGER,
-              description: 'The 1-based index of the line to edit. For example, to edit the first line, set this to 1.',
+              description: 'The 1-based index of the line in the original file.',
             },
             replace: {
               type: Type.STRING,
@@ -34,15 +34,18 @@ export const declaration: FunctionDeclaration = {
             },
             insertBefore: {
               type: Type.STRING,
-              description: 'If provided, this string is inserted before the specified line.',
+              description:
+                'If provided, this string is inserted before the specified line. After insertion, the row index of the line is not changed.',
             },
             insertAfter: {
               type: Type.STRING,
-              description: 'If provided, this string is inserted after the specified line.',
+              description:
+                'If provided, this string is inserted after the specified line. After insertion, the row index of the line is not changed.',
             },
             remove: {
               type: Type.BOOLEAN,
-              description: 'If true, the specified line is removed from the file.',
+              description:
+                'If true, the specified line is removed from the file. After removal, the row index of the line is not changed.',
             },
           },
           required: ['row'],
@@ -62,12 +65,12 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
 
   const absolutePath = path.join(context.workspace, filename)
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
-  const lines = originalContent.split('\n')
+  const lines: (string | null)[] = originalContent.split('\n')
 
-  for (const { row, replace, insertBefore, insertAfter } of patches.filter((p) => !p.remove)) {
-    assert(row > 0 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-    core.info(`🤖 Editing ${filename} at line ${row} (total ${lines.length} lines)`)
-    core.info(`- ${lines[row - 1]}`)
+  for (const { row, replace, insertBefore, insertAfter, remove } of patches) {
+    assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
+    core.info(`🤖 Editing ${filename}`)
+    core.info(`${row}: - ${lines[row - 1]}`)
     if (replace !== undefined) {
       lines[row - 1] = replace
     }
@@ -77,16 +80,15 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     if (insertAfter !== undefined) {
       lines[row - 1] = [lines[row - 1], insertAfter].join('\n')
     }
-    core.info(`+ ${lines[row - 1]}`)
-  }
-  // Remove lines after processing all patches to avoid index issues.
-  for (const { row } of patches.filter((p) => p.remove)) {
-    core.info(`🤖 Removing line ${row} from ${filename} (total ${lines.length} lines)`)
-    core.info(`- ${lines[row - 1]}`)
-    lines.splice(row - 1, 1)
+    if (remove) {
+      lines[row - 1] = null
+    }
+    for (const line of lines[row - 1]?.split('\n') ?? []) {
+      core.info(`${row}: + ${line}`)
+    }
   }
 
-  const newContent = lines.join('\n')
+  const newContent = lines.filter((line) => line !== null).join('\n')
   await fs.writeFile(absolutePath, newContent, 'utf-8')
   return {
     id: functionCall.id,
