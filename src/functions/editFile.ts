@@ -67,23 +67,30 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   core.info(JSON.stringify(patches, null, 2))
   core.endGroup()
   for (const patch of patches) {
-    if (patch.operation === 'REPLACE') {
-      const { row, replacement } = patch
-      assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-      core.info(`${row}: - ${lines[row - 1]}`)
-      lines[row - 1] = replacement
-      core.info(`${row}: + ${replacement}`)
-    } else if (patch.operation === 'INSERT_BEFORE') {
-      const { row, insertion } = patch
-      assert(row >= 1 && row <= lines.length + 1, `row must be between 1 and ${lines.length + 1} but got ${row}`)
-      core.info(`${row}: + ${insertion}`)
-      core.info(`${row}:   ${lines[row - 1]}`)
-      lines[row - 1] = [insertion, lines[row - 1]].join('\n')
-    } else if (patch.operation === 'DELETE') {
-      const { row } = patch
-      assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-      core.info(`${row}: - ${lines[row - 1]}`)
-      lines[row - 1] = null // Mark for deletion
+    switch (patch.operation) {
+      case 'REPLACE': {
+        const { row, replacement } = patch
+        assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
+        core.info(`${row}: - ${lines[row - 1]}`)
+        lines[row - 1] = replacement
+        core.info(`${row}: + ${replacement}`)
+        break
+      }
+      case 'INSERT_BEFORE': {
+        const { row, insertion } = patch
+        assert(row >= 1 && row <= lines.length + 1, `row must be between 1 and ${lines.length + 1} but got ${row}`)
+        core.info(`${row}: + ${insertion}`)
+        core.info(`${row}:   ${lines[row - 1]}`)
+        lines[row - 1] = [insertion, lines[row - 1]].join('\n')
+        break
+      }
+      case 'DELETE': {
+        const { row } = patch
+        assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
+        core.info(`${row}: - ${lines[row - 1]}`)
+        lines[row - 1] = null // Mark for deletion
+        break
+      }
     }
   }
 
