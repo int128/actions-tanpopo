@@ -138,14 +138,8 @@ const createOrUpdatePullRequestForTask = async (
   return pull
 }
 
-const pushSignedCommit = async (
-  owner: string,
-  repo: string,
-  headBranch: string,
-  octokit: Octokit,
-  workspace: string,
-) => {
-  const tempBranch = `${headBranch}--signing`
+const pushSignedCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
+  const tempBranch = `${branch}--signing`
   await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
@@ -171,7 +165,7 @@ const pushSignedCommit = async (
   } finally {
     await exec.exec('git', ['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
   }
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${headBranch}`], { cwd: workspace })
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${branch}`], { cwd: workspace })
 }
 
 type CreatePullRequest = NonNullable<Awaited<Parameters<Octokit['rest']['pulls']['create']>[0]>>
