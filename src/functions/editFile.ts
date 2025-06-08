@@ -19,29 +19,36 @@ export const declaration: FunctionDeclaration = {
       },
       patches: {
         type: Type.ARRAY,
-        description: `An array of patches to perform on the file. Each patch specifies a line to edit.`,
+        description: `An array of patches to perform on the file.`,
         items: {
           type: Type.OBJECT,
+          description: `A patch to apply to a specific line in the file.`,
           properties: {
             row: {
               type: Type.INTEGER,
-              description: 'The 1-based index of the line to edit. For example, to edit the first line, set this to 1.',
+              description: 'The 1-based index of the line in the original file.',
             },
-            newLine: {
-              type: Type.ARRAY,
-              description: `An array of strings representing the new content for the specified line.
-To replace the specified line, provide [new line content].
-To append a new line after the specified line, provide [new line content, original line content].
-To insert a new line before the specified line, provide [original line content, new line content].
-To delete the specified line, provide an empty array.
-`,
-              items: {
-                type: Type.STRING,
-                description: 'The content of the line. Do not include a newline character at the end.',
-              },
+            replace: {
+              type: Type.STRING,
+              description: 'If provided, the line is replaced with this string.',
+            },
+            insertBefore: {
+              type: Type.STRING,
+              description:
+                'If provided, this string is inserted before the specified line. After insertion, the row index of the line is not changed.',
+            },
+            insertAfter: {
+              type: Type.STRING,
+              description:
+                'If provided, this string is inserted after the specified line. After insertion, the row index of the line is not changed.',
+            },
+            remove: {
+              type: Type.BOOLEAN,
+              description:
+                'If true, the specified line is removed from the file. After removal, the row index of the line is not changed.',
             },
           },
-          required: ['row', 'newLine'],
+          required: ['row'],
         },
       },
     },
@@ -54,36 +61,72 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   assert(functionCall.args)
   const { filename, patches } = functionCall.args
   assert(typeof filename === 'string', `filename must be a string but got ${typeof filename}`)
-  assert(Array.isArray(patches), `patches must be an array but got ${typeof patches}`)
+  assertIsPatchArray(patches)
 
   const absolutePath = path.join(context.workspace, filename)
   const originalContent = await fs.readFile(absolutePath, 'utf-8')
-  const lines = originalContent.split('\n')
+  const lines: (string | null)[] = originalContent.split('\n')
 
-  for (const { row, newLine } of patches) {
-    assert(typeof row === 'number', `row must be a number but got ${typeof row}`)
-    assert(Array.isArray(newLine), `newLine must be an array but got ${typeof newLine}`)
-    assert(
-      newLine.every((line) => typeof line === 'string'),
-      `newLine must be an array of strings but got ${JSON.stringify(newLine)}`,
-    )
-
-    core.info(`🤖 Editing ${filename} at line ${row} (total ${lines.length} lines)`)
-    assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length}, but got ${row}`)
-    core.info(`- ${lines[row - 1]}`)
-    if (newLine.length > 0) {
-      core.info(newLine.map((line) => `+ ${line}`).join('\n'))
-      lines[row - 1] = newLine.join('\n')
-    } else {
-      lines.splice(row - 1, 1)
+  for (const { row, replace, insertBefore, insertAfter, remove } of patches) {
+    assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
+    core.info(`🤖 Editing ${filename}`)
+    core.info(`${row}: - ${lines[row - 1]}`)
+    if (replace !== undefined) {
+      lines[row - 1] = replace
+    }
+    if (insertBefore !== undefined) {
+      lines[row - 1] = [insertBefore, lines[row - 1]].join('\n')
+    }
+    if (insertAfter !== undefined) {
+      lines[row - 1] = [lines[row - 1], insertAfter].join('\n')
+    }
+    if (remove) {
+      lines[row - 1] = null
+    }
+    for (const line of lines[row - 1]?.split('\n') ?? []) {
+      core.info(`${row}: + ${line}`)
     }
   }
 
-  const newContent = lines.join('\n')
+  const newContent = lines.filter((line) => line !== null).join('\n')
   await fs.writeFile(absolutePath, newContent, 'utf-8')
   return {
     id: functionCall.id,
     name: functionCall.name,
     response: {},
+  }
+}
+
+type Patch = {
+  row: number
+  replace?: string
+  insertBefore?: string
+  insertAfter?: string
+  remove?: boolean
+}
+
+function assertIsPatch(x: unknown): asserts x is Patch {
+  assert(typeof x === 'object', `patch must be an object but got ${typeof x}`)
+  assert(x !== null, 'patch must not be null')
+  assert('row' in x, 'patch must have a row property')
+  assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
+  if ('replace' in x) {
+    assert(typeof x.replace === 'string', `replace must be a string but got ${typeof x.replace}`)
+  }
+  if ('insertBefore' in x) {
+    assert(typeof x.insertBefore === 'string', `insertBefore must be a string but got ${typeof x.insertBefore}`)
+  }
+  if ('insertAfter' in x) {
+    assert(typeof x.insertAfter === 'string', `insertAfter must be a string but got ${typeof x.insertAfter}`)
+  }
+  if ('remove' in x) {
+    assert(typeof x.remove === 'boolean', `remove must be a boolean but got ${typeof x.remove}`)
+  }
+}
+
+function assertIsPatchArray(x: unknown): asserts x is Patch[] {
+  assert(Array.isArray(x), `patches must be an array but got ${typeof x}`)
+  for (const item of x) {
+    assertIsPatch(item)
   }
 }
