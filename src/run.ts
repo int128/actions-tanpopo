@@ -117,8 +117,9 @@ const createOrUpdatePullRequestForTask = async (
   await exec.exec('git', ['config', 'user.email', `${context.actor}@users.noreply.github.com`], { cwd: workspace })
   await exec.exec('git', ['commit', '--quiet', '-m', taskName, '-m', workflowRunUrl], { cwd: workspace })
   await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${headBranch}`], { cwd: workspace })
+
   const [owner, repo] = repository.split('/')
+  await pushSignedCommit(owner, repo, headBranch, octokit, workspace)
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
@@ -135,6 +136,36 @@ const createOrUpdatePullRequestForTask = async (
   })
   core.info(`Requested review from ${context.actor} for pull request: ${pull.html_url}`)
   return pull
+}
+
+const pushSignedCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
+  const tempBranch = `${branch}--signing`
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
+  try {
+    const { data: unsigned } = await octokit.rest.repos.getBranch({
+      owner,
+      repo,
+      branch: tempBranch,
+    })
+    const { data: signedCommit } = await octokit.rest.git.createCommit({
+      owner,
+      repo,
+      message: unsigned.commit.commit.message,
+      tree: unsigned.commit.commit.tree.sha,
+      parents: unsigned.commit.parents.map((parent) => parent.sha),
+    })
+    await octokit.rest.git.updateRef({
+      owner,
+      repo,
+      ref: `heads/${tempBranch}`,
+      sha: signedCommit.sha,
+      force: true,
+    })
+    await exec.exec('git', ['fetch', '--quiet', 'origin', `${tempBranch}:${tempBranch}`], { cwd: workspace })
+  } finally {
+    await exec.exec('git', ['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
+  }
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${branch}`], { cwd: workspace })
 }
 
 type CreatePullRequest = NonNullable<Awaited<Parameters<Octokit['rest']['pulls']['create']>[0]>>
