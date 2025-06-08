@@ -1,5 +1,5 @@
 # Example
 
 This is an example task.
-You don't need to do nothing here.
-Stop.
+
+Add a hello message to `tasks/example/README.md`.

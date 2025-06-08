@@ -117,8 +117,33 @@ const createOrUpdatePullRequestForTask = async (
   await exec.exec('git', ['config', 'user.email', `${context.actor}@users.noreply.github.com`], { cwd: workspace })
   await exec.exec('git', ['commit', '--quiet', '-m', taskName, '-m', workflowRunUrl], { cwd: workspace })
   await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${headBranch}`], { cwd: workspace })
+
+  const tempBranch = `${headBranch}-temp`
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
   const [owner, repo] = repository.split('/')
+  const { data: branch } = await octokit.rest.repos.getBranch({
+    owner,
+    repo,
+    branch: tempBranch,
+  })
+  const { data: commit } = await octokit.rest.git.createCommit({
+    owner,
+    repo,
+    message: branch.commit.commit.message,
+    tree: branch.commit.commit.tree.sha,
+    parents: branch.commit.parents.map((parent) => parent.sha),
+  })
+  await octokit.rest.git.updateRef({
+    owner,
+    repo,
+    ref: `heads/${tempBranch}`,
+    sha: commit.sha,
+    force: true,
+  })
+  await exec.exec('git', ['fetch', '--quiet', 'origin', `${tempBranch}:${tempBranch}`], { cwd: workspace })
+  await exec.exec('git', ['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
+  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${headBranch}`], { cwd: workspace })
+
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
