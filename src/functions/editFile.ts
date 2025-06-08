@@ -5,7 +5,7 @@ import * as path from 'path'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
-const description = `Edit a line of an existing file in the workspace.`
+const description = `Update an existing file.`
 
 export const declaration: FunctionDeclaration = {
   description,
@@ -26,7 +26,8 @@ export const declaration: FunctionDeclaration = {
           properties: {
             row: {
               type: Type.INTEGER,
-              description: 'The 1-based index of the line in the file.',
+              description:
+                'The 1-based index of the line in the file. The row indices are preserved after each operation.',
               minimum: 1,
             },
             operation: {
