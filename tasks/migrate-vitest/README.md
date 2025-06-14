@@ -55,6 +55,7 @@ Run the following command to check if the migration is successful:
 pnpm run test
 pnpm run lint
 pnpm run format
+pnpm run build
 ```
 
 Here is the recommendation for the migration:
