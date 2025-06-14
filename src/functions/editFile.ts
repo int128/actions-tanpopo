@@ -5,7 +5,7 @@ import * as path from 'path'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
-const description = `Edit a line of an existing file in the workspace.`
+const description = `Update an existing file.`
 
 export const declaration: FunctionDeclaration = {
   description,
@@ -20,27 +20,31 @@ export const declaration: FunctionDeclaration = {
       patches: {
         type: Type.ARRAY,
         description: `An array of patches to perform on the file.`,
+        minItems: '1',
         items: {
           type: Type.OBJECT,
-          description: `A patch to apply to a specific line in the file.`,
           properties: {
             row: {
               type: Type.INTEGER,
-              description: 'The 1-based index of the line in the original file.',
+              description:
+                'The 1-based index of the line in the file. The row indices are preserved after each operation.',
               minimum: 1,
             },
             operation: {
               type: Type.STRING,
-              enum: ['REPLACE', 'INSERT_BEFORE', 'INSERT_AFTER', 'DELETE'],
-              description: 'The operation to perform on the specified line.',
+              description: `The operation to perform on the line.`,
+              enum: ['REPLACE', 'INSERT_BEFORE', 'DELETE'],
             },
-            operand: {
+            replacement: {
               type: Type.STRING,
-              description:
-                'The text to replace the line with, or to insert before/after the line. Ignored for DELETE operation.',
+              description: `Required for REPLACE operation. The text to replace the line with. No newline character (\\n) is allowed.`,
+            },
+            insertion: {
+              type: Type.STRING,
+              description: `Required for INSERT_BEFORE operation. The text to insert before the line. No newline character (\\n) is allowed.`,
             },
           },
-          required: ['row', 'operation', 'operand'],
+          required: ['row', 'operation'],
         },
       },
     },
@@ -63,25 +67,31 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   core.startGroup(`Patches`)
   core.info(JSON.stringify(patches, null, 2))
   core.endGroup()
-  for (const { row, operation, operand } of patches) {
-    assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-    core.info(`${row}: - ${lines[row - 1]}`)
-    switch (operation) {
-      case 'REPLACE':
-        lines[row - 1] = operand
+  for (const patch of patches) {
+    switch (patch.operation) {
+      case 'REPLACE': {
+        const { row, replacement } = patch
+        assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
+        core.info(`${row}: - ${lines[row - 1]}`)
+        lines[row - 1] = replacement
+        core.info(`${row}: + ${replacement}`)
         break
-      case 'INSERT_BEFORE':
-        lines[row - 1] = [operand, lines[row - 1]].join('\n')
+      }
+      case 'INSERT_BEFORE': {
+        const { row, insertion } = patch
+        assert(row >= 1 && row <= lines.length + 1, `row must be between 1 and ${lines.length + 1} but got ${row}`)
+        core.info(`${row}: + ${insertion}`)
+        core.info(`${row}:   ${lines[row - 1]}`)
+        lines[row - 1] = [insertion, lines[row - 1]].join('\n')
         break
-      case 'INSERT_AFTER':
-        lines[row - 1] = [lines[row - 1], operand].join('\n')
+      }
+      case 'DELETE': {
+        const { row } = patch
+        assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
+        core.info(`${row}: - ${lines[row - 1]}`)
+        lines[row - 1] = null // Mark for deletion
         break
-      case 'DELETE':
-        lines[row - 1] = null
-        break
-    }
-    for (const line of lines[row - 1]?.split('\n') ?? []) {
-      core.info(`${row}: + ${line}`)
+      }
     }
   }
 
@@ -94,25 +104,49 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   }
 }
 
-type Patch = {
-  row: number
-  operation: 'REPLACE' | 'INSERT_BEFORE' | 'INSERT_AFTER' | 'DELETE'
-  operand: string
-}
+type Patch =
+  | {
+      operation: 'REPLACE'
+      row: number
+      replacement: string
+    }
+  | {
+      operation: 'INSERT_BEFORE'
+      row: number
+      insertion: string
+    }
+  | {
+      operation: 'DELETE'
+      row: number
+    }
 
 function assertIsPatch(x: unknown): asserts x is Patch {
   assert(typeof x === 'object', `patch must be an object but got ${typeof x}`)
   assert(x !== null, 'patch must not be null')
-  assert('row' in x, 'patch must have a row property')
-  assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
-  assert('operation' in x, 'patch must have an operation property')
+  assert('operation' in x, 'patch must have an operation')
   assert(typeof x.operation === 'string', `operation must be a string but got ${typeof x.operation}`)
-  assert(
-    ['REPLACE', 'INSERT_BEFORE', 'INSERT_AFTER', 'DELETE'].includes(x.operation),
-    `invalid operation: ${x.operation}`,
-  )
-  assert('operand' in x, 'patch must have an operand property')
-  assert(typeof x.operand === 'string', `operand must be a string but got ${typeof x.operand}`)
+  switch (x.operation) {
+    case 'REPLACE':
+      assert('row' in x, 'REPLACE patch must have a row')
+      assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
+      assert('replacement' in x, 'REPLACE patch must have a replacement')
+      assert(typeof x.replacement === 'string', `replacement must be a string but got ${typeof x.replacement}`)
+      assert(!x.replacement.includes('\n'), 'replacement must not contain newline characters')
+      return
+    case 'INSERT_BEFORE':
+      assert('row' in x, 'INSERT_BEFORE patch must have a row')
+      assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
+      assert('insertion' in x, 'INSERT_BEFORE patch must have an insertion')
+      assert(typeof x.insertion === 'string', `insertion must be a string but got ${typeof x.insertion}`)
+      assert(!x.insertion.includes('\n'), 'insertion must not contain newline characters')
+      return
+    case 'DELETE':
+      assert('row' in x, 'DELETE patch must have a row')
+      assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
+      return
+    default:
+      assert.fail(`unknown operation: ${x.operation}`)
+  }
 }
 
 function assertIsPatchArray(x: unknown): asserts x is Patch[] {

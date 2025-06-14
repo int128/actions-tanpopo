@@ -9,11 +9,10 @@ import { ContentListUnion, GoogleGenAI } from '@google/genai'
 const systemInstruction = `
 You are an agent for software development.
 Follow the task instruction.
-
+The current working directory contains the codebase of the task.
 If you encounter any problem, stop the task and return a message with the prefix of "ERROR:".
-
-The current working directory contains the code to be modified.
-If you run grep, find, or similar commands, exclude the paths described in the .gitignore file, such as node_modules.
+Use "git grep -n" to search for text in the codebase.
+Use "git ls-files" to find files in the codebase.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
