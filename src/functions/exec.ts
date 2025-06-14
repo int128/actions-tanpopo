@@ -4,7 +4,7 @@ import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
 
 export const declaration: FunctionDeclaration = {
-  description: `Run a shell command in the workspace. Typical Linux commands are available such as find, grep or sed`,
+  description: `Run a shell command in the workspace. Typical Linux commands are available.`,
   name: 'exec',
   parameters: {
     type: Type.OBJECT,
