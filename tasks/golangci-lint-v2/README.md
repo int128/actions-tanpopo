@@ -1,4 +1,4 @@
-# Update github.com/golangci/golangci-lint to v2
+# Migrate golangci-lint to v2
 
 ## Goal
 
@@ -6,9 +6,7 @@ Update the linting tool `github.com/golangci/golangci-lint` to v2.
 
 ## Steps
 
-### 1. Update go.mod
-
-Run the following commands to update `go.mod`:
+Replace golangci-lint v1 with v2:
 
 ```bash
 go get -tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
@@ -16,32 +14,29 @@ go mod edit -droptool=github.com/golangci/golangci-lint/cmd/golangci-lint
 go mod tidy
 ```
 
-### 2. Update Makefile
+Fix the configuration files as follows:
 
-Run the following command to update `Makefile`:
+- `Makefile`
+  - If `lint` task runs `go tool github.com/golangci/golangci-lint/cmd/golangci-lint run`, replace it with `go tool golangci-lint run`.
+  - If it does not have `lint` task, add it with the command `go tool golangci-lint run`.
 
-```bash
-sed -i -e 's|github.com/golangci/golangci-lint/cmd/golangci-lint|golangci-lint|g' Makefile
-```
+### Migration
 
-### 3. Fix the lint errors
-
-Run the following command to check if the lint is passing:
+Run the following command to check if the migration is successful:
 
 ```bash
-go tool golangci-lint run
+make lint
+go fmt
 ```
 
-If a lint error is returned, try to fix the code.
-After the fix, check again if the lint is passing.
+Here is the recommendation for the migration:
 
-If you got an error of `errcheck`, fix it to check the error and log it.
-Here is an example of how to check the error and log it:
-
-```go
-defer func() {
-    if err := f.Close(); err != nil {
-        slog.Error("Failed to close the file", "error", err)
-    }
-}()
-```
+- For `errcheck` error, you need to add error handling for the function.
+  - Here is an example of how to add error handling:
+    ```go
+    defer func() {
+      if err := f.Close(); err != nil {
+        log.Printf("Failed to close the file: %v", err)
+      }
+    }()
+    ```
