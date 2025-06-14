@@ -60,20 +60,28 @@ const retryTooManyRequests = async <T>(f: () => Promise<T>) => {
       if (attempt > 3) {
         throw error
       }
-      if (error instanceof Error && error.message.includes('429 Too Many Requests')) {
-        let seconds = 30
-        const m = error.message.match(/"retryDelay":"(\d+)s"/)
-        if (m) {
-          const s = Number.parseInt(m[1])
-          if (Number.isSafeInteger(s) && s > 0) {
-            seconds = s
-          }
+      if (error instanceof Error) {
+        const retryAfterSec = parseRetryAfterSec(error.message)
+        if (retryAfterSec) {
+          core.warning(`Retry attempt ${attempt} after ${retryAfterSec}s: ${error}`)
+          await new Promise((resolve) => setTimeout(resolve, retryAfterSec * 1000))
+          continue
         }
-        core.warning(`Retry attempt ${attempt} after ${seconds}s: ${error}`)
-        await new Promise((resolve) => setTimeout(resolve, seconds * 1000))
-        continue
       }
       throw error
     }
+  }
+}
+
+export const parseRetryAfterSec = (message: string): number | undefined => {
+  if (message.match(/429 Too Many Requests|500 Internal Server Error/)) {
+    const m = message.match(/"retryDelay":"(\d+)s"/)
+    if (m) {
+      const s = Number.parseInt(m[1])
+      if (Number.isSafeInteger(s) && s > 0) {
+        return s
+      }
+    }
+    return 30
   }
 }
