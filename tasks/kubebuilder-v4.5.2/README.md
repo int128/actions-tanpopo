@@ -20,7 +20,7 @@ git cherry-pick cbcad932011cd36db023cada2ec80caefa85f723
 Check the conflicts.
 
 ```bash
-git status
+git status --short --branch
 ```
 
 If a file does not exist in the project, remove it.
@@ -47,6 +47,8 @@ Then, remove the following files:
 - `test/e2e/e2e_test.go`
 
 If go.mod or go.sum have conflicts, use the current project's version.
+
+You don't need to commit the changes.
 
 Finally, run the following commands to update the project:
 
