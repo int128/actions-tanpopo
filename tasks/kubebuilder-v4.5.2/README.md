@@ -46,9 +46,16 @@ Then, remove the following files:
 - `test/e2e/e2e_suite_test.go`
 - `test/e2e/e2e_test.go`
 
-If go.mod or go.sum have conflicts, use the current project's version.
+Resolve the conflicts as follows:
 
-You don't need to commit the changes.
+- go.mod
+  - Use the original version.
+- go.sum
+  - After resolving the conflicts, run `go mod tidy` to update the file.
+- Others
+  - Apply the merged changes.
+
+Do not run `git cherry-pick --continue`.
 
 Finally, run the following commands to update the project:
 
