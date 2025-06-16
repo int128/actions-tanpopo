@@ -1,20 +1,27 @@
-# Upgrade kubebuilder to v4.5.2
+# Update the project to the latest version of kubebuilder
 
 ## Goal
 
-Update the project to use kubebuilder v4.5.2.
+Update the project to the latest version of kubebuilder.
 
-## Doc
+This repository provides the patches to update the project.
+https://github.com/int128/kubebuilder-updates
 
-https://github.com/int128/kubebuilder-updates?tab=readme-ov-file#update-kubebuilder-from-v451-to-v452
+## Prerequisites
+
+Find the latest patch from https://github.com/int128/kubebuilder-updates.
+This instruction assumes that the patch is for kubebuilder v4.6.0 or later.
+
+Check the current version of the project from `cliVersion` field of `PROJECT` file.
+If it does not has `cliVersion` field, assumes that the project is using kubebuilder v4.5.2.
 
 ## Steps
 
-Apply the patch to update the project from v4.5.1 to v4.5.2:
+Apply the patch to update the project:
 
 ```bash
-git fetch https://github.com/int128/kubebuilder-updates cbcad932011cd36db023cada2ec80caefa85f723
-git cherry-pick cbcad932011cd36db023cada2ec80caefa85f723
+git fetch https://github.com/int128/kubebuilder-updates PATCH_COMMIT_SHA
+git cherry-pick PATCH_COMMIT_SHA
 ```
 
 Check the conflicts.
