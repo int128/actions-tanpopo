@@ -1,16 +1,13 @@
-# Update the project to the latest version of kubebuilder
+# Update to kubebuilder v4.6.0
 
 ## Goal
 
 Update the project to the latest version of kubebuilder.
 
-This repository provides the patches to update the project.
-https://github.com/int128/kubebuilder-updates
-
 ## Prerequisites
 
-Find the latest patch from https://github.com/int128/kubebuilder-updates/blob/main/README.md.
-The README file contains the list of patches for each version of kubebuilder.
+Find the latest patch from the repository https://github.com/int128/kubebuilder-updates.
+The README.md file contains the list of patches for each version of kubebuilder.
 This instruction assumes that the patch is for kubebuilder v4.6.0 or later.
 
 Check the current version of the project from `cliVersion` field of `PROJECT` file.
