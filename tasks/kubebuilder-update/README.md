@@ -57,6 +57,7 @@ Then, remove the following files:
 Resolve the conflicts as follows:
 
 - If you find an example symbol such as `Guestbook` in the patch, keep the original lines.
+- If you find `kubebuilder-update` in the patch, replace it with the current project name.
 - `go.mod`
   - Use the original file.
 - `go.sum`
