@@ -19,40 +19,40 @@ export const declaration: FunctionDeclaration = {
       },
       patches: {
         type: Type.ARRAY,
-        description: `An array of patches to perform on the file.`,
+        description: `An array of patches to perform on the file.
+The patches will be applied in the order they are specified.
+`,
         minItems: '1',
         items: {
           type: Type.OBJECT,
           properties: {
             row: {
               type: Type.INTEGER,
-              description: `The 1-based index of the line in the file.
-The row indices in the file will not change after each patch.
-For example:
-If you replace row #1 with multiple lines, the original row #2 will be still row #2, not row #3.
-If you insert a line before row #1, the original row #1 will be still row #1, not row #2.
-If you delete row #1, the original row #2 will be still row #2, not row #1.
+              description: `The 1-based index of the line.
+For example, the first line is row 1, the second line is row 2, etc.
 `,
               minimum: 1,
             },
             operation: {
               type: Type.STRING,
-              description: `The operation to perform on the line.`,
+              description: `The operation to perform on the line.
+Valid operations are:
+- REPLACE: Replace the line with the "replacement" text.
+- INSERT_BEFORE: Insert the "insertion" text before the line.
+  The row index will not change after this operation.
+- DELETE: Mark the line for deletion.
+  The line will be removed after all patches are applied.
+  The row index of subsequent lines will not change after this operation.
+`,
               enum: ['REPLACE', 'INSERT_BEFORE', 'DELETE'],
             },
             replacement: {
               type: Type.STRING,
-              description: `Required for REPLACE operation.
-The text to replace the line with.
-The row indices in the file are preserved even if the line is replaced with multiple lines.
-`,
+              description: `The text to replace the line with. Required for REPLACE operation.`,
             },
             insertion: {
               type: Type.STRING,
-              description: `Required for INSERT_BEFORE operation.
-The text to insert before the line.
-The row indices in the file are preserved after the insertion.
-`,
+              description: `The text to insert before the line. Required for INSERT_BEFORE operation.`,
             },
           },
           required: ['row', 'operation'],
