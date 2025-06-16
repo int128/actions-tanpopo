@@ -13,9 +13,28 @@ For example,
 - Update documentations
 - Convert file formats
 
-This action handles the repetitive work of updating multiple repositories, similar to "刺身にたんぽぽを乗せる仕事" (placing dandelions on sashimi) in Japanese - a routine yet precise task that benefits from automation.
+This action handles the repetitive work of updating multiple repositories, similar to placing dandelions on sashimi ("刺身にたんぽぽを乗せる仕事" in Japanese) - a routine yet precise task that benefits from automation.
 
 ## Getting started
+
+This action performs a task for each repository.
+
+Describe a task in the repository as follows:
+
+- `tasks/<task-name>/README.md`
+  - The details of the task.
+  - This action understands the instruction using LLM.
+- `tasks/<task-name>/repositories`
+  - The list of repositories to be updated.
+  - Each line should be in the format of `owner/repo`.
+- `tasks/<task-name>/precondition.sh`
+  - A script to determine if it needs to apply this task to a repository.
+  - If this script exits with code 0, this action will apply the task to the repository.
+  - If this script exits with code 99, this action will skip the repository.
+
+When you create a pull request with changing a task directory, this action will perform the task.
+
+## Setup
 
 ### Create a GitHub App
 
@@ -28,7 +47,7 @@ Here are the required permissions:
 
 Install the GitHub App to your repositories.
 
-### Run the bot
+### Create a workflow
 
 Create a workflow to run this action.
 
@@ -61,15 +80,3 @@ jobs:
         with:
           token: ${{ steps.token.outputs.token }}
 ```
-
-### Create a pull request with a task
-
-Create a pull request with the following changes:
-
-- `tasks/<task-name>/README.md`
-  - Write the description of the task.
-- `tasks/<task-name>/repositories`
-  - Write the list of repositories to be updated.
-  - Each line should be in the format of `owner/repo`.
-
-This action will perform the task for each repository.
