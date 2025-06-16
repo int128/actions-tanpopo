@@ -9,7 +9,8 @@ https://github.com/int128/kubebuilder-updates
 
 ## Prerequisites
 
-Find the latest patch from https://github.com/int128/kubebuilder-updates.
+Find the latest patch from https://github.com/int128/kubebuilder-updates/blob/main/README.md.
+The README file contains the list of patches for each version of kubebuilder.
 This instruction assumes that the patch is for kubebuilder v4.6.0 or later.
 
 Check the current version of the project from `cliVersion` field of `PROJECT` file.
