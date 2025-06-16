@@ -26,8 +26,13 @@ export const declaration: FunctionDeclaration = {
           properties: {
             row: {
               type: Type.INTEGER,
-              description:
-                'The 1-based index of the line in the file. The row indices are preserved after each operation.',
+              description: `The 1-based index of the line in the file.
+The row indices in the file will not change after each patch.
+For example:
+If you replace row #1 with multiple lines, the original row #2 will be still row #2, not row #3.
+If you insert a line before row #1, the original row #1 will be still row #1, not row #2.
+If you delete row #1, the original row #2 will be still row #2, not row #1.
+`,
               minimum: 1,
             },
             operation: {
@@ -37,11 +42,17 @@ export const declaration: FunctionDeclaration = {
             },
             replacement: {
               type: Type.STRING,
-              description: `Required for REPLACE operation. The text to replace the line with. No newline character (\\n) is allowed.`,
+              description: `Required for REPLACE operation.
+The text to replace the line with.
+The row indices in the file are preserved even if the line is replaced with multiple lines.
+`,
             },
             insertion: {
               type: Type.STRING,
-              description: `Required for INSERT_BEFORE operation. The text to insert before the line. No newline character (\\n) is allowed.`,
+              description: `Required for INSERT_BEFORE operation.
+The text to insert before the line.
+The row indices in the file are preserved after the insertion.
+`,
             },
           },
           required: ['row', 'operation'],
@@ -131,14 +142,12 @@ function assertIsPatch(x: unknown): asserts x is Patch {
       assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
       assert('replacement' in x, 'REPLACE patch must have a replacement')
       assert(typeof x.replacement === 'string', `replacement must be a string but got ${typeof x.replacement}`)
-      assert(!x.replacement.includes('\n'), 'replacement must not contain newline characters')
       return
     case 'INSERT_BEFORE':
       assert('row' in x, 'INSERT_BEFORE patch must have a row')
       assert(typeof x.row === 'number', `row must be a number but got ${typeof x.row}`)
       assert('insertion' in x, 'INSERT_BEFORE patch must have an insertion')
       assert(typeof x.insertion === 'string', `insertion must be a string but got ${typeof x.insertion}`)
-      assert(!x.insertion.includes('\n'), 'insertion must not contain newline characters')
       return
     case 'DELETE':
       assert('row' in x, 'DELETE patch must have a row')
