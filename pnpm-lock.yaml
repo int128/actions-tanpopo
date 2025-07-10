@@ -15,8 +15,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1
       '@google/genai':
-        specifier: 1.8.0
-        version: 1.8.0(@modelcontextprotocol/sdk@1.11.4)
+        specifier: 1.9.0
+        version: 1.9.0(@modelcontextprotocol/sdk@1.11.4)
       '@octokit/action':
         specifier: 8.0.2
         version: 8.0.2
@@ -271,8 +271,8 @@ packages:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
 
-  '@google/genai@1.8.0':
-    resolution: {integrity: sha512-n3KiMFesQCy2R9iSdBIuJ0JWYQ1HZBJJkmt4PPZMGZKvlgHhBAGw1kUMyX+vsAIzprN3lK45DI755lm70wPOOg==}
+  '@google/genai@1.9.0':
+    resolution: {integrity: sha512-w9P93OXKPMs9H1mfAx9+p3zJqQGrWBGdvK/SVc7cLZEXNHr/3+vW2eif7ZShA6wU24rNLn9z9MK2vQFUvNRI2Q==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.11.0
@@ -1758,12 +1758,10 @@ snapshots:
 
   '@fastify/busboy@2.1.1': {}
 
-  '@google/genai@1.8.0(@modelcontextprotocol/sdk@1.11.4)':
+  '@google/genai@1.9.0(@modelcontextprotocol/sdk@1.11.4)':
     dependencies:
       google-auth-library: 9.15.1
       ws: 8.18.2
-      zod: 3.24.4
-      zod-to-json-schema: 3.24.5(zod@3.24.4)
     optionalDependencies:
       '@modelcontextprotocol/sdk': 1.11.4
     transitivePeerDependencies:
@@ -3232,5 +3230,7 @@ snapshots:
   zod-to-json-schema@3.24.5(zod@3.24.4):
     dependencies:
       zod: 3.24.4
+    optional: true
 
-  zod@3.24.4: {}
+  zod@3.24.4:
+    optional: true
