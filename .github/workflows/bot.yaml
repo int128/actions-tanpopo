@@ -38,4 +38,4 @@ jobs:
         with:
           token: ${{ steps.token.outputs.token }}
         env:
-          BOT_GEMINI_API_KEY: ${{ secrets.BOT_GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
