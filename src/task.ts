@@ -15,6 +15,7 @@ You can create temporary files into the directory ${context.runnerTemp}.
     options: {
       cwd: workspace,
       allowedTools: [],
+      pathToClaudeCodeExecutable: `node_modules/@anthropic-ai/claude-code/cli.js`,
     },
   })
   for await (const message of queryResponse) {
