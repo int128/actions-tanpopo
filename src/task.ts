@@ -74,7 +74,7 @@ const retryTooManyRequests = async <T>(f: () => Promise<T>) => {
 }
 
 export const parseRetryAfterSec = (message: string): number | undefined => {
-  if (message.match(/429 Too Many Requests|500 Internal Server Error/)) {
+  if (message.match(/"code":429|"code":500/)) {
     const m = message.match(/"retryDelay":"(\d+)s"/)
     if (m) {
       const s = Number.parseInt(m[1])

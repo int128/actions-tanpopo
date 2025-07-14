@@ -1,19 +1,19 @@
-# Update the project to the latest version of kubebuilder
+# Update to kubebuilder v4.6.0
 
 ## Goal
 
 Update the project to the latest version of kubebuilder.
 
-This repository provides the patches to update the project.
-https://github.com/int128/kubebuilder-updates
-
 ## Prerequisites
 
-Find the latest patch from https://github.com/int128/kubebuilder-updates.
-This instruction assumes that the patch is for kubebuilder v4.6.0 or later.
+Read https://raw.githubusercontent.com/int128/kubebuilder-updates/refs/heads/main/README.md and find the patch for the specific version of kubebuilder.
+Remember the commit SHA of the patch as `PATCH_COMMIT_SHA`.
 
 Check the current version of the project from `cliVersion` field of `PROJECT` file.
 If it does not has `cliVersion` field, assumes that the project is using kubebuilder v4.5.2.
+
+The goal of this task is resolving the conflicts after applying the patch.
+Do not commit the change by git commit or git cherry-pick --continue.
 
 ## Steps
 
@@ -55,14 +55,16 @@ Then, remove the following files:
 
 Resolve the conflicts as follows:
 
-- go.mod
-  - Use the original version.
-- go.sum
+- If you find an example symbol such as `Guestbook` in the patch, keep the original lines.
+- If you find `kubebuilder-update` in the patch, replace it with the current project name.
+- `go.mod`
+  - Use the original file.
+- `go.sum`
   - After resolving the conflicts, run `go mod tidy` to update the file.
-- Others
-  - Apply the merged changes.
-
-Do not run `git cherry-pick --continue`.
+- `Dockerfile`
+  - If you encounter a conflict of the build platform such as `--platform=$BUILDPLATFORM`, keep the original lines.
+- `Makefile`
+  - If you encounter a conflict of a dependency version, choose the newer one.
 
 Finally, run the following commands to update the project:
 
