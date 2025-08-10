@@ -102,7 +102,7 @@ const createOrUpdatePullRequestForTask = async (
     throw new Error(`precondition failed with exit code ${precondition}`)
   }
 
-  await applyTask(taskDir, workspace, context)
+  await applyTask(taskDir, workspace)
 
   const gitStatus = await git.status(workspace)
   if (gitStatus === '') {
