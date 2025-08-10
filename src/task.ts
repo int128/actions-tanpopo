@@ -1,10 +1,11 @@
 import * as exec from '@actions/exec'
 
 export const applyTask = async (taskDir: string, workspace: string) => {
+  await exec.exec('npx', ['install', '-g', '@google/gemini-cli'])
+  await exec.exec('gemini', ['--version'])
   await exec.exec(
-    'npx',
+    'gemini',
     [
-      'https://github.com/google-gemini/gemini-cli',
       '--yolo',
       '--prompt',
       `
