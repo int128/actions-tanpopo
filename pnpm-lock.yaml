@@ -15,8 +15,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1
       '@google/genai':
-        specifier: 1.13.0
-        version: 1.13.0(@modelcontextprotocol/sdk@1.11.4)
+        specifier: 1.14.0
+        version: 1.14.0(@modelcontextprotocol/sdk@1.11.4)
       '@octokit/action':
         specifier: 8.0.2
         version: 8.0.2
@@ -271,8 +271,8 @@ packages:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
 
-  '@google/genai@1.13.0':
-    resolution: {integrity: sha512-BxilXzE8cJ0zt5/lXk6KwuBcIT9P2Lbi2WXhwWMbxf1RNeC68/8DmYQqMrzQP333CieRMdbDXs0eNCphLoScWg==}
+  '@google/genai@1.14.0':
+    resolution: {integrity: sha512-jirYprAAJU1svjwSDVCzyVq+FrJpJd5CSxR/g2Ga/gZ0ZYZpcWjMS75KJl9y71K1mDN+tcx6s21CzCbB2R840g==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.11.0
@@ -1768,7 +1768,7 @@ snapshots:
 
   '@fastify/busboy@2.1.1': {}
 
-  '@google/genai@1.13.0(@modelcontextprotocol/sdk@1.11.4)':
+  '@google/genai@1.14.0(@modelcontextprotocol/sdk@1.11.4)':
     dependencies:
       google-auth-library: 9.15.1
       ws: 8.18.2
