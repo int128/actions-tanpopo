@@ -42,12 +42,18 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       }
     } else if (response.text) {
       core.info(`🤖: ${response.text}`)
+      core.summary.addHeading(`🤖 Response`, 3)
+      core.summary.addRaw('<p>', true)
+      core.summary.addRaw(response.text)
+      core.summary.addRaw('</p>', true)
       if (response.text.startsWith('ERROR:')) {
         throw new Error(response.text)
       }
       return
     } else {
-      throw new Error(`no content from the model: ${response.promptFeedback?.blockReasonMessage}`)
+      core.summary.addHeading(`🤖 Bad response`, 3)
+      core.summary.addCodeBlock(JSON.stringify(response, null, 2), 'json')
+      throw new Error(`unexpected response: ${JSON.stringify(response)}`)
     }
   }
 }

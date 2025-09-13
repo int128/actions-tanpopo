@@ -40,6 +40,8 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
   core.startGroup(`🤖 Created a temporary file at ${tempfile}`)
   core.info(content)
   core.endGroup()
+  core.summary.addHeading(`🤖 Created a temporary file at ${tempfile}`, 3)
+  core.summary.addCodeBlock(content)
   return {
     id: functionCall.id,
     name: functionCall.name,
