@@ -4,7 +4,7 @@ import * as functions from './functions/index.js'
 import * as path from 'path'
 import { Context } from './github.js'
 import { WebhookEvent } from '@octokit/webhooks-types'
-import { ContentListUnion, GoogleGenAI } from '@google/genai'
+import { ContentListUnion, FinishReason, GoogleGenAI } from '@google/genai'
 
 const systemInstruction = `
 You are an agent for software development.
@@ -50,6 +50,8 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
         throw new Error(response.text)
       }
       return
+    } else if (response.candidates?.at(0)?.finishReason === FinishReason.MALFORMED_FUNCTION_CALL) {
+      core.warning(`🤖 Retrying ${FinishReason.MALFORMED_FUNCTION_CALL}`)
     } else {
       core.summary.addHeading(`🤖 Bad response`, 3)
       core.summary.addCodeBlock(JSON.stringify(response, null, 2), 'json')
