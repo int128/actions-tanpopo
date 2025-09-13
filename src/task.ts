@@ -4,7 +4,7 @@ import * as functions from './functions/index.js'
 import * as path from 'path'
 import { Context } from './github.js'
 import { WebhookEvent } from '@octokit/webhooks-types'
-import { ContentListUnion, GoogleGenAI } from '@google/genai'
+import { ContentListUnion, FinishReason, GoogleGenAI } from '@google/genai'
 
 const systemInstruction = `
 You are an agent for software development.
@@ -51,6 +51,13 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       }
       return
     } else {
+      const retryableFinishReasons = [FinishReason.MALFORMED_FUNCTION_CALL]
+      const finishReason = response.candidates?.at(0)?.finishReason
+      if (finishReason && retryableFinishReasons.includes(finishReason)) {
+        core.warning(`Retry ${finishReason}: ${JSON.stringify(response)}`)
+        continue
+      }
+
       core.summary.addHeading(`🤖 Bad response`, 3)
       core.summary.addCodeBlock(JSON.stringify(response, null, 2), 'json')
       throw new Error(`unexpected response: ${JSON.stringify(response)}`)
