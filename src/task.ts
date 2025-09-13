@@ -47,7 +47,7 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       }
       return
     } else {
-      throw new Error(`no content from the model: ${response.promptFeedback?.blockReasonMessage}`)
+      throw new Error(`no content from the model: ${JSON.stringify(response)}`)
     }
   }
 }
