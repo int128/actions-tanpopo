@@ -43,7 +43,9 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
     } else if (response.text) {
       core.info(`🤖: ${response.text}`)
       core.summary.addHeading(`🤖 Response`, 3)
+      core.summary.addRaw('<p>', true)
       core.summary.addRaw(response.text)
+      core.summary.addRaw('</p>', true)
       if (response.text.startsWith('ERROR:')) {
         throw new Error(response.text)
       }
