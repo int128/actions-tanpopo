@@ -50,9 +50,14 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
         throw new Error(response.text)
       }
       return
-    } else if (response.candidates?.at(0)?.finishReason === FinishReason.MALFORMED_FUNCTION_CALL) {
-      core.warning(`🤖 Retrying ${FinishReason.MALFORMED_FUNCTION_CALL}`)
     } else {
+      const retryableFinishReasons = [FinishReason.MALFORMED_FUNCTION_CALL]
+      const finishReason = response.candidates?.at(0)?.finishReason
+      if (finishReason && retryableFinishReasons.includes(finishReason)) {
+        core.warning(`Retry ${finishReason}: ${JSON.stringify(response)}`)
+        continue
+      }
+
       core.summary.addHeading(`🤖 Bad response`, 3)
       core.summary.addCodeBlock(JSON.stringify(response, null, 2), 'json')
       throw new Error(`unexpected response: ${JSON.stringify(response)}`)
