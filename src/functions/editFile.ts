@@ -108,6 +108,8 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
 
   const newContent = lines.filter((line) => line !== null).join('\n')
   await fs.writeFile(absolutePath, newContent, 'utf-8')
+  core.summary.addHeading(`🤖 Edited ${filename}`, 3)
+  core.summary.addCodeBlock(JSON.stringify(patches, null, 2), 'json')
   return {
     id: functionCall.id,
     name: functionCall.name,

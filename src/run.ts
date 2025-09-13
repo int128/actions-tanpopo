@@ -38,11 +38,14 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
 }
 
 const processTask = async (taskDir: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
+  core.summary.addHeading(`Task ${taskDir}`, 1)
+
   let comment
   const pulls = []
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   for (const repository of repositories) {
     core.info(`=== ${repository}`)
+    core.summary.addHeading(`Repository ${repository}`, 2)
     const pull = await createOrUpdatePullRequestForTask(taskDir, repository, octokit, context)
     if (!pull) {
       continue
@@ -190,9 +193,13 @@ const createOrUpdatePullRequest = async (octokit: Octokit, pull: CreatePullReque
       body: pull.body,
     })
     core.info(`Updated pull request: ${updatedPull.html_url}`)
+    core.summary.addHeading('Updated the existing pull request', 3)
+    core.summary.addRaw(`[#${existingPull.number}](${existingPull.html_url})`)
     return updatedPull
   }
   const { data: createdPull } = await octokit.pulls.create(pull)
   core.info(`Created pull request: ${createdPull.html_url}`)
+  core.summary.addHeading('Created the pull request', 3)
+  core.summary.addRaw(`[#${createdPull.number}](${createdPull.html_url})`)
   return createdPull
 }
