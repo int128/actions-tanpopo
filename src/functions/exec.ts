@@ -59,7 +59,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     cwd: context.workspace,
     ignoreReturnCode: true,
   })
-  core.summary.addHeading(`🤖 Executed`, 3)
+  core.summary.addHeading(`🤖 Executed with exit code ${exitCode}`, 3)
   core.summary.addCodeBlock(`${command} ${args?.join(' ') ?? ''}`)
   if (stdout) {
     core.summary.addCodeBlock(stdout)
