@@ -21,12 +21,12 @@ export const declaration: FunctionDeclaration = {
   response: {
     type: Type.OBJECT,
     properties: {
-      tempfile: {
+      path: {
         type: Type.STRING,
         description: 'The absolute path to the temporary file',
       },
     },
-    required: ['tempfile'],
+    required: ['path'],
   },
 }
 
@@ -46,7 +46,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     id: functionCall.id,
     name: functionCall.name,
     response: {
-      tempfile,
+      path: tempfile,
     },
   }
 }
