@@ -9,4 +9,6 @@ try {
 } catch (e) {
   core.setFailed(e instanceof Error ? e : String(e))
   console.error(e)
+} finally {
+  await core.summary.write()
 }

@@ -1,4 +1,5 @@
 import assert from 'assert'
+import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { Context } from './index.js'
 import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
@@ -58,6 +59,9 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     cwd: context.workspace,
     ignoreReturnCode: true,
   })
+  core.summary.addHeading(`🤖 Executed ${command}`, 3)
+  core.summary.addCodeBlock(stdout)
+  core.summary.addCodeBlock(stderr)
   return {
     id: functionCall.id,
     name: functionCall.name,

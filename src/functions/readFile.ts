@@ -58,6 +58,7 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     core.info(`${row}: ${line}`)
   }
   core.endGroup()
+  core.summary.addHeading(`🤖 Read ${filename}`, 3)
   return {
     id: functionCall.id,
     name: functionCall.name,
