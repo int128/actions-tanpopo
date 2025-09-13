@@ -60,9 +60,13 @@ export const call = async (functionCall: FunctionCall, context: Context): Promis
     ignoreReturnCode: true,
   })
   core.summary.addHeading(`🤖 Executed`, 3)
-  core.summary.addCodeBlock(JSON.stringify({ command, args }, null, 2), 'json')
-  core.summary.addCodeBlock(stdout)
-  core.summary.addCodeBlock(stderr)
+  core.summary.addCodeBlock(`${command} ${args?.join(' ') ?? ''}`)
+  if (stdout) {
+    core.summary.addCodeBlock(stdout)
+  }
+  if (stderr) {
+    core.summary.addCodeBlock(stderr)
+  }
   return {
     id: functionCall.id,
     name: functionCall.name,

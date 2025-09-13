@@ -49,7 +49,9 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       }
       return
     } else {
-      throw new Error(`no content from the model: ${JSON.stringify(response)}`)
+      core.summary.addHeading(`🤖 Bad response`, 3)
+      core.summary.addCodeBlock(JSON.stringify(response, null, 2), 'json')
+      throw new Error(`unexpected response: ${JSON.stringify(response)}`)
     }
   }
 }
