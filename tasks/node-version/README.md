@@ -27,3 +27,8 @@ After:
   with:
     node-version-file: .node-version
 ```
+
+## Acceptance Criteria
+
+- A `.node-version` file is created in the root of the repository with the correct Node.js version.
+- All `actions/setup-node` steps in GitHub Actions workflows are updated to use the `.node-version` file.
