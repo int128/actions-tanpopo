@@ -4,32 +4,33 @@
 
 Ensure the Node.js version is consistent across different environments by using a `.node-version` file.
 
+## Acceptance Criteria
+
+- A `.node-version` file is created in the root of the repository.
+- All `actions/setup-node` steps in the GitHub Actions workflows have `node-version-file` instead of `node-version`.
+
 ## How
 
-1. Find the current Node.js version from `actions/setup-node` in the GitHub Actions workflows.
+1. Find the current Node.js version from `node-version` input of `actions/setup-node` in the GitHub Actions workflows.
 2. Create a `.node-version` file in the root of your repository.
-3. Change the `actions/setup-node` step in your GitHub Actions workflows to read the `.node-version` file.
+3. Find the GitHub Actions workflows that use `actions/setup-node`. Replace all occurrences of `node-version` with `node-version-file`.
 
-### Example
+### Migration Example
 
 Before:
 
 ```yaml
-- uses: actions/setup-node@v4
-  with:
-    node-version: 20.19.5
+steps:
+  - uses: actions/setup-node@v4
+    with:
+      node-version: 20.19.5
 ```
 
 After:
 
 ```yaml
-- uses: actions/setup-node@v4
-  with:
-    node-version-file: .node-version
+steps:
+  - uses: actions/setup-node@v4
+    with:
+      node-version-file: .node-version
 ```
-
-## Acceptance Criteria
-
-- A `.node-version` file is created in the root of the repository with the correct Node.js version.
-- All `actions/setup-node` steps in GitHub Actions workflows are using `node-version-file` input.
-- All `actions/setup-node` steps in GitHub Actions workflows are not using `node-version` input.
