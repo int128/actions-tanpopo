@@ -46,4 +46,7 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
     },
   })
   core.info(`🤖: ${response.text}`)
+  core.summary.addRaw('<p>')
+  core.summary.addRaw(response.text)
+  core.summary.addRaw('</p>')
 }
