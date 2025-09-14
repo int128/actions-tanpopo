@@ -28,22 +28,23 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
     },
   })
 
-  const response = await codingAgent.streamVNext(
-    `\
+  const instruction = `\
 Follow the task described in ${path.join(taskDir, 'README.md')}.
 The code base is checked out into the directory ${workspace}.
 If you need to create a temporary file, create it under ${context.runnerTemp}.
-`,
-    {
-      onError: ({ error }) => {
-        core.error(error)
-      },
-      onFinish: ({ finishReason }) => {
-        core.info(`🤖 Finished: ${finishReason}`)
-      },
+`
+  core.info(instruction)
+
+  const response = await codingAgent.streamVNext(instruction, {
+    onError: ({ error }) => {
+      core.error(error)
     },
-  )
+    onFinish: ({ finishReason }) => {
+      core.info(`🤖: ${finishReason}`)
+    },
+  })
   for await (const chunk of response.textStream) {
     core.info(`🤖: ${chunk}`)
   }
+  core.info(`Finished the task`)
 }
