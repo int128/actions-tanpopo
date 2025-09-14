@@ -39,8 +39,10 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   core.summary.addRaw('</p>')
 
   const response = await codingAgent.generateVNext(instruction, {
-    onStepFinish: (step) => {
-      core.info(`🤖: ${JSON.stringify(step)}`)
+    onStepFinish: (step: unknown) => {
+      if (typeof step === 'object' && step !== null && 'text' in step && typeof step.text === 'string') {
+        core.info(`🤖: ${step.text}`)
+      }
     },
   })
   core.info(`🤖: ${response.text}`)
