@@ -40,7 +40,7 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
 
   const response = await codingAgent.generateVNext(instruction, {
     onStepFinish: (step: unknown) => {
-      if (typeof step === 'object' && step !== null && 'text' in step && typeof step.text === 'string') {
+      if (typeof step === 'object' && step !== null && 'text' in step && typeof step.text === 'string' && step.text) {
         core.info(`🤖: ${step.text}`)
       }
     },
