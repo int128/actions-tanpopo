@@ -1,100 +1,50 @@
 import * as core from '@actions/core'
-import * as fs from 'fs/promises'
-import * as functions from './functions/index.js'
 import * as path from 'path'
 import { Context } from './github.js'
 import { WebhookEvent } from '@octokit/webhooks-types'
-import { ContentListUnion, FinishReason, GoogleGenAI } from '@google/genai'
+import { google } from '@ai-sdk/google'
+import { Agent } from '@mastra/core/agent'
+import { execTool } from './functions/exec.js'
+import { createFileTool } from './functions/createFile.js'
+import { readFileTool } from './functions/readFile.js'
+import { editFileTool } from './functions/editFile.js'
 
 const systemInstruction = `
 You are an agent for software development.
-Follow the task instruction.
-The current working directory contains the codebase of the task.
-If you encounter any problem, stop the task and return a message with the prefix of "ERROR:".
-Use "git grep -n" to search for text in the codebase.
-Use "git ls-files" to find files in the codebase.
+You are running in GitHub Actions environment.
+Follow the task to achieve the goal.
 `
 
 export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.BOT_GEMINI_API_KEY })
-  const taskReadme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
-  const contents: ContentListUnion = [{ role: 'user', parts: [{ text: taskReadme }] }]
+  const codingAgent = new Agent({
+    name: 'coding-agent',
+    instructions: systemInstruction,
+    model: google('gemini-2.5-flash'),
+    tools: {
+      execTool,
+      createFileTool,
+      readFileTool,
+      editFileTool,
+    },
+  })
 
-  for (;;) {
-    core.info('🤖 Thinking...')
-    const response = await retryTooManyRequests(() =>
-      ai.models.generateContent({
-        model: 'gemini-2.5-flash-preview-05-20',
-        contents,
-        config: {
-          systemInstruction: [systemInstruction],
-          tools: [{ functionDeclarations: functions.functions.map((tool) => tool.declaration) }],
-        },
-      }),
-    )
-    if (response.functionCalls) {
-      for (const functionCall of response.functionCalls) {
-        contents.push({ role: 'model', parts: [{ functionCall }] })
-        contents.push({
-          role: 'user',
-          parts: [{ functionResponse: await functions.call(functionCall, { workspace, context }) }],
-        })
-      }
-    } else if (response.text) {
-      core.info(`🤖: ${response.text}`)
-      core.summary.addHeading(`🤖 Response`, 3)
-      core.summary.addRaw('<p>', true)
-      core.summary.addRaw(response.text)
-      core.summary.addRaw('</p>', true)
-      if (response.text.startsWith('ERROR:')) {
-        throw new Error(response.text)
-      }
-      return
-    } else {
-      const retryableFinishReasons = [FinishReason.MALFORMED_FUNCTION_CALL]
-      const finishReason = response.candidates?.at(0)?.finishReason
-      if (finishReason && retryableFinishReasons.includes(finishReason)) {
-        core.warning(`Retry ${finishReason}: ${JSON.stringify(response)}`)
-        continue
-      }
+  const instruction = `\
+Follow the task described in ${path.resolve(taskDir, 'README.md')}.
+The code base is checked out into the directory ${workspace}.
+If you need to create a temporary file, create it under ${context.runnerTemp}.
+`.trim()
+  core.info(instruction)
 
-      core.summary.addHeading(`🤖 Bad response`, 3)
-      core.summary.addCodeBlock(JSON.stringify(response, null, 2), 'json')
-      throw new Error(`unexpected response: ${JSON.stringify(response)}`)
-    }
+  const response = await codingAgent.streamVNext(instruction, {
+    onError: ({ error }) => {
+      core.error(error)
+    },
+    onFinish: ({ finishReason }) => {
+      core.info(`🤖: ${finishReason}`)
+    },
+  })
+  for await (const chunk of response.textStream) {
+    core.info(`🤖: ${chunk.trim()}`)
   }
-}
-
-const retryTooManyRequests = async <T>(f: () => Promise<T>) => {
-  for (let attempt = 0; ; attempt++) {
-    try {
-      return await f()
-    } catch (error: unknown) {
-      if (attempt > 3) {
-        throw error
-      }
-      if (error instanceof Error) {
-        const retryAfterSec = parseRetryAfterSec(error.message)
-        if (retryAfterSec) {
-          core.warning(`Retry attempt ${attempt} after ${retryAfterSec}s: ${error}`)
-          await new Promise((resolve) => setTimeout(resolve, retryAfterSec * 1000))
-          continue
-        }
-      }
-      throw error
-    }
-  }
-}
-
-export const parseRetryAfterSec = (message: string): number | undefined => {
-  if (message.match(/"code":429|"code":500/)) {
-    const m = message.match(/"retryDelay":"(\d+)s"/)
-    if (m) {
-      const s = Number.parseInt(m[1])
-      if (Number.isSafeInteger(s) && s > 0) {
-        return s
-      }
-    }
-    return 30
-  }
+  core.info(`Finished the task`)
 }
