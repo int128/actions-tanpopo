@@ -10,7 +10,8 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/exec": "1.1.1",
-    "@google/genai": "1.18.0",
+    "@ai-sdk/google": "^2.0.14",
+    "@mastra/core": "^0.16.3",
     "@octokit/action": "8.0.2",
     "@octokit/plugin-retry": "8.0.1"
   },
