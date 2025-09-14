@@ -2,6 +2,8 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import { Context } from './github.js'
 import { WebhookEvent } from '@octokit/webhooks-types'
+import { wrapLanguageModel } from 'ai'
+import { retryMiddleware } from './retry.js'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
 import { execTool } from './functions/exec.js'
@@ -19,7 +21,10 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
   const codingAgent = new Agent({
     name: 'coding-agent',
     instructions: systemInstruction,
-    model: google('gemini-2.5-flash'),
+    model: wrapLanguageModel({
+      model: google('gemini-2.5-flash'),
+      middleware: [retryMiddleware],
+    }),
     tools: {
       execTool,
       createFileTool,
