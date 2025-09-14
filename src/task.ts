@@ -28,7 +28,7 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
     },
   })
 
-  const response = await codingAgent.stream(`\
+  const response = await codingAgent.streamVNext(`\
 Follow the task described in ${path.join(taskDir, 'README.md')}.
 The code base is checked out into the directory ${workspace}.
 If you need to create a temporary file, create it under ${context.runnerTemp}.
