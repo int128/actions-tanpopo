@@ -1,79 +1,38 @@
-import assert from 'assert'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import { Context } from './index.js'
-import { FunctionCall, FunctionDeclaration, FunctionResponse, Type } from '@google/genai'
+import { createTool } from '@mastra/core/tools'
+import { z } from 'zod'
 
-export const declaration: FunctionDeclaration = {
-  description: `Run a shell command in the workspace. Typical Linux commands are available.`,
-  name: 'exec',
-  parameters: {
-    type: Type.OBJECT,
-    properties: {
-      command: {
-        type: Type.STRING,
-        description: 'The command to run',
-      },
-      args: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.STRING,
-          description: 'The arguments to the command',
-        },
-      },
-    },
-    required: ['command'],
-  },
-  response: {
-    type: Type.OBJECT,
-    properties: {
-      stdout: {
-        type: Type.STRING,
-        description: 'The standard output of the command',
-      },
-      stderr: {
-        type: Type.STRING,
-        description: 'The standard error of the command',
-      },
-      exitCode: {
-        type: Type.NUMBER,
-        description: 'The exit code of the command. 0 means success, non-zero means failure',
-      },
-    },
-    required: ['stdout', 'stderr', 'exitCode'],
-  },
-}
-
-export const call = async (functionCall: FunctionCall, context: Context): Promise<FunctionResponse> => {
-  assert(functionCall.args)
-  const { command, args } = functionCall.args
-  assert(typeof command === 'string', `command must be a string but got ${typeof command}`)
-  if (args !== undefined) {
-    assert(Array.isArray(args), `args must be an array but got ${typeof args}`)
-    assert(
-      args.every((arg) => typeof arg === 'string'),
-      `args must be strings but got ${args.join()}`,
-    )
-  }
-  const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
-    cwd: context.workspace,
-    ignoreReturnCode: true,
-  })
-  core.summary.addHeading(`🤖 Executed with exit code ${exitCode}`, 3)
-  core.summary.addCodeBlock(`${command} ${args?.join(' ') ?? ''}`)
-  if (stdout) {
-    core.summary.addCodeBlock(stdout)
-  }
-  if (stderr) {
-    core.summary.addCodeBlock(stderr)
-  }
-  return {
-    id: functionCall.id,
-    name: functionCall.name,
-    response: {
+export const execTool = createTool({
+  id: 'exec',
+  description: 'Run a shell command in the workspace. Typical Linux commands are available.',
+  inputSchema: z.object({
+    command: z.string().describe('The command to run'),
+    args: z.array(z.string()).optional().describe('The arguments to the command'),
+    cwd: z.string().describe('The current working directory to run the command in'),
+  }),
+  outputSchema: z.object({
+    stdout: z.string().describe('The standard output of the command'),
+    stderr: z.string().describe('The standard error of the command'),
+    exitCode: z.number().describe('The exit code of the command. 0 means success, non-zero means failure'),
+  }),
+  execute: async ({ context }) => {
+    const { stdout, stderr, exitCode } = await exec.getExecOutput(context.command, context.args, {
+      cwd: context.cwd,
+      ignoreReturnCode: true,
+    })
+    core.summary.addHeading(`🤖 Executed with exit code ${exitCode}`, 3)
+    core.summary.addCodeBlock(`${context.command} ${context.args?.join(' ') ?? ''}`)
+    if (stdout) {
+      core.summary.addCodeBlock(stdout)
+    }
+    if (stderr) {
+      core.summary.addCodeBlock(stderr)
+    }
+    return {
       stdout,
       stderr,
       exitCode,
-    },
-  }
-}
+    }
+  },
+})

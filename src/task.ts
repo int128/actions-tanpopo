@@ -4,6 +4,10 @@ import { Context } from './github.js'
 import { WebhookEvent } from '@octokit/webhooks-types'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
+import { execTool } from './functions/exec.js'
+import { createFileTool } from './functions/createFile.js'
+import { readFileTool } from './functions/readFile.js'
+import { editFileTool } from './functions/editFile.js'
 
 const systemInstruction = `
 You are an agent for software development.
@@ -16,6 +20,12 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
     name: 'coding-agent',
     instructions: systemInstruction,
     model: google('gemini-2.5-flash'),
+    tools: {
+      execTool,
+      createFileTool,
+      readFileTool,
+      editFileTool,
+    },
   })
 
   const response = await codingAgent.stream(`\
@@ -24,6 +34,6 @@ The code base is checked out into the directory ${workspace}.
 If you need to create a temporary file, create it under ${context.runnerTemp}.
 `)
   for await (const chunk of response.textStream) {
-    core.info(chunk)
+    core.info(`🤖: ${chunk}`)
   }
 }
