@@ -34,17 +34,14 @@ The code base is checked out into the directory ${workspace}.
 If you need to create a temporary file, create it under ${context.runnerTemp}.
 `.trim()
   core.info(instruction)
+  core.summary.addRaw('<p>')
+  core.summary.addRaw(instruction)
+  core.summary.addRaw('</p>')
 
-  const response = await codingAgent.streamVNext(instruction, {
-    onError: ({ error }) => {
-      core.error(error)
-    },
-    onFinish: ({ finishReason }) => {
-      core.info(`🤖: ${finishReason}`)
+  const response = await codingAgent.generate(instruction, {
+    onStepFinish: (step) => {
+      core.info(`🤖: ${step.text}`)
     },
   })
-  for await (const chunk of response.textStream) {
-    core.info(`🤖: ${chunk.trim()}`)
-  }
-  core.info(`Finished the task`)
+  core.info(`🤖: ${response.text}`)
 }
