@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { LanguageModelMiddleware } from 'ai'
+import { APICallError, LanguageModelMiddleware } from 'ai'
 
 export const retryMiddleware: LanguageModelMiddleware = {
   wrapGenerate: async ({ doGenerate }) => {
@@ -18,14 +18,12 @@ const withRetry = async <T>(fn: () => Promise<T>): Promise<T> => {
       if (attempt > 3) {
         throw error
       }
-      if (error instanceof Error) {
-        const retryAfterSec = parseRetryAfterSec(error.message)
+      if (error instanceof APICallError && error.isRetryable) {
+        const retryAfterSec = parseRetryAfterSec(error.responseBody)
         if (retryAfterSec) {
-          core.warning(`Retry attempt ${attempt} after ${retryAfterSec}s: ${error}`)
+          core.warning(`Retry attempt ${attempt} after ${retryAfterSec}s: ${error.message}`)
           await new Promise((resolve) => setTimeout(resolve, retryAfterSec * 1000))
           continue
-        } else {
-          core.warning(`Non-retryable error: ${error}`)
         }
       }
       throw error
@@ -33,15 +31,13 @@ const withRetry = async <T>(fn: () => Promise<T>): Promise<T> => {
   }
 }
 
-const parseRetryAfterSec = (message: string): number | undefined => {
-  if (message.match(/"code":429|"code":500/)) {
-    const m = message.match(/"retryDelay":"(\d+)s"/)
-    if (m) {
-      const s = Number.parseInt(m[1])
-      if (Number.isSafeInteger(s) && s > 0) {
-        return s
-      }
+const parseRetryAfterSec = (message: string | undefined): number | undefined => {
+  const m = message?.match(/"retryDelay":"(\d+)s"/)
+  if (m) {
+    const s = Number.parseInt(m[1])
+    if (Number.isSafeInteger(s) && s > 0) {
+      return s
     }
-    return 30
   }
+  return 30
 }
