@@ -16,6 +16,8 @@ export const retryMiddleware: LanguageModelMiddleware = {
             core.warning(`Retry attempt ${attempt} after ${retryAfterSec}s: ${error}`)
             await new Promise((resolve) => setTimeout(resolve, retryAfterSec * 1000))
             continue
+          } else {
+            core.warning(`Non-retryable error: ${error}`)
           }
         }
         throw error
