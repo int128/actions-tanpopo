@@ -29,7 +29,7 @@ Follow the task to achieve the goal.
 })
 
 const codingStep = createStep({
-  id: 'coding-workflow',
+  id: 'coding-step',
   inputSchema: z.object({
     taskDescriptionPath: z.string().describe('The absolute path to the task description file'),
     workspacePath: z
@@ -41,12 +41,17 @@ const codingStep = createStep({
     summary: z.string().describe('The summary of the work done by the agent'),
   }),
   execute: async ({ inputData: { taskDescriptionPath, workspacePath, temporaryPath } }) => {
-    const response = await codingAgent.generate(`
+    const response = await codingAgent.generate(
+      `
 Follow the task described in ${taskDescriptionPath}.
 The code base is checked out into the directory ${workspacePath}.
 If you need to create a temporary file, create it under ${temporaryPath}.
 Finally, summarize what you have done and what is left in a brief manner.
-`)
+`,
+      {
+        maxSteps: 20,
+      },
+    )
     return { summary: response.text }
   },
 })
