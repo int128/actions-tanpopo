@@ -13,8 +13,14 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       temporaryPath: context.runnerTemp,
     },
   })
-  core.info(`🤖: ${JSON.stringify(response)}`)
-  if (response.status === 'failed') {
-    throw response.error
+  switch (response.status) {
+    case 'suspended':
+      core.info('🤖: The task is suspended')
+      break
+    case 'success':
+      core.info(`🤖: ${response.result.summary}`)
+      break
+    case 'failed':
+      throw response.error
   }
 }

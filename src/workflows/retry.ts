@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
-import { APICallError, LanguageModelMiddleware } from 'ai'
+import { APICallError, LanguageModelV1Middleware } from 'ai'
 
-export const retryMiddleware: LanguageModelMiddleware = {
+export const retryMiddleware: LanguageModelV1Middleware = {
   wrapGenerate: async ({ doGenerate }) => {
     return withRetry(async () => await doGenerate())
   },
