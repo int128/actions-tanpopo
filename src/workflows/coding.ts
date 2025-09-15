@@ -28,10 +28,10 @@ Follow the task to achieve the goal.
   },
 })
 
-export const codingWorkflow = new Workflow({
+const codingStep = createStep({
   id: 'coding-workflow',
   inputSchema: z.object({
-    taskDescriptionPath: z.string().describe('The absolute path to the task description file (README.md)'),
+    taskDescriptionPath: z.string().describe('The absolute path to the task description file'),
     workspacePath: z
       .string()
       .describe('The absolute path to the workspace directory where the code base is checked out'),
@@ -40,16 +40,28 @@ export const codingWorkflow = new Workflow({
   outputSchema: z.object({
     summary: z.string().describe('The summary of the work done by the agent'),
   }),
-})
-  // eslint-disable-next-line @typescript-eslint/require-await
-  .map(async ({ inputData: { taskDescriptionPath, workspacePath, temporaryPath } }) => {
-    return {
-      prompt: `
+  execute: async ({ inputData: { taskDescriptionPath, workspacePath, temporaryPath } }) => {
+    const response = await codingAgent.generate(`
 Follow the task described in ${taskDescriptionPath}.
 The code base is checked out into the directory ${workspacePath}.
 If you need to create a temporary file, create it under ${temporaryPath}.
-`,
-    }
-  })
-  .then(createStep(codingAgent))
-  .commit()
+Finally, summarize what you have done and what is left in a brief manner.
+`)
+    return { summary: response.text }
+  },
+})
+
+export const codingWorkflow = new Workflow({
+  id: 'coding-workflow',
+  inputSchema: z.object({
+    taskDescriptionPath: z.string().describe('The absolute path to the task description file'),
+    workspacePath: z
+      .string()
+      .describe('The absolute path to the workspace directory where the code base is checked out'),
+    temporaryPath: z.string().describe('The absolute path to the temporary directory for creating temporary files'),
+  }),
+  outputSchema: z.object({
+    summary: z.string().describe('The summary of the work done by the agent'),
+  }),
+  steps: [codingStep],
+})
