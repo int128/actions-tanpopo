@@ -63,5 +63,6 @@ export const codingWorkflow = new Workflow({
   outputSchema: z.object({
     summary: z.string().describe('The summary of the work done by the agent'),
   }),
-  steps: [codingStep],
 })
+  .then(codingStep)
+  .commit()
