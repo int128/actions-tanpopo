@@ -13,5 +13,8 @@ export const applyTask = async (taskDir: string, workspace: string, context: Con
       temporaryPath: context.runnerTemp,
     },
   })
-  core.info(`🤖: ${response.status}`)
+  core.info(`🤖: ${JSON.stringify(response)}`)
+  if (response.status === 'failed') {
+    throw response.error
+  }
 }
