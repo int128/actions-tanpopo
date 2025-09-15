@@ -1,38 +1,36 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import { Context } from './github.js'
+import { Context } from '../github.js'
 import { WebhookEvent } from '@octokit/webhooks-types'
 import { wrapLanguageModel } from 'ai'
 import { retryMiddleware } from './retry.js'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
-import { execTool } from './functions/exec.js'
-import { createFileTool } from './functions/createFile.js'
-import { readFileTool } from './functions/readFile.js'
-import { editFileTool } from './functions/editFile.js'
+import { execTool } from './exec.js'
+import { createFileTool } from './createFile.js'
+import { readFileTool } from './readFile.js'
+import { editFileTool } from './editFile.js'
 
-const systemInstruction = `
+const codingAgent = new Agent({
+  name: 'coding-agent',
+  instructions: `
 You are an agent for software development.
 You are running in GitHub Actions environment.
 Follow the task to achieve the goal.
-`
+`,
+  model: wrapLanguageModel({
+    model: google('gemini-2.5-flash'),
+    middleware: [retryMiddleware],
+  }),
+  tools: {
+    execTool,
+    createFileTool,
+    readFileTool,
+    editFileTool,
+  },
+})
 
-export const applyTask = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
-  const codingAgent = new Agent({
-    name: 'coding-agent',
-    instructions: systemInstruction,
-    model: wrapLanguageModel({
-      model: google('gemini-2.5-flash'),
-      middleware: [retryMiddleware],
-    }),
-    tools: {
-      execTool,
-      createFileTool,
-      readFileTool,
-      editFileTool,
-    },
-  })
-
+export const runCodingAgent = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
   const instruction = `\
 Follow the task described in ${path.resolve(taskDir, 'README.md')}.
 The code base is checked out into the directory ${workspace}.
@@ -45,9 +43,15 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
 
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 20,
-    onStepFinish: (step: unknown) => {
-      if (typeof step === 'object' && step !== null && 'text' in step && typeof step.text === 'string' && step.text) {
-        core.info(`🤖: ${step.text}`)
+    onStepFinish: (event: unknown) => {
+      if (
+        typeof event === 'object' &&
+        event !== null &&
+        'text' in event &&
+        typeof event.text === 'string' &&
+        event.text
+      ) {
+        core.info(`🤖: ${event.text}`)
       }
     },
   })
