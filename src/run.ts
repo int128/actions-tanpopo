@@ -85,10 +85,6 @@ const createOrUpdatePullRequestForTask = async (
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
-  const readme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
-  const taskName = readme.match(/# (.+)/)?.[1]
-  assert(taskName, 'README.md must have a title')
-
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/actions-tanpopo-`)
   core.info(`Created a workspace at ${workspace}`)
   await git.clone(repository, workspace, context)
@@ -105,7 +101,9 @@ const createOrUpdatePullRequestForTask = async (
     throw new Error(`precondition failed with exit code ${precondition}`)
   }
 
-  await runCodingAgent(taskDir, workspace, context)
+  const response = await runCodingAgent(taskDir, workspace, context)
+  const title = response.split('\n').at(0) ?? 'Untitled'
+  const body = response.split('\n').slice(1).join('\n').trim()
 
   const gitStatus = await git.status(workspace)
   if (gitStatus === '') {
@@ -118,7 +116,7 @@ const createOrUpdatePullRequestForTask = async (
   await exec.exec('git', ['add', '.'], { cwd: workspace })
   await exec.exec('git', ['config', 'user.name', context.actor], { cwd: workspace })
   await exec.exec('git', ['config', 'user.email', `${context.actor}@users.noreply.github.com`], { cwd: workspace })
-  await exec.exec('git', ['commit', '--quiet', '-m', taskName, '-m', workflowRunUrl], { cwd: workspace })
+  await exec.exec('git', ['commit', '--quiet', '-m', title, '-m', workflowRunUrl], { cwd: workspace })
   await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
 
   const [owner, repo] = repository.split('/')
@@ -126,10 +124,10 @@ const createOrUpdatePullRequestForTask = async (
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
-    title: taskName,
+    title,
     head: headBranch,
     base: baseBranch,
-    body: readme,
+    body,
   })
   await octokit.rest.pulls.requestReviewers({
     owner,

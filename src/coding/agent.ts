@@ -17,6 +17,19 @@ const codingAgent = new Agent({
 You are an agent for software development.
 You are running in GitHub Actions environment.
 Follow the task to achieve the goal.
+
+Finally, return the title and body of the pull request to create.
+The first line of the response is the title, and the rest is the body.
+For example:
+\`\`\`
+Migrate from X to Y
+
+## Purpose
+X is deprecated and no longer maintained.
+
+## Changes
+- Replace X with Y
+\`\`\`
 `,
   model: wrapLanguageModel({
     model: google('gemini-2.5-flash'),
@@ -60,4 +73,5 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   core.summary.addRaw('<p>')
   core.summary.addRaw(response.text)
   core.summary.addRaw('</p>')
+  return response.text
 }
