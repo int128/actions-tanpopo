@@ -4,7 +4,7 @@ import * as exec from '@actions/exec'
 import * as fs from 'fs/promises'
 import * as git from './git.js'
 import * as path from 'path'
-import { applyTask } from './task.js'
+import { runCodingAgent } from './coding/agent.js'
 import { Octokit } from '@octokit/action'
 import { Context, contextIsPullRequestEvent } from './github.js'
 import { PullRequestEvent, WebhookEvent } from '@octokit/webhooks-types'
@@ -105,7 +105,7 @@ const createOrUpdatePullRequestForTask = async (
     throw new Error(`precondition failed with exit code ${precondition}`)
   }
 
-  await applyTask(taskDir, workspace, context)
+  await runCodingAgent(taskDir, workspace, context)
 
   const gitStatus = await git.status(workspace)
   if (gitStatus === '') {
