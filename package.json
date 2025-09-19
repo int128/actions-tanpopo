@@ -10,12 +10,12 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/exec": "1.1.1",
-    "@ai-sdk/google": "^2.0.14",
-    "@mastra/core": "^0.16.3",
+    "@ai-sdk/google": "2.0.14",
+    "@mastra/core": "0.16.3",
     "@octokit/action": "8.0.2",
     "@octokit/plugin-retry": "8.0.1",
-    "ai": "^5.0.44",
-    "zod": "^4.1.8"
+    "ai": "5.0.44",
+    "zod": "4.1.8"
   },
   "devDependencies": {
     "@eslint/js": "9.35.0",
