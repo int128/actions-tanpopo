@@ -89,12 +89,12 @@ const processRepository = async (
   const taskName = readme.match(/# (.+)/)?.[1]
   assert(taskName, 'README.md must have a title')
 
-  const workspace = await fs.mkdtemp(`${context.runnerTemp}/actions-tanpopo-`)
-  core.info(`Created a workspace at ${workspace}`)
-  await git.clone(repository, workspace, context)
+  const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
+  process.chdir(workspace)
+  core.info(`Moved to a workspace ${workspace}`)
+  await git.clone(repository, context)
 
   const precondition = await exec.exec('bash', [path.join(context.workspace, taskDir, 'precondition.sh')], {
-    cwd: workspace,
     ignoreReturnCode: true,
   })
   if (precondition === 99) {
@@ -106,40 +106,33 @@ const processRepository = async (
   }
 
   core.summary.addHeading(`Repository ${repository}`, 2)
-  await runCodingAgent(taskDir, workspace, context)
+  await runCodingAgent(taskDir, context)
 
-  const gitStatus = await git.status(workspace)
+  const gitStatus = await git.status()
   if (gitStatus === '') {
     return
   }
 
-  const baseBranch = (await git.getDefaultBranch(workspace)) ?? 'main'
+  const baseBranch = (await git.getDefaultBranch()) ?? 'main'
   const headBranch = `bot--${taskDir.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-  await exec.exec('git', ['add', '.'], { cwd: workspace })
-  await exec.exec(
-    'git',
-    [
-      '-c',
-      `user.name=${context.actor}`,
-      '-c',
-      `user.email=${context.actor}@users.noreply.github.com`,
-      'commit',
-      '--quiet',
-      '-m',
-      taskName,
-      '-m',
-      workflowRunUrl,
-    ],
-    { cwd: workspace },
-  )
+  await exec.exec('git', ['add', '.'])
+  await exec.exec('git', [
+    '-c',
+    `user.name=${context.actor}`,
+    '-c',
+    `user.email=${context.actor}@users.noreply.github.com`,
+    'commit',
+    '--quiet',
+    '-m',
+    taskName,
+    '-m',
+    workflowRunUrl,
+  ])
 
   const [owner, repo] = repository.split('/')
-  const signedCommitSHA = await signCommit(owner, repo, octokit, workspace)
-  await git.execWithCredentials(
-    ['push', '--quiet', '--force', 'origin', `${signedCommitSHA}:refs/heads/${headBranch}`],
-    { cwd: workspace },
-  )
+  const signedCommitSHA = await signCommit(owner, repo, octokit)
+  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `${signedCommitSHA}:refs/heads/${headBranch}`])
 
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
@@ -159,12 +152,10 @@ const processRepository = async (
   return pull
 }
 
-const signCommit = async (owner: string, repo: string, octokit: Octokit, workspace: string) => {
-  const unsignedCommitSHA = await git.getCommitSHA('HEAD', workspace)
+const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
+  const unsignedCommitSHA = await git.getCommitSHA('HEAD')
   const signingBranch = `signing--${unsignedCommitSHA}`
-  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `HEAD:refs/heads/${signingBranch}`], {
-    cwd: workspace,
-  })
+  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `HEAD:refs/heads/${signingBranch}`])
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
       owner,
@@ -185,12 +176,10 @@ const signCommit = async (owner: string, repo: string, octokit: Octokit, workspa
       sha: signedCommit.sha,
       force: true,
     })
-    await git.execWithCredentials(['fetch', '--quiet', 'origin', signedCommit.sha], { cwd: workspace })
+    await git.execWithCredentials(['fetch', '--quiet', 'origin', signedCommit.sha])
     return signedCommit.sha
   } finally {
-    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `refs/heads/${signingBranch}`], {
-      cwd: workspace,
-    })
+    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `refs/heads/${signingBranch}`])
   }
 }
 
