@@ -11,6 +11,11 @@ import { editFileTool } from './editFile.js'
 import { execTool } from './exec.js'
 import { readFileTool } from './readFile.js'
 import { retryMiddleware } from './retry.js'
+import { RuntimeContext } from '@mastra/core/runtime-context'
+
+export type CodingAgentRuntimeContext = {
+  workspace: string
+}
 
 const codingAgent = new Agent({
   name: 'coding-agent',
@@ -42,8 +47,12 @@ If you need to create a temporary file, create it under the temporary directory 
   core.summary.addRaw(instruction)
   core.summary.addRaw('</p>')
 
+  const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
+  runtimeContext.set('workspace', workspace)
+
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 30,
+    runtimeContext,
     onStepFinish: (event: unknown) => {
       if (typeof event === 'object' && event !== null) {
         if ('text' in event && typeof event.text === 'string' && event.text) {
