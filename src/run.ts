@@ -102,8 +102,10 @@ const createOrUpdatePullRequestForTask = async (
   }
 
   const response = await runCodingAgent(taskDir, workspace, context)
-  const title = response.split('\n').at(0) ?? 'Untitled'
+  const title = response.split('\n').at(0)
   const body = response.split('\n').slice(1).join('\n').trim()
+  assert(title, 'The response must have a title')
+  assert(body, 'The response must have a body')
 
   const gitStatus = await git.status(workspace)
   if (gitStatus === '') {
