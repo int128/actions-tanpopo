@@ -120,11 +120,11 @@ const processRepository = async (
   await exec.exec(
     'git',
     [
-      'commit',
       '-c',
       `user.name=${context.actor}`,
       '-c',
       `user.email=${context.actor}@users.noreply.github.com`,
+      'commit',
       '--quiet',
       '-m',
       taskName,
