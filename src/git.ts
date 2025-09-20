@@ -21,6 +21,11 @@ export const status = async (workspace: string): Promise<string> => {
   return stdout
 }
 
+export const getCommitSHA = async (refspec: string, workspace: string): Promise<string> => {
+  const { stdout } = await exec.getExecOutput('git', ['rev-parse', refspec], { cwd: workspace })
+  return stdout.trim()
+}
+
 export const getDefaultBranch = async (workspace: string): Promise<string | undefined> => {
   const { stdout: defaultBranchRef } = await exec.getExecOutput(
     'git',
