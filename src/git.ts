@@ -3,22 +3,16 @@ import * as exec from '@actions/exec'
 import type { WebhookEvent } from '@octokit/webhooks-types'
 import type { Context } from './github.js'
 
-export const clone = async (repository: string, workspace: string, context: Context<WebhookEvent>) => {
+export const execWithCredentials = async (args: string[], options: exec.ExecOptions) => {
   const credentials = Buffer.from(`x-access-token:${core.getInput('token')}`).toString('base64')
   core.setSecret(credentials)
-  await exec.exec(
-    'git',
-    [
-      'clone',
-      '--quiet',
-      '-c',
-      `http.https://github.com/.extraheader=AUTHORIZATION: basic ${credentials}`,
-      '--depth=1',
-      `${context.serverUrl}/${repository}.git`,
-      '.',
-    ],
-    { cwd: workspace },
-  )
+  return await exec.exec('git', ['-c', `http.extraheader=AUTHORIZATION: basic ${credentials}`, ...args], options)
+}
+
+export const clone = async (repository: string, workspace: string, context: Context<WebhookEvent>) => {
+  await execWithCredentials(['clone', '--quiet', '--depth=1', `${context.serverUrl}/${repository}.git`, '.'], {
+    cwd: workspace,
+  })
 }
 
 export const status = async (workspace: string): Promise<string> => {
