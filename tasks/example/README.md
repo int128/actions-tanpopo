@@ -3,6 +3,7 @@
 This is an example task to demonstrate the use of the coding agent.
 Perform the following steps:
 
-- Report the summary of `README.md` file in the repository root.
-- Inspect the execution environment using `lsb_release` and `uname` commands.
-- Write the result of this task to `RESULT.md` file in the repository root.
+- Report the directory structure of the repository.
+- Edit `README.md` file in the repository root to improve the following points:
+  - Fix any typos or grammatical errors.
+  - Rewrite sentences to improve clarity and conciseness.
