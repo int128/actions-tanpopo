@@ -20,7 +20,7 @@ export const execTool = createTool({
     const { stdout, stderr, exitCode } = await exec.getExecOutput(context.command, context.args, {
       cwd: context.cwd,
       ignoreReturnCode: true,
-      env: sanitizeEnv(),
+      env: sanitizeEnv(process.env),
     })
     core.summary.addHeading(`🔧 Exec (exit code ${exitCode})`, 3)
     core.summary.addCodeBlock(`${context.cwd}> ${context.command} ${context.args?.join(' ') ?? ''}`, 'console')
@@ -38,9 +38,9 @@ export const execTool = createTool({
   },
 })
 
-const sanitizeEnv = () => {
+export const sanitizeEnv = (processEnv: NodeJS.ProcessEnv) => {
   const env: Record<string, string> = {}
-  for (const [key, value] of Object.entries(process.env)) {
+  for (const [key, value] of Object.entries(processEnv)) {
     if (value && !key.startsWith('GITHUB_') && !key.startsWith('INPUT_')) {
       env[key] = value
     }
