@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import * as path from 'node:path'
 import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
@@ -10,7 +11,6 @@ import { editFileTool } from './editFile.js'
 import { execTool } from './exec.js'
 import { readFileTool } from './readFile.js'
 import { retryMiddleware } from './retry.js'
-import assert from 'node:assert'
 
 const codingAgent = new Agent({
   name: 'coding-agent',
