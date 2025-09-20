@@ -40,7 +40,7 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
 const processTask = async (taskDir: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
   core.summary.addHeading(`Task ${taskDir}`, 1)
 
-  let comment: string | undefined
+  let commentId: number | undefined
   const pulls = []
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   for (const repository of repositories) {
@@ -52,18 +52,19 @@ const processTask = async (taskDir: string, octokit: Octokit, context: Context<P
     }
     pulls.push(pull)
     const body = pulls.map((pull) => `- ${pull.html_url}`).join('\n')
-    if (comment === undefined) {
-      comment = await octokit.rest.issues.createComment({
+    if (commentId === undefined) {
+      const comment = await octokit.rest.issues.createComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: context.payload.number,
         body,
       })
+      commentId = comment.data.id
     } else {
       await octokit.rest.issues.updateComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
-        comment_id: comment.data.id,
+        comment_id: commentId,
         body,
       })
     }
