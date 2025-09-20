@@ -60,8 +60,8 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
   core.summary.addHeading(`🤖: Finished (${response.finishReason})`, 3)
-  core.summary.addRaw('<p>', true)
+  core.summary.addRaw('<p>\n\n')
   core.summary.addRaw(response.text)
-  core.summary.addRaw('</p>', true)
+  core.summary.addRaw('\n\n</p>')
   assert.equal(response.finishReason, 'stop')
 }
