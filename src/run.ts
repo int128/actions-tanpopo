@@ -33,19 +33,19 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
 
   core.info(`Processing tasks: ${[...taskDirs].join(', ')}`)
   for (const taskDir of taskDirs) {
+    core.info(`== ${taskDir}`)
+    core.summary.addHeading(`Task ${taskDir}`, 1)
     await processTask(taskDir, octokit, context)
   }
 }
 
 const processTask = async (taskDir: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
-  core.summary.addHeading(`Task ${taskDir}`, 1)
-
   let commentId: number | undefined
   const pulls = []
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   for (const repository of repositories) {
     core.info(`=== ${repository}`)
-    const pull = await createOrUpdatePullRequestForTask(taskDir, repository, octokit, context)
+    const pull = await processRepository(repository, taskDir, octokit, context)
     if (!pull) {
       continue
     }
@@ -79,9 +79,9 @@ const parseRepositoriesFile = (repositories: string): string[] => [
   ),
 ]
 
-const createOrUpdatePullRequestForTask = async (
-  taskDir: string,
+const processRepository = async (
   repository: string,
+  taskDir: string,
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
@@ -116,13 +116,30 @@ const createOrUpdatePullRequestForTask = async (
   const headBranch = `bot--${taskDir.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
   await exec.exec('git', ['add', '.'], { cwd: workspace })
-  await exec.exec('git', ['config', 'user.name', context.actor], { cwd: workspace })
-  await exec.exec('git', ['config', 'user.email', `${context.actor}@users.noreply.github.com`], { cwd: workspace })
-  await exec.exec('git', ['commit', '--quiet', '-m', title, '-m', workflowRunUrl], { cwd: workspace })
-  await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
+  await exec.exec(
+    'git',
+    [
+      '-c',
+      `user.name=${context.actor}`,
+      '-c',
+      `user.email=${context.actor}@users.noreply.github.com`,
+      'commit',
+      '--quiet',
+      '-m',
+      title,
+      '-m',
+      workflowRunUrl,
+    ],
+    { cwd: workspace },
+  )
 
   const [owner, repo] = repository.split('/')
-  await pushSignedCommit(owner, repo, headBranch, octokit, workspace)
+  const signedCommitSHA = await signCommit(owner, repo, octokit, workspace)
+  await git.execWithCredentials(
+    ['push', '--quiet', '--force', 'origin', `${signedCommitSHA}:refs/heads/${headBranch}`],
+    { cwd: workspace },
+  )
+
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
@@ -141,14 +158,17 @@ const createOrUpdatePullRequestForTask = async (
   return pull
 }
 
-const pushSignedCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
-  const tempBranch = `${branch}--signing`
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
+const signCommit = async (owner: string, repo: string, octokit: Octokit, workspace: string) => {
+  const unsignedCommitSHA = await git.getCommitSHA('HEAD', workspace)
+  const signingBranch = `signing--${unsignedCommitSHA}`
+  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `HEAD:refs/heads/${signingBranch}`], {
+    cwd: workspace,
+  })
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
       owner,
       repo,
-      branch: tempBranch,
+      branch: signingBranch,
     })
     const { data: signedCommit } = await octokit.rest.git.createCommit({
       owner,
@@ -160,15 +180,17 @@ const pushSignedCommit = async (owner: string, repo: string, branch: string, oct
     await octokit.rest.git.updateRef({
       owner,
       repo,
-      ref: `heads/${tempBranch}`,
+      ref: `heads/${signingBranch}`,
       sha: signedCommit.sha,
       force: true,
     })
-    await exec.exec('git', ['fetch', '--quiet', 'origin', `${tempBranch}:${tempBranch}`], { cwd: workspace })
+    await git.execWithCredentials(['fetch', '--quiet', 'origin', signedCommit.sha], { cwd: workspace })
+    return signedCommit.sha
   } finally {
-    await exec.exec('git', ['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
+    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `refs/heads/${signingBranch}`], {
+      cwd: workspace,
+    })
   }
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${branch}`], { cwd: workspace })
 }
 
 type CreatePullRequest = NonNullable<Awaited<Parameters<Octokit['rest']['pulls']['create']>[0]>>
