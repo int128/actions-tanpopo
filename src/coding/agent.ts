@@ -15,14 +15,21 @@ import { retryMiddleware } from './retry.js'
 
 export type CodingAgentRuntimeContext = {
   workspace: string
+  github: Context<WebhookEvent>
 }
 
 const codingAgent = new Agent({
   name: 'coding-agent',
-  instructions: `
+  instructions: async ({ runtimeContext }) => {
+    const typedRuntimeContext: RuntimeContext<CodingAgentRuntimeContext> = runtimeContext
+    return `
 You are an agent for software development.
 Follow the task to achieve the goal.
-`,
+Perform the task in the workspace directory ${typedRuntimeContext.get('workspace')}.
+The workspace directory contains the target repository for your task.
+You can create a file or directory under the temporary directory ${typedRuntimeContext.get('github').runnerTemp}.
+`
+  },
   model: wrapLanguageModel({
     model: google('gemini-2.5-flash'),
     middleware: [retryMiddleware],
@@ -36,12 +43,7 @@ Follow the task to achieve the goal.
 })
 
 export const runCodingAgent = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
-  const instruction = `\
-Follow the task described in the file ${path.resolve(taskDir, 'README.md')}.
-Perform the task in the workspace directory ${workspace}.
-The workspace directory contains the target repository for your task.
-If you need to create a temporary file, create it under the temporary directory ${context.runnerTemp}.
-`.trim()
+  const instruction = `Follow the task described in the file ${path.resolve(taskDir, 'README.md')}.`
   core.info(instruction)
   core.summary.addRaw('<p>')
   core.summary.addRaw(instruction)
@@ -49,6 +51,7 @@ If you need to create a temporary file, create it under the temporary directory 
 
   const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
   runtimeContext.set('workspace', workspace)
+  runtimeContext.set('github', context)
 
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 30,
