@@ -42,7 +42,7 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   core.summary.addRaw('</p>')
 
   const response = await codingAgent.generateVNext(instruction, {
-    maxSteps: 20,
+    maxSteps: 30,
     onStepFinish: (event: unknown) => {
       if (
         typeof event === 'object' &&
@@ -52,6 +52,8 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
         event.text
       ) {
         core.info(`🤖: ${event.text}`)
+      } else {
+        core.info(`🤖: ${JSON.stringify(event)}`)
       }
     },
   })
