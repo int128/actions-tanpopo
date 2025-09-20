@@ -1,13 +1,13 @@
-import assert from 'assert'
+import assert from 'node:assert'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import * as fs from 'fs/promises'
-import * as git from './git.js'
-import * as path from 'path'
+import type { Octokit } from '@octokit/action'
+import type { PullRequestEvent, WebhookEvent } from '@octokit/webhooks-types'
 import { runCodingAgent } from './coding/agent.js'
-import { Octokit } from '@octokit/action'
-import { Context, contextIsPullRequestEvent } from './github.js'
-import { PullRequestEvent, WebhookEvent } from '@octokit/webhooks-types'
+import * as git from './git.js'
+import { type Context, contextIsPullRequestEvent } from './github.js'
 
 export const run = async (octokit: Octokit, context: Context<WebhookEvent>): Promise<void> => {
   if (contextIsPullRequestEvent(context)) {
@@ -40,7 +40,7 @@ const processPullRequest = async (octokit: Octokit, context: Context<PullRequest
 const processTask = async (taskDir: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
   core.summary.addHeading(`Task ${taskDir}`, 1)
 
-  let comment
+  let comment: string | undefined
   const pulls = []
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   for (const repository of repositories) {

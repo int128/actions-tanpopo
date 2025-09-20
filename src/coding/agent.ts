@@ -1,15 +1,15 @@
+import * as path from 'node:path'
 import * as core from '@actions/core'
-import * as path from 'path'
-import { Context } from '../github.js'
-import { WebhookEvent } from '@octokit/webhooks-types'
-import { wrapLanguageModel } from 'ai'
-import { retryMiddleware } from './retry.js'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
-import { execTool } from './exec.js'
+import type { WebhookEvent } from '@octokit/webhooks-types'
+import { wrapLanguageModel } from 'ai'
+import type { Context } from '../github.js'
 import { createFileTool } from './createFile.js'
-import { readFileTool } from './readFile.js'
 import { editFileTool } from './editFile.js'
+import { execTool } from './exec.js'
+import { readFileTool } from './readFile.js'
+import { retryMiddleware } from './retry.js'
 
 const codingAgent = new Agent({
   name: 'coding-agent',
