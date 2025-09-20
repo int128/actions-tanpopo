@@ -3,6 +3,7 @@ import * as path from 'node:path'
 import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
+import { RuntimeContext } from '@mastra/core/runtime-context'
 import type { WebhookEvent } from '@octokit/webhooks-types'
 import { wrapLanguageModel } from 'ai'
 import type { Context } from '../github.js'
@@ -11,7 +12,6 @@ import { editFileTool } from './editFile.js'
 import { execTool } from './exec.js'
 import { readFileTool } from './readFile.js'
 import { retryMiddleware } from './retry.js'
-import { RuntimeContext } from '@mastra/core/runtime-context'
 
 export type CodingAgentRuntimeContext = {
   workspace: string
