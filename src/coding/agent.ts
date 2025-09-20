@@ -5,6 +5,7 @@ import { Agent } from '@mastra/core/agent'
 import { RuntimeContext } from '@mastra/core/runtime-context'
 import type { WebhookEvent } from '@octokit/webhooks-types'
 import { wrapLanguageModel } from 'ai'
+import z from 'zod'
 import type { Context } from '../github.js'
 import { createFileTool } from './createFile.js'
 import { editFileTool } from './editFile.js'
@@ -54,6 +55,18 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 30,
     runtimeContext,
+    output: z.object({
+      title: z.string().describe('The title of pull request for this task.'),
+      body: z.string().describe(`The body of pull request for this task.
+For example:
+\`\`\`
+## Purpose
+X is deprecated and no longer maintained.
+## Changes
+- Replace X with Y
+\`\`\`
+`),
+    }),
     onStepFinish: (event: unknown) => {
       if (typeof event === 'object' && event !== null) {
         if ('text' in event && typeof event.text === 'string' && event.text) {
@@ -70,4 +83,9 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
   core.summary.addRaw(response.text)
   core.summary.addRaw('\n\n</p>')
   assert.equal(response.finishReason, 'stop')
+
+  const { title, body } = response.object
+  assert(title, 'response.object.title should be non-empty')
+  assert(body, 'response.object.body should be non-empty')
+  return { title, body }
 }
