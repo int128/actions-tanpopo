@@ -21,7 +21,7 @@ export const execTool = createTool({
       cwd: context.cwd,
       ignoreReturnCode: true,
     })
-    core.summary.addHeading(`🤖 Exec (exit code ${exitCode})`, 3)
+    core.summary.addHeading(`🔧 Exec (exit code ${exitCode})`, 3)
     core.summary.addCodeBlock(`${context.cwd}> ${context.command} ${context.args?.join(' ') ?? ''}`, 'console')
     if (stdout) {
       core.summary.addCodeBlock(stdout)

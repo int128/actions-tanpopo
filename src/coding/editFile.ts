@@ -82,7 +82,8 @@ The patches will be applied in the order they are specified.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    core.summary.addHeading(`🤖 Edited ${context.path}`, 3)
+    core.summary.addHeading(`🔧 Edit a file`, 3)
+    core.summary.addCodeBlock(context.path)
     core.summary.addCodeBlock(JSON.stringify(context.patches, null, 2), 'json')
     return {}
   },
