@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import * as path from 'node:path'
 import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
@@ -42,7 +43,7 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   core.summary.addRaw('</p>')
 
   const response = await codingAgent.generateVNext(instruction, {
-    maxSteps: 20,
+    maxSteps: 30,
     onStepFinish: (event: unknown) => {
       if (
         typeof event === 'object' &&
@@ -52,12 +53,15 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
         event.text
       ) {
         core.info(`🤖: ${event.text}`)
+      } else {
+        core.info(`🤖: ${JSON.stringify(event)}`)
       }
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
-  core.summary.addHeading(`🤖: ${response.finishReason}`, 3)
-  core.summary.addRaw('<p>')
+  core.summary.addHeading(`🤖 Finished (${response.finishReason})`, 3)
+  core.summary.addRaw('<p>\n\n')
   core.summary.addRaw(response.text)
-  core.summary.addRaw('</p>')
+  core.summary.addRaw('\n\n</p>')
+  assert.equal(response.finishReason, 'stop')
 }

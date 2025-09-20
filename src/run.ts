@@ -45,7 +45,6 @@ const processTask = async (taskDir: string, octokit: Octokit, context: Context<P
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   for (const repository of repositories) {
     core.info(`=== ${repository}`)
-    core.summary.addHeading(`Repository ${repository}`, 2)
     const pull = await createOrUpdatePullRequestForTask(taskDir, repository, octokit, context)
     if (!pull) {
       continue
@@ -106,6 +105,7 @@ const createOrUpdatePullRequestForTask = async (
     throw new Error(`precondition failed with exit code ${precondition}`)
   }
 
+  core.summary.addHeading(`Repository ${repository}`, 2)
   await runCodingAgent(taskDir, workspace, context)
 
   const gitStatus = await git.status(workspace)
