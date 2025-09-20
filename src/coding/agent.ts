@@ -10,6 +10,7 @@ import { editFileTool } from './editFile.js'
 import { execTool } from './exec.js'
 import { readFileTool } from './readFile.js'
 import { retryMiddleware } from './retry.js'
+import assert from 'node:assert'
 
 const codingAgent = new Agent({
   name: 'coding-agent',
@@ -41,7 +42,7 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   core.summary.addRaw(instruction)
   core.summary.addRaw('</p>')
 
-  const response = await codingAgent.generateVNext(instruction, {
+  const response = await codingAgent.generate(instruction, {
     maxSteps: 30,
     onStepFinish: (event: unknown) => {
       if (
@@ -58,8 +59,9 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
-  core.summary.addHeading(`🤖: ${response.finishReason}`, 3)
+  core.summary.addHeading(`🤖: Finished with ${response.finishReason}`, 3)
   core.summary.addRaw('<p>')
   core.summary.addRaw(response.text)
   core.summary.addRaw('</p>')
+  assert.equal(response.finishReason, 'stop')
 }
