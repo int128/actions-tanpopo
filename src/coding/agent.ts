@@ -16,7 +16,6 @@ const codingAgent = new Agent({
   name: 'coding-agent',
   instructions: `
 You are an agent for software development.
-You are running in GitHub Actions environment.
 Follow the task to achieve the goal.
 `,
   model: wrapLanguageModel({
@@ -33,9 +32,10 @@ Follow the task to achieve the goal.
 
 export const runCodingAgent = async (taskDir: string, workspace: string, context: Context<WebhookEvent>) => {
   const instruction = `\
-Follow the task described in ${path.resolve(taskDir, 'README.md')}.
-The code base is checked out into the directory ${workspace}.
-If you need to create a temporary file, create it under ${context.runnerTemp}.
+Follow the task described in the file ${path.resolve(taskDir, 'README.md')}.
+Perform the task in the workspace directory ${workspace}.
+The workspace directory contains the target repository for your task.
+If you need to create a temporary file, create it under the temporary directory ${context.runnerTemp}.
 `.trim()
   core.info(instruction)
   core.summary.addRaw('<p>')
@@ -45,16 +45,12 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 30,
     onStepFinish: (event: unknown) => {
-      if (
-        typeof event === 'object' &&
-        event !== null &&
-        'text' in event &&
-        typeof event.text === 'string' &&
-        event.text
-      ) {
-        core.info(`🤖: ${event.text}`)
-      } else {
-        core.info(`🤖: ${JSON.stringify(event)}`)
+      if (typeof event === 'object' && event !== null) {
+        if ('text' in event && typeof event.text === 'string' && event.text) {
+          core.info(`🤖: ${event.text}`)
+        } else if ('stepType' in event && typeof event.stepType === 'string') {
+          core.info(`🤖: ${event.stepType}`)
+        }
       }
     },
   })
