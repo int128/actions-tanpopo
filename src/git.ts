@@ -12,8 +12,8 @@ export const execWithCredentials = async (args: string[], options: exec.ExecOpti
 export const clone = async (repository: string, workspace: string, context: Context<WebhookEvent>) => {
   await exec.exec('git', ['init', '.'], { cwd: workspace })
   await exec.exec('git', ['remote', 'add', 'origin', `${context.serverUrl}/${repository}.git`], { cwd: workspace })
-  await execWithCredentials(['fetch', '--quiet', '--depth=1', 'origin', 'HEAD:HEAD'], { cwd: workspace })
-  await exec.exec('git', ['checkout', '--quiet', 'HEAD'], { cwd: workspace })
+  await execWithCredentials(['fetch', '--quiet', '--depth=1', 'origin'], { cwd: workspace })
+  await exec.exec('git', ['checkout', '--quiet', '--detach', 'origin/HEAD'], { cwd: workspace })
 }
 
 export const status = async (workspace: string): Promise<string> => {
