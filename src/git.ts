@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import { Context } from './github.js'
-import { WebhookEvent } from '@octokit/webhooks-types'
+import type { WebhookEvent } from '@octokit/webhooks-types'
+import type { Context } from './github.js'
 
 export const clone = async (repository: string, workspace: string, context: Context<WebhookEvent>) => {
   const credentials = Buffer.from(`x-access-token:${core.getInput('token')}`).toString('base64')

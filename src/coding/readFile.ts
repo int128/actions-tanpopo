@@ -1,5 +1,5 @@
+import * as fs from 'node:fs/promises'
 import * as core from '@actions/core'
-import * as fs from 'fs/promises'
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
@@ -33,7 +33,8 @@ export const readFileTool = createTool({
       core.info(`${row}: ${line}`)
     }
     core.endGroup()
-    core.summary.addHeading(`🤖 Read ${context.path}`, 3)
+    core.summary.addHeading(`🔧 Read a file (${lines.length} lines)`, 3)
+    core.summary.addCodeBlock(context.path)
     return {
       lines,
     }

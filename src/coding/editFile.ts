@@ -1,6 +1,6 @@
-import assert from 'assert'
+import assert from 'node:assert'
+import * as fs from 'node:fs/promises'
 import * as core from '@actions/core'
-import * as fs from 'fs/promises'
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
@@ -12,7 +12,11 @@ export const editFileTool = createTool({
     patches: z
       .array(
         z.object({
-          row: z.number().int().min(1).describe(`The 1-based index of the line.
+          row: z
+            .number()
+            .int()
+            .min(1)
+            .describe(`The 1-based index of the line.
 For example, the first line is row 1, the second line is row 2, etc.
 `),
           operation: z.enum(['REPLACE', 'INSERT_BEFORE', 'DELETE']).describe(`The operation to perform on the line.
@@ -34,7 +38,8 @@ Valid operations are:
             .describe('The text to insert before the line. Required for INSERT_BEFORE operation.'),
         }),
       )
-      .min(1).describe(`An array of patches to perform on the file.
+      .min(1)
+      .describe(`An array of patches to perform on the file.
 The patches will be applied in the order they are specified.
 `),
   }),
@@ -77,7 +82,8 @@ The patches will be applied in the order they are specified.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    core.summary.addHeading(`🤖 Edited ${context.path}`, 3)
+    core.summary.addHeading(`🔧 Edit a file`, 3)
+    core.summary.addCodeBlock(context.path)
     core.summary.addCodeBlock(JSON.stringify(context.patches, null, 2), 'json')
     return {}
   },
