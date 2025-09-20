@@ -123,7 +123,7 @@ const processRepository = async (
   await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
 
   const [owner, repo] = repository.split('/')
-  await pushSignedCommit(owner, repo, headBranch, octokit, workspace)
+  await signCommit(owner, repo, headBranch, octokit, workspace)
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
@@ -142,14 +142,16 @@ const processRepository = async (
   return pull
 }
 
-const pushSignedCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
-  const tempBranch = `${branch}--signing`
-  await git.execWithCredentials(['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
+const signCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
+  const signingBranch = `${branch}--signing`
+  await git.execWithCredentials(['push', '--quiet', '-f', 'origin', `HEAD:refs/heads/${signingBranch}`], {
+    cwd: workspace,
+  })
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
       owner,
       repo,
-      branch: tempBranch,
+      branch: signingBranch,
     })
     const { data: signedCommit } = await octokit.rest.git.createCommit({
       owner,
@@ -161,15 +163,23 @@ const pushSignedCommit = async (owner: string, repo: string, branch: string, oct
     await octokit.rest.git.updateRef({
       owner,
       repo,
-      ref: `heads/${tempBranch}`,
+      ref: `heads/${signingBranch}`,
       sha: signedCommit.sha,
       force: true,
     })
-    await git.execWithCredentials(['fetch', '--quiet', 'origin', `${tempBranch}:${tempBranch}`], { cwd: workspace })
+    await git.execWithCredentials(
+      ['fetch', '--quiet', 'origin', `refs/heads/${signingBranch}:refs/heads/${signingBranch}`],
+      { cwd: workspace },
+    )
   } finally {
-    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
+    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `refs/heads/${signingBranch}`], {
+      cwd: workspace,
+    })
   }
-  await git.execWithCredentials(['push', '--quiet', '-f', 'origin', `${tempBranch}:${branch}`], { cwd: workspace })
+  await git.execWithCredentials(
+    ['push', '--quiet', '-f', 'origin', `refs/heads/${signingBranch}:refs/heads/${branch}`],
+    { cwd: workspace },
+  )
 }
 
 type CreatePullRequest = NonNullable<Awaited<Parameters<Octokit['rest']['pulls']['create']>[0]>>
