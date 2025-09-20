@@ -6,13 +6,15 @@ import type { Context } from './github.js'
 export const execWithCredentials = async (args: string[], options: exec.ExecOptions) => {
   const credentials = Buffer.from(`x-access-token:${core.getInput('token')}`).toString('base64')
   core.setSecret(credentials)
-  return await exec.exec('git', ['-c', `http.extraheader=AUTHORIZATION: basic ${credentials}`, ...args], options)
+  return await exec.exec('git', ['--config', `http.extraheader=AUTHORIZATION: basic ${credentials}`, ...args], options)
 }
 
 export const clone = async (repository: string, workspace: string, context: Context<WebhookEvent>) => {
   await execWithCredentials(['clone', '--quiet', '--depth=1', `${context.serverUrl}/${repository}.git`, '.'], {
     cwd: workspace,
   })
+  await exec.exec('git', ['config', 'unset', 'http.extraheader'], { cwd: workspace })
+  await exec.exec('git', ['config', 'list'], { cwd: workspace })
 }
 
 export const status = async (workspace: string): Promise<string> => {
