@@ -1,5 +1,4 @@
 import assert from 'node:assert'
-import * as path from 'node:path'
 import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'

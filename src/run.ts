@@ -155,6 +155,7 @@ const processRepository = async (
 
   core.summary.addHeading('Pull request for the task', 3)
   core.summary.addLink(`${repository}#${pull.number}`, pull.html_url)
+  await core.summary.write()
   return pull
 }
 
