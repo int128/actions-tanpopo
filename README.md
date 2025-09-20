@@ -1,10 +1,10 @@
 # actions-tanpopo [![ts](https://github.com/int128/actions-tanpopo/actions/workflows/ts.yaml/badge.svg)](https://github.com/int128/actions-tanpopo/actions/workflows/ts.yaml)
 
-This is the action to automate a routine task for each repository.
+This action automates routine tasks across multiple repositories.
 
 ## Purpose
 
-If you have a lot of repositories, you may want to automate a routine task for each repository.
+For users managing numerous repositories, automating routine tasks is crucial.
 For example,
 
 - Update configuration files
@@ -13,16 +13,16 @@ For example,
 - Update documentations
 - Convert file formats
 
-This action handles the repetitive work of updating multiple repositories, similar to placing dandelions on sashimi ("刺身にたんぽぽを乗せる仕事" in Japanese) - a routine yet precise task that benefits from automation.
+This action streamlines the repetitive process of updating multiple repositories, akin to the meticulous task of placing dandelions on sashimi ("刺身にたんぽぽを乗せる仕事" in Japanese)—a routine yet precise effort that greatly benefits from automation.
 
 ## Getting started
 
-This action performs a task for each repository.
+This action executes a defined task for each specified repository.
 
 Describe a task in the repository as follows:
 
 - `tasks/<task-name>/README.md`
-  - The details of the task.
+This action interprets instructions using a Large Language Model (LLM).
   - This action understands the instruction using LLM.
 - `tasks/<task-name>/repositories`
   - The list of repositories to be updated.
@@ -32,13 +32,13 @@ Describe a task in the repository as follows:
   - If this script exits with code 0, this action will apply the task to the repository.
   - If this script exits with code 99, this action will skip the repository.
 
-When you create a pull request with changing a task directory, this action will perform the task.
+When a pull request modifies a task directory, this action automatically executes the defined task.
 
 ## Setup
 
 ### Create a GitHub App
-
-Create your GitHub App from [this link](https://github.com/settings/apps/new?webhook_active=false&url=https://github.com/int128/actions-tanpopo&contents=write&issues=write&pull_requests=write&workflows=write).
+Create your GitHub App using [this link](https://github.com/settings/apps/new?webhook_active=false&url=https://github.com/int128/actions-tanpopo&contents=write&issues=write&pull_requests=write&workflows=write).
+The following permissions are required:
 Here are the required permissions:
 
 - Contents: read and write
