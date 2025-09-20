@@ -45,16 +45,12 @@ If you need to create a temporary file, create it under ${context.runnerTemp}.
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 30,
     onStepFinish: (event: unknown) => {
-      if (
-        typeof event === 'object' &&
-        event !== null &&
-        'text' in event &&
-        typeof event.text === 'string' &&
-        event.text
-      ) {
-        core.info(`🤖: ${event.text}`)
-      } else {
-        core.info(`🤖: ${JSON.stringify(event)}`)
+      if (typeof event === 'object' && event !== null) {
+        if ('text' in event && typeof event.text === 'string' && event.text) {
+          core.info(`🤖: ${event.text}`)
+        } else if ('stepType' in event && typeof event.stepType === 'string') {
+          core.info(`🤖: ${event.stepType}`)
+        }
       }
     },
   })
