@@ -85,10 +85,6 @@ const processRepository = async (
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
-  const readme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
-  const taskName = readme.match(/# (.+)/)?.[1]
-  assert(taskName, 'README.md must have a title')
-
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/actions-tanpopo-`)
   core.info(`Created a workspace at ${workspace}`)
   await git.clone(repository, workspace, context)
@@ -105,8 +101,11 @@ const processRepository = async (
     throw new Error(`precondition failed with exit code ${precondition}`)
   }
 
-  core.summary.addHeading(`Repository ${repository}`, 2)
-  await runCodingAgent(taskDir, workspace, context)
+  const response = await runCodingAgent(taskDir, workspace, context)
+  const title = response.split('\n').at(0)
+  const body = response.split('\n').slice(1).join('\n').trim()
+  assert(title, 'The response must have a title')
+  assert(body, 'The response must have a body')
 
   const gitStatus = await git.status(workspace)
   if (gitStatus === '') {
@@ -127,7 +126,7 @@ const processRepository = async (
       'commit',
       '--quiet',
       '-m',
-      taskName,
+      title,
       '-m',
       workflowRunUrl,
     ],
@@ -144,10 +143,10 @@ const processRepository = async (
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
-    title: taskName,
+    title,
     head: headBranch,
     base: baseBranch,
-    body: readme,
+    body,
   })
   await octokit.rest.pulls.requestReviewers({
     owner,

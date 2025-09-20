@@ -17,6 +17,19 @@ const codingAgent = new Agent({
   instructions: `
 You are an agent for software development.
 Follow the task to achieve the goal.
+
+Finally, return the title and body of the pull request to create.
+The first line of the response is the title, and the rest is the body.
+For example:
+\`\`\`
+Migrate from X to Y
+
+## Purpose
+X is deprecated and no longer maintained.
+
+## Changes
+- Replace X with Y
+\`\`\`
 `,
   model: wrapLanguageModel({
     model: google('gemini-2.5-flash'),
@@ -59,5 +72,7 @@ If you need to create a temporary file, create it under the temporary directory 
   core.summary.addRaw('<p>\n\n')
   core.summary.addRaw(response.text)
   core.summary.addRaw('\n\n</p>')
+
   assert.equal(response.finishReason, 'stop')
+  return response.text
 }
