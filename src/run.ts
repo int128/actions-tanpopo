@@ -106,7 +106,10 @@ const processRepository = async (
   }
 
   core.summary.addHeading(`Repository ${repository}`, 2)
-  await runCodingAgent(taskDir, context)
+  await runCodingAgent({
+    taskReadmePath: path.resolve(taskDir, 'README.md'),
+    githubContext: context,
+  })
 
   const gitStatus = await git.status()
   if (gitStatus === '') {
@@ -149,6 +152,10 @@ const processRepository = async (
     reviewers: [context.actor],
   })
   core.info(`Requested review from ${context.actor} for pull request: ${pull.html_url}`)
+
+  core.summary.addHeading('Pull request for the task', 3)
+  core.summary.addLink(`${repository}#${pull.number}`, pull.html_url)
+  await core.summary.write()
   return pull
 }
 
@@ -205,13 +212,9 @@ const createOrUpdatePullRequest = async (octokit: Octokit, pull: CreatePullReque
       body: pull.body,
     })
     core.info(`Updated pull request: ${updatedPull.html_url}`)
-    core.summary.addHeading('Updated the existing pull request', 3)
-    core.summary.addRaw(`[#${existingPull.number}](${existingPull.html_url})`)
     return updatedPull
   }
   const { data: createdPull } = await octokit.pulls.create(pull)
   core.info(`Created pull request: ${createdPull.html_url}`)
-  core.summary.addHeading('Created the pull request', 3)
-  core.summary.addRaw(`[#${createdPull.number}](${createdPull.html_url})`)
   return createdPull
 }
