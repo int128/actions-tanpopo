@@ -1,5 +1,5 @@
+import * as fs from 'node:fs/promises'
 import * as core from '@actions/core'
-import * as fs from 'fs/promises'
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
