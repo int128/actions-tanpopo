@@ -14,6 +14,7 @@ import { readFileTool } from './readFile.js'
 import { retryMiddleware } from './retry.js'
 
 export type CodingAgentRuntimeContext = {
+  taskReadmePath: string
   githubContext: Context<WebhookEvent>
 }
 
@@ -41,15 +42,15 @@ You can create a file or directory under the temporary directory ${githubContext
   },
 })
 
-export const runCodingAgent = async (taskDir: string, context: Context<WebhookEvent>) => {
-  const instruction = `Follow the task described in the file ${path.resolve(taskDir, 'README.md')}.`
+export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
+  const instruction = `Follow the task described in the file ${context.taskReadmePath}.`
   core.info(instruction)
   core.summary.addRaw('<p>')
   core.summary.addRaw(instruction)
   core.summary.addRaw('</p>')
 
   const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
-  runtimeContext.set('githubContext', context)
+  runtimeContext.set('githubContext', context.githubContext)
 
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 30,
@@ -65,7 +66,7 @@ export const runCodingAgent = async (taskDir: string, context: Context<WebhookEv
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
-  core.summary.addHeading(`🤖 Finished (${response.finishReason})`, 3)
+  core.summary.addHeading(`🤖 Finish (${response.finishReason})`, 3)
   core.summary.addRaw('<p>\n\n')
   core.summary.addRaw(response.text)
   core.summary.addRaw('\n\n</p>')
