@@ -123,7 +123,7 @@ const processRepository = async (
   await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
 
   const [owner, repo] = repository.split('/')
-  await signCommit(owner, repo, headBranch, octokit, workspace)
+  await pushSignedCommit(owner, repo, headBranch, octokit, workspace)
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
@@ -142,7 +142,7 @@ const processRepository = async (
   return pull
 }
 
-const signCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
+const pushSignedCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
   const signingBranch = `${branch}--signing`
   await git.execWithCredentials(['push', '--quiet', '-f', 'origin', `HEAD:refs/heads/${signingBranch}`], {
     cwd: workspace,
