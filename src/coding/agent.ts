@@ -59,11 +59,8 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
     maxSteps: 30,
     runtimeContext,
     output: z.object({
-      title: z.string().max(100).describe('The title of pull request for this task.'),
-      body: z
-        .string()
-        .max(1000)
-        .describe(`The body of pull request for this task.
+      title: z.string().describe('The title of pull request for this task.'),
+      body: z.string().describe(`The body of pull request for this task.
 For example:
 \`\`\`
 ## Purpose
