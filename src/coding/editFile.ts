@@ -52,28 +52,37 @@ The patches will be applied in the order they are specified.
     core.startGroup(`Patches`)
     core.info(JSON.stringify(context.patches, null, 2))
     core.endGroup()
+    core.summary.addHeading(`🔧 Edit a file`, 3)
+    core.summary.addCodeBlock(context.path)
+
+    const diffLogs: string[] = []
+    const writeDiffLog = (line: string) => {
+      core.info(line)
+      diffLogs.push(line)
+    }
+
     for (const patch of context.patches) {
       switch (patch.operation) {
         case 'REPLACE': {
           const { row, replacement } = patch
           assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-          core.info(`${row}: - ${lines[row - 1]}`)
+          writeDiffLog(`- ${row}: ${lines[row - 1]}`)
           lines[row - 1] = replacement
-          core.info(`${row}: + ${replacement}`)
+          writeDiffLog(`+ ${row}: ${replacement}`)
           break
         }
         case 'INSERT_BEFORE': {
           const { row, insertion } = patch
           assert(row >= 1 && row <= lines.length + 1, `row must be between 1 and ${lines.length + 1} but got ${row}`)
-          core.info(`${row}: + ${insertion}`)
-          core.info(`${row}:   ${lines[row - 1]}`)
+          writeDiffLog(`+ ${row}: ${insertion}`)
+          writeDiffLog(`. ${row}: ${lines[row - 1]}`)
           lines[row - 1] = [insertion, lines[row - 1]].join('\n')
           break
         }
         case 'DELETE': {
           const { row } = patch
           assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-          core.info(`${row}: - ${lines[row - 1]}`)
+          writeDiffLog(`- ${row}: ${lines[row - 1]}`)
           lines[row - 1] = undefined // Mark for deletion
           break
         }
@@ -82,9 +91,7 @@ The patches will be applied in the order they are specified.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    core.summary.addHeading(`🔧 Edit a file`, 3)
-    core.summary.addCodeBlock(context.path)
-    core.summary.addCodeBlock(JSON.stringify(context.patches, null, 2), 'json')
+    core.summary.addCodeBlock(diffLogs.join('\n'), 'diff')
     return {}
   },
 })
