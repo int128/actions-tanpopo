@@ -6,27 +6,21 @@ import { z } from 'zod'
 
 export const editFileTool = createTool({
   id: 'editFile',
-  description: 'Update an existing file.',
+  description: 'Edit an existing file.',
   inputSchema: z.object({
-    path: z.string().describe('The absolute path to the file to be edited. The file must already exist.'),
+    path: z.string().describe('The path to the file in the repository. The file must exist.'),
     patches: z
       .array(
         z.object({
-          row: z
+          address: z
             .number()
             .int()
-            .min(1)
-            .describe(`The 1-based index of the line.
-For example, the first line is row 1, the second line is row 2, etc.
-`),
-          operation: z.enum(['REPLACE', 'INSERT_BEFORE', 'DELETE']).describe(`The operation to perform on the line.
-Valid operations are:
-- REPLACE: Replace the line with the "replacement" text.
-- INSERT_BEFORE: Insert the "insertion" text before the line.
-  The row index will not change after this operation.
-- DELETE: Mark the line for deletion.
-  The line will be removed after all patches are applied.
-  The row index of subsequent lines will not change after this operation.
+            .min(0)
+            .describe(`The 0-based address of the line in the file. Address 0 is the first line.`),
+          operation: z.enum(['REPLACE', 'INSERT_BEFORE', 'DELETE']).describe(`The operation for the line:
+- If REPLACE is set, change the line content.
+- If INSERT_BEFORE is set, insert the new line before the address. The all addresses will be kept after the insertion.
+- If DELETE is set, mark the line for deletion. The all addresses will be kept after the deletion.
 `),
           replacement: z
             .string()
@@ -55,35 +49,38 @@ The patches will be applied in the order they are specified.
     core.summary.addHeading(`🔧 Edit a file`, 3)
     core.summary.addCodeBlock(context.path)
 
-    const diffLogs: string[] = []
-    const writeDiffLog = (line: string) => {
-      core.info(line)
-      diffLogs.push(line)
+    const writeDiffLog = (message: string) => {
+      core.info(message)
+      core.summary.addCodeBlock(message, 'diff')
     }
 
     for (const patch of context.patches) {
+      const { address } = patch
+      assert(
+        address >= 0 && address < lines.length,
+        `address must be between 0 and ${lines.length - 1} but got ${address}`,
+      )
       switch (patch.operation) {
         case 'REPLACE': {
-          const { row, replacement } = patch
-          assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-          writeDiffLog(`- ${row}: ${lines[row - 1]}`)
-          lines[row - 1] = replacement
-          writeDiffLog(`+ ${row}: ${replacement}`)
+          const { replacement } = patch
+          const original = lines[address]
+          lines[address] = replacement
+          writeDiffLog(`\
+- ${address}: ${original}
++ ${address}: ${replacement}`)
           break
         }
         case 'INSERT_BEFORE': {
-          const { row, insertion } = patch
-          assert(row >= 1 && row <= lines.length + 1, `row must be between 1 and ${lines.length + 1} but got ${row}`)
-          writeDiffLog(`+ ${row}: ${insertion}`)
-          writeDiffLog(`. ${row}: ${lines[row - 1]}`)
-          lines[row - 1] = [insertion, lines[row - 1]].join('\n')
+          const { insertion } = patch
+          writeDiffLog(`\
++ ${address}: ${insertion}
+  ${address}: ${lines[address]}`)
+          lines[address] = [insertion, lines[address]].join('\n')
           break
         }
         case 'DELETE': {
-          const { row } = patch
-          assert(row >= 1 && row <= lines.length, `row must be between 1 and ${lines.length} but got ${row}`)
-          writeDiffLog(`- ${row}: ${lines[row - 1]}`)
-          lines[row - 1] = undefined // Mark for deletion
+          writeDiffLog(`- ${address}: ${lines[address]}`)
+          lines[address] = undefined // Mark for deletion
           break
         }
       }
@@ -91,7 +88,6 @@ The patches will be applied in the order they are specified.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    core.summary.addCodeBlock(diffLogs.join('\n'), 'diff')
     return {}
   },
 })
