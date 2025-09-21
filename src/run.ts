@@ -106,6 +106,8 @@ const processRepository = async (
     taskReadmePath: path.resolve(taskDir, 'README.md'),
     githubContext: context,
   })
+  assert(response.title, 'response.title should be non-empty')
+  assert(response.body, 'response.body should be non-empty')
 
   const gitStatus = await git.status()
   if (gitStatus === '') {
