@@ -37,6 +37,7 @@ export const editFileTool = createTool({
 The patches will be applied in the order they are specified.
 `),
   }),
+  outputSchema: z.object({}),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
     const lines: (string | undefined)[] = originalContent.split('\n')
@@ -87,5 +88,6 @@ The patches will be applied in the order they are specified.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
+    return {}
   },
 })
