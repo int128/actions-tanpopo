@@ -107,7 +107,7 @@ const processRepository = async (
 
   core.summary.addHeading(`Repository ${repository}`, 2)
   await runCodingAgent({
-    taskReadmePath: path.resolve(taskDir, 'README.md'),
+    taskReadmePath: path.join(context.workspace, taskDir, 'README.md'),
     githubContext: context,
   })
 
