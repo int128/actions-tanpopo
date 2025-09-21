@@ -1,8 +1,6 @@
-# Example
+# Example task
 
 This is an example task to demonstrate the use of the coding agent.
 
-Improve the documentation in the `README.md` file for the following points:
-
-- Fix any typos or grammatical errors.
-- Clarify sentences that may be ambiguous.
+Inspect the current environment using `lsb_release` command.
+Create a new file `ENVIRONMENT.md` with the summary of the environment.
