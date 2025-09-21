@@ -5,6 +5,7 @@ import { Agent } from '@mastra/core/agent'
 import { RuntimeContext } from '@mastra/core/runtime-context'
 import type { WebhookEvent } from '@octokit/webhooks-types'
 import { wrapLanguageModel } from 'ai'
+import z from 'zod'
 import type { Context } from '../github.js'
 import { createFileTool } from './createFile.js'
 import { editFileTool } from './editFile.js'
@@ -24,8 +25,11 @@ const codingAgent = new Agent({
     const githubContext = typedRuntimeContext.get('githubContext')
     return `
 You are an agent for software development.
-Follow the task to achieve the goal.
-The current directory contains the target repository for your task.
+Follow the given task.
+The current directory contains the Git repository for your task.
+Before you finish your task, check if your changes are correct using "git status" and "git diff" command.
+The changes in the current directory will be sent to a pull request after you finish your task.
+
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
 `
   },
@@ -54,6 +58,18 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
   const response = await codingAgent.generateVNext(instruction, {
     maxSteps: 30,
     runtimeContext,
+    output: z.object({
+      title: z.string().describe('The title of pull request for this task.'),
+      body: z.string().describe(`The body of pull request for this task.
+For example:
+\`\`\`
+## Purpose
+X is deprecated and no longer maintained.
+## Changes
+- Replace X with Y
+\`\`\`
+`),
+    }),
     onStepFinish: (event: unknown) => {
       if (typeof event === 'object' && event !== null) {
         if ('text' in event && typeof event.text === 'string' && event.text) {
@@ -70,4 +86,5 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
   core.summary.addRaw(response.text)
   core.summary.addRaw('\n\n</p>')
   assert.equal(response.finishReason, 'stop')
+  return response.object
 }

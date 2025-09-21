@@ -85,10 +85,6 @@ const processRepository = async (
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
-  const readme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
-  const taskName = readme.match(/# (.+)/)?.[1]
-  assert(taskName, 'README.md must have a title')
-
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
   process.chdir(workspace)
   core.info(`Moved to a workspace ${workspace}`)
@@ -106,10 +102,12 @@ const processRepository = async (
   }
 
   core.summary.addHeading(`Repository ${repository}`, 2)
-  await runCodingAgent({
+  const response = await runCodingAgent({
     taskReadmePath: path.join(context.workspace, taskDir, 'README.md'),
     githubContext: context,
   })
+  assert(response.title, 'response.title should be non-empty')
+  assert(response.body, 'response.body should be non-empty')
 
   const gitStatus = await git.status()
   if (gitStatus === '') {
@@ -128,7 +126,7 @@ const processRepository = async (
     'commit',
     '--quiet',
     '-m',
-    taskName,
+    response.title,
     '-m',
     workflowRunUrl,
   ])
@@ -140,10 +138,10 @@ const processRepository = async (
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
-    title: taskName,
+    title: response.title,
     head: headBranch,
     base: baseBranch,
-    body: readme,
+    body: response.body,
   })
   await octokit.rest.pulls.requestReviewers({
     owner,
