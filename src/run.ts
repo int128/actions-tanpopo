@@ -103,7 +103,7 @@ const processRepository = async (
 
   core.summary.addHeading(`Repository ${repository}`, 2)
   const response = await runCodingAgent({
-    taskReadmePath: path.resolve(taskDir, 'README.md'),
+    taskReadmePath: path.join(context.workspace, taskDir, 'README.md'),
     githubContext: context,
   })
   assert(response.title, 'response.title should be non-empty')
