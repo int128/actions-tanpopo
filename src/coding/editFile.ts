@@ -16,7 +16,7 @@ export const editFileTool = createTool({
             .number()
             .int()
             .min(0)
-            .describe(`The 0-based address of the line in the file. Use readFile tool to get the line addresses.`),
+            .describe(`The 0-based address of the line in the file. Address 0 is the first line.`),
           operation: z.enum(['REPLACE', 'INSERT_BEFORE', 'DELETE']).describe(`The operation for the line:
 - If REPLACE is set, change the line content.
 - If INSERT_BEFORE is set, insert the new line before the address. The all addresses will be kept after the insertion.
