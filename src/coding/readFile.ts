@@ -5,10 +5,11 @@ import { z } from 'zod'
 
 export const readFileTool = createTool({
   id: 'readFile',
-  description: `Read lines from a file. Up to 100 lines can be read at a time. If the file has more than 100 lines, use the offset parameter to read the next set of lines.`,
+  description: `Read the lines from a file.`,
   inputSchema: z.object({
     path: z.string().describe('The path to the file in the repository.'),
     offset: z.int().min(0).describe('The 0-based address of the first line to read.'),
+    limit: z.int().min(10).max(100).describe('The maximum number of lines to read.'),
   }),
   outputSchema: z.object({
     lines: z
@@ -30,13 +31,13 @@ export const readFileTool = createTool({
   execute: async ({ context }) => {
     const fileContent = await fs.readFile(context.path, 'utf-8')
     const allLines = fileContent.split('\n').map((line, address) => ({ address, line }))
-    const partialLines = allLines.slice(context.offset, context.offset + 100)
-    core.startGroup(`🤖 Reading ${context.path} (offset: ${context.offset})`)
+    const partialLines = allLines.slice(context.offset, context.offset + context.limit)
+    core.startGroup(`🤖 Reading ${context.path} (offset: ${context.offset}, limit: ${context.limit})`)
     for (const { address, line } of partialLines) {
       core.info(`${address}: ${line}`)
     }
     core.endGroup()
-    core.summary.addHeading(`🔧 Read a file (offset: ${context.offset})`, 3)
+    core.summary.addHeading(`🔧 Read a file (offset: ${context.offset}, limit: ${context.limit})`, 3)
     core.summary.addCodeBlock(context.path)
     return {
       lines: partialLines,

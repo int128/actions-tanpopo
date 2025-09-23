@@ -37,7 +37,17 @@ export const editFileTool = createTool({
 The patches will be applied in the order they are specified.
 `),
   }),
-  outputSchema: z.object({}),
+  outputSchema: z.object({
+    changes: z
+      .array(
+        z.object({
+          address: z.number().int().min(0).describe('The address of the line in the file.'),
+          original: z.string().optional().describe('The original content of the line.'),
+          updated: z.string().optional().describe('The updated content of the line.'),
+        }),
+      )
+      .describe('An array of changes made to the file.'),
+  }),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
     const lines: (string | undefined)[] = originalContent.split('\n')
@@ -46,14 +56,8 @@ The patches will be applied in the order they are specified.
     core.startGroup(`Patches`)
     core.info(JSON.stringify(context.patches, null, 2))
     core.endGroup()
-    core.summary.addHeading(`🔧 Edit a file`, 3)
-    core.summary.addCodeBlock(context.path)
 
-    const writeDiffLog = (message: string) => {
-      core.info(message)
-      core.summary.addCodeBlock(message, 'diff')
-    }
-
+    const changes = []
     for (const patch of context.patches) {
       const { address } = patch
       assert(
@@ -65,29 +69,33 @@ The patches will be applied in the order they are specified.
           const { replacement } = patch
           const original = lines[address]
           lines[address] = replacement
-          writeDiffLog(`\
-- ${address}: ${original}
-+ ${address}: ${replacement}`)
+          changes.push({ address, original, updated: replacement })
           break
         }
         case 'INSERT_BEFORE': {
           const { insertion } = patch
-          writeDiffLog(`\
-+ ${address}: ${insertion}
-  ${address}: ${lines[address]}`)
-          lines[address] = [insertion, lines[address]].join('\n')
+          const original = lines[address]
+          const updated = [insertion, original].join('\n')
+          lines[address] = updated
+          changes.push({ address, original, updated })
           break
         }
         case 'DELETE': {
-          writeDiffLog(`- ${address}: ${lines[address]}`)
+          changes.push({ address, original: lines[address], updated: undefined })
           lines[address] = undefined // Mark for deletion
           break
         }
       }
     }
 
+    core.summary.addHeading(`🔧 Edit a file`, 3)
+    core.summary.addCodeBlock(context.path)
+    for (const change of changes) {
+      core.summary.addCodeBlock(`- ${change.original}\n+ ${change.updated ?? ''}`)
+    }
+
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    return {}
+    return { changes }
   },
 })
