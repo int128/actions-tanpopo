@@ -4,7 +4,7 @@
 
 Repair the GitHub Actions workflows in the repository.
 
-## Acceptance Criteria
+## Steps
 
-- Use `jq` to validate the YAML syntax of the workflows.
-- Any step (such as `uses: actions/checkout`) is not removed from the `steps` of the workflows.
+Run `jq` to validate the YAML syntax of `.github/workflows/*.yaml`.
+If there are any syntax errors, fix them.
