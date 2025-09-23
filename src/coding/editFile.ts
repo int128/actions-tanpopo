@@ -73,6 +73,9 @@ The patches will be applied in the order they are specified.
     }
 
     core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
+    core.startGroup(`Patch`)
+    core.info(JSON.stringify(context.patches, null, 2))
+    core.endGroup()
     core.summary.addHeading(`🔧 Edit a file (${lines.length} lines)`, 3)
     core.summary.addCodeBlock(context.path)
     for (const change of changes) {
