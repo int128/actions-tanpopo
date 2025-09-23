@@ -41,3 +41,7 @@ steps:
     with:
       node-version-file: .node-version
 ```
+
+### Test the YAML syntax
+
+Check if the GitHub Actions workflows are valid using `yq` command.
