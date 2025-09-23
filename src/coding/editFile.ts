@@ -17,10 +17,9 @@ export const editFileTool = createTool({
             .int()
             .min(0)
             .describe(`The 0-based address of the line in the file. Address 0 is the first line.`),
-          operation: z.enum(['REPLACE', 'INSERT_BEFORE', 'DELETE']).describe(`The operation for the line:
-- If REPLACE is set, change the line content.
-- If INSERT_BEFORE is set, insert the new line before the address. The all addresses will be kept after the insertion.
-- If DELETE is set, mark the line for deletion. The all addresses will be kept after the deletion.
+          operation: z.enum(['REPLACE', 'DELETE']).describe(`The operation for the line:
+- If REPLACE is set, replace the line content. If you want to insert a new line, replace an existing line with multiple lines separated by newline characters.
+- If DELETE is set, mark the address for deletion.
 `),
           replacement: z
             .string()
@@ -51,12 +50,6 @@ The patches will be applied in the order they are specified.
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
     const lines: (string | undefined)[] = originalContent.split('\n')
-
-    core.info(`🤖 Editing ${context.path} (${lines.length} lines)`)
-    core.startGroup(`Patches`)
-    core.info(JSON.stringify(context.patches, null, 2))
-    core.endGroup()
-
     const changes = []
     for (const patch of context.patches) {
       const { address } = patch
@@ -66,18 +59,9 @@ The patches will be applied in the order they are specified.
       )
       switch (patch.operation) {
         case 'REPLACE': {
-          const { replacement } = patch
           const original = lines[address]
-          lines[address] = replacement
-          changes.push({ address, original, updated: replacement })
-          break
-        }
-        case 'INSERT_BEFORE': {
-          const { insertion } = patch
-          const original = lines[address]
-          const updated = [insertion, original].join('\n')
-          lines[address] = updated
-          changes.push({ address, original, updated })
+          lines[address] = patch.replacement
+          changes.push({ address, original, updated: patch.replacement })
           break
         }
         case 'DELETE': {
@@ -88,10 +72,18 @@ The patches will be applied in the order they are specified.
       }
     }
 
-    core.summary.addHeading(`🔧 Edit a file`, 3)
+    core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
+    core.summary.addHeading(`🔧 Edit a file (${lines.length} lines)`, 3)
     core.summary.addCodeBlock(context.path)
     for (const change of changes) {
-      core.summary.addCodeBlock(`- ${change.original}\n+ ${change.updated ?? ''}`)
+      core.info(`- ${change.address}: ${change.original ?? ''}`)
+      core.info(`+ ${change.address}: ${change.updated ?? ''}`)
+      core.summary.addCodeBlock(
+        `\
+- ${change.address}: ${change.original ?? ''}
++ ${change.address}: ${change.updated ?? ''}`,
+        'diff',
+      )
     }
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
