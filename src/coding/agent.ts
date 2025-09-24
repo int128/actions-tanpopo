@@ -72,10 +72,15 @@ X is deprecated and no longer maintained.
     }),
     onStepFinish: (event: unknown) => {
       if (typeof event === 'object' && event !== null) {
+        if ('stepType' in event && typeof event.stepType === 'string') {
+          core.info(`🤖: ${event.stepType}`)
+          core.summary.addHeading(`🤖 ${event.stepType}`, 3)
+        }
         if ('text' in event && typeof event.text === 'string' && event.text) {
           core.info(`🤖: ${event.text}`)
-        } else if ('stepType' in event && typeof event.stepType === 'string') {
-          core.info(`🤖: ${event.stepType}`)
+          core.summary.addRaw('<p>\n\n')
+          core.summary.addRaw(event.text)
+          core.summary.addRaw('\n\n</p>')
         }
       }
     },
