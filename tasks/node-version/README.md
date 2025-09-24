@@ -6,6 +6,7 @@ Ensure the Node.js version is consistent across different environments by using 
 
 ## Acceptance Criteria
 
+- If `.github/workflows/*.yaml` files do not exist, you don't need to do anything.
 - `.node-version` exists in the root of the repository.
 - For all GitHub Actions workflows, all `actions/setup-node` steps have `node-version-file` instead of `node-version`.
 
