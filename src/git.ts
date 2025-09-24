@@ -10,7 +10,7 @@ export const execWithCredentials = async (args: string[], options?: exec.ExecOpt
 }
 
 export const clone = async (repository: string, context: Context<WebhookEvent>, options?: exec.ExecOptions) => {
-  await exec.exec('git', ['init', '.'], options)
+  await exec.exec('git', ['init', '--quiet', '.'], options)
   await exec.exec('git', ['remote', 'add', 'origin', `${context.serverUrl}/${repository}.git`], options)
   await execWithCredentials(['fetch', '--quiet', '--depth=1', 'origin'], options)
   await exec.exec('git', ['checkout', '--quiet', '--detach', 'origin/HEAD'], options)
