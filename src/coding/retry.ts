@@ -32,10 +32,10 @@ const withRetry = async <T>(fn: () => Promise<T>): Promise<T> => {
 }
 
 const parseRetryAfterSec = (message: string | undefined): number | undefined => {
-  const m = message?.match(/"retryDelay":"(\d+)s"/)
+  const m = message?.match(/"retryDelay": *"(\d+)s"/)
   if (m) {
     const s = Number.parseInt(m[1], 10)
-    if (Number.isSafeInteger(s) && s > 0) {
+    if (Number.isSafeInteger(s) && s >= 0) {
       return s
     }
   }
