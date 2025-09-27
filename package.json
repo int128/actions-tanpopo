@@ -13,7 +13,7 @@
     "@mastra/core": "0.16.3",
     "@octokit/action": "8.0.2",
     "@octokit/plugin-retry": "8.0.1",
-    "ai": "5.0.44",
+    "ai": "5.0.47",
     "zod": "4.1.9"
   },
   "devDependencies": {
