@@ -25,8 +25,7 @@ The addresses in the file are not changed during the patch operations.
             .string()
             .optional()
             .describe(`The new content for the line at the address.
-The original content is replaced with this.
-To insert or append a new line, include a newline character.
+To insert or append a new line, include both the original content and a newline character.
 To remove the line, set this to undefined.
 The addresses of the consequent lines are not changed.
 `),
