@@ -21,16 +21,13 @@ This tool applies the patches in order and finally writes the lines to the file.
 Address 0 is the first line.
 The addresses in the file are not changed during the patch operations.
 `),
-          replacement: z
+          newContent: z
             .string()
             .optional()
-            .describe(`The new content for the address.
-For example:
-- If you want to replace the content of the line with FOO, set this to "FOO".
-- If you want to insert a new line character after FOO, set this to "FOO\\n". The addresses of the consequent lines are not changed.
-- If you want to replace the line with the 2 lines, set this to "FOO\\nBAR". The addresses of the consequent lines are not changed.
-- If you want to replace the line with an empty line, set this to "".
-- If this is not set, remove the line. The addresses of the consequent lines are not changed.
+            .describe(`The new content for the line.
+If a newline character is included, the line is replaced with multiple lines.
+If this is not set, the line is removed.
+The addresses of the consequent lines are not changed.
 `),
         }),
       )
@@ -62,8 +59,8 @@ For example:
         `address must be between 0 and ${lines.length - 1} but got ${address}`,
       )
       const original = lines[address]
-      lines[address] = patch.replacement
-      changes.push({ address, original, updated: patch.replacement })
+      lines[address] = patch.newContent
+      changes.push({ address, original, updated: patch.newContent })
     }
 
     core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
