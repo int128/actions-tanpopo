@@ -13,17 +13,21 @@ Update the workflows in `.github/workflows/` directory as below.
 
 ```yaml
 steps:
+  # ...snip...
   - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
     with:
       node-version-file: .node-version
+  # ...snip...
 ```
 
 ### After
 
 ```yaml
 steps:
+  # ...snip...
   - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
     with:
       node-version-file: .node-version
       package-manager-cache: false
+  # ...snip...
 ```
