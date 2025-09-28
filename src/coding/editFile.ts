@@ -25,8 +25,8 @@ The addresses in the file are not changed during the patch operations.
             .string()
             .optional()
             .describe(`The new content for the line.
-If a newline character is included, the line is replaced with multiple lines.
-If this is not set, the line is removed.
+To append a new line, set this to the original content, a newline character, and the new content.
+To remove the line, set this to undefined.
 The addresses of the consequent lines are not changed.
 `),
         }),
@@ -34,24 +34,17 @@ The addresses of the consequent lines are not changed.
       .min(1)
       .describe(`An array of patches to manipulate the lines of the file.`),
   }),
-  outputSchema: z.object({
-    changes: z
-      .array(
-        z.object({
-          address: z.number().int().min(0).describe('The address of the line in the file.'),
-          original: z.string().optional().describe('The original content of the line.'),
-          updated: z
-            .string()
-            .optional()
-            .describe('The updated content of the line. If this is not set, the line will be removed.'),
-        }),
-      )
-      .describe('An array of changes made to the file.'),
-  }),
+  outputSchema: z.object({}),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
     const lines: (string | undefined)[] = originalContent.split('\n')
-    const changes = []
+
+    core.info(`🤖 Editing ${context.path} (${lines.length} lines)`)
+    core.startGroup(`Patch`)
+    core.info(JSON.stringify(context.patches, null, 2))
+    core.endGroup()
+    core.summary.addHeading(`🔧 Edit a file (${lines.length} lines)`, 3)
+    core.summary.addCodeBlock(context.path)
     for (const patch of context.patches) {
       const { address } = patch
       assert(
@@ -60,22 +53,13 @@ The addresses of the consequent lines are not changed.
       )
       const original = lines[address]
       lines[address] = patch.newContent
-      changes.push({ address, original, updated: patch.newContent })
-    }
 
-    core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
-    core.startGroup(`Patch`)
-    core.info(JSON.stringify(context.patches, null, 2))
-    core.endGroup()
-    core.summary.addHeading(`🔧 Edit a file (${lines.length} lines)`, 3)
-    core.summary.addCodeBlock(context.path)
-    for (const change of changes) {
       const diff = []
-      if (change.original) {
-        diff.push(`- ${change.address}: ${change.original}`)
+      if (original) {
+        diff.push(`- ${address}: ${original}`)
       }
-      if (change.updated) {
-        diff.push(`+ ${change.address}: ${change.updated}`)
+      if (patch.newContent) {
+        diff.push(`+ ${address}: ${patch.newContent}`)
       }
       core.info(diff.join('\n'))
       core.summary.addCodeBlock(diff.join('\n'), 'diff')
@@ -83,6 +67,6 @@ The addresses of the consequent lines are not changed.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    return { changes }
+    return {}
   },
 })
