@@ -24,8 +24,9 @@ The addresses in the file are not changed during the patch operations.
           newContent: z
             .string()
             .optional()
-            .describe(`The new content for the line.
-To append a new line, set this to the original content, a newline character, and the new content.
+            .describe(`The new content for the line at the address.
+The original content at the address is replaced with this.
+To insert or append a new line, include a newline character.
 To remove the line, set this to undefined.
 The addresses of the consequent lines are not changed.
 `),
