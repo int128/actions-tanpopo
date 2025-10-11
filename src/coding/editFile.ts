@@ -21,16 +21,13 @@ This tool applies the patches in order and finally writes the lines to the file.
 Address 0 is the first line.
 The addresses in the file are not changed during the patch operations.
 `),
-          replacement: z
+          newContent: z
             .string()
             .optional()
-            .describe(`The new content for the address.
-For example:
-- If you want to replace the content of the line with FOO, set this to "FOO".
-- If you want to insert a new line character after FOO, set this to "FOO\\n". The addresses of the consequent lines are not changed.
-- If you want to replace the line with the 2 lines, set this to "FOO\\nBAR". The addresses of the consequent lines are not changed.
-- If you want to replace the line with an empty line, set this to "".
-- If this is not set, remove the line. The addresses of the consequent lines are not changed.
+            .describe(`The new content for the line at the address.
+To insert or append a new line, include both the original content and a newline character.
+To remove the line, set this to undefined.
+The addresses of the consequent lines are not changed.
 `),
         }),
       )
@@ -42,11 +39,11 @@ For example:
       .array(
         z.object({
           address: z.number().int().min(0).describe('The address of the line in the file.'),
-          original: z.string().optional().describe('The original content of the line.'),
-          updated: z
+          originalContent: z.string().optional().describe('The original content of the line.'),
+          newContent: z
             .string()
             .optional()
-            .describe('The updated content of the line. If this is not set, the line will be removed.'),
+            .describe('The updated content of the line. If this is undefined, the line is removed.'),
         }),
       )
       .describe('An array of changes made to the file.'),
@@ -61,9 +58,9 @@ For example:
         address >= 0 && address < lines.length,
         `address must be between 0 and ${lines.length - 1} but got ${address}`,
       )
-      const original = lines[address]
-      lines[address] = patch.replacement
-      changes.push({ address, original, updated: patch.replacement })
+      const originalContent = lines[address]
+      lines[address] = patch.newContent
+      changes.push({ address, originalContent, newContent: patch.newContent })
     }
 
     core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
@@ -74,11 +71,11 @@ For example:
     core.summary.addCodeBlock(context.path)
     for (const change of changes) {
       const diff = []
-      if (change.original) {
-        diff.push(`- ${change.address}: ${change.original}`)
+      if (change.originalContent) {
+        diff.push(`- ${change.address}: ${change.originalContent}`)
       }
-      if (change.updated) {
-        diff.push(`+ ${change.address}: ${change.updated}`)
+      if (change.newContent) {
+        diff.push(`+ ${change.address}: ${change.newContent}`)
       }
       core.info(diff.join('\n'))
       core.summary.addCodeBlock(diff.join('\n'), 'diff')
