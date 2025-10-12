@@ -15,6 +15,7 @@ Ensure the Node.js version is consistent across different environments by using 
 ### Find the current Node.js version
 
 Find the current Node.js version from `node-version` input of `actions/setup-node` in the GitHub Actions workflows.
+If the current version is `20`, use `20.19.5` instead.
 
 ### Create the .node-version file
 
