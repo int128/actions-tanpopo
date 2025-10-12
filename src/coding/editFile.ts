@@ -19,48 +19,64 @@ This tool applies the patches in order and finally writes the lines to the file.
             .min(0)
             .describe(`The 0-based address of the line in the file.
 Address 0 is the first line.
-The addresses in the file are not changed during the patch operations.
 `),
-          newContent: z
-            .string()
-            .optional()
-            .describe(`The new content for the line at the address.
-To insert or append a new line, include both the original content and a newline character.
-To remove the line, set this to undefined.
-The addresses of the consequent lines are not changed.
+          operation: z.enum(['REPLACE', 'INSERT', 'APPEND', 'REMOVE']).describe(`The operation to perform on the line.
+- REPLACE: Replace the line at the address with the new content.
+- INSERT: Insert a new line before the line at the address. The consequent lines are shifted down.
+- APPEND: Insert a new line after the line at the address. The consequent lines are shifted down.
+- REMOVE: Remove the line at the address. The consequent lines are shifted up.
 `),
+          newContent: z.string().optional().describe(`The new content for the operation.`),
         }),
       )
       .min(1)
       .describe(`An array of patches to manipulate the lines of the file.`),
   }),
-  outputSchema: z.object({
-    changes: z
-      .array(
-        z.object({
-          address: z.number().int().min(0).describe('The address of the line in the file.'),
-          originalContent: z.string().optional().describe('The original content of the line.'),
-          newContent: z
-            .string()
-            .optional()
-            .describe('The updated content of the line. If this is undefined, the line is removed.'),
-        }),
-      )
-      .describe('An array of changes made to the file.'),
-  }),
+  outputSchema: z.object({}),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
-    const lines: (string | undefined)[] = originalContent.split('\n')
-    const changes = []
+    const lines = originalContent.split('\n')
+
+    const diffs = []
     for (const patch of context.patches) {
-      const { address } = patch
-      assert(
-        address >= 0 && address < lines.length,
-        `address must be between 0 and ${lines.length - 1} but got ${address}`,
-      )
-      const originalContent = lines[address]
-      lines[address] = patch.newContent
-      changes.push({ address, originalContent, newContent: patch.newContent })
+      const { address, operation, newContent } = patch
+      switch (operation) {
+        case 'REPLACE': {
+          assert(newContent !== undefined, 'newContent is required for REPLACE operation')
+          assert(address < lines.length, `address ${address} is out of bounds for REPLACE operation`)
+          const originalContent = lines[address]
+          lines[address] = newContent
+          diffs.push(`\
+- ${address}: ${originalContent}
++ ${address}: ${newContent}`)
+          break
+        }
+        case 'INSERT': {
+          assert(newContent !== undefined, 'newContent is required for INSERT operation')
+          assert(address <= lines.length, `address ${address} is out of bounds for INSERT operation`)
+          lines.splice(address, 0, newContent)
+          diffs.push(`+ ${address}: ${lines[address]}
+  ${address + 1}: ${lines[address + 1]}`)
+          break
+        }
+        case 'APPEND': {
+          assert(newContent !== undefined, 'newContent is required for APPEND operation')
+          assert(address < lines.length, `address ${address} is out of bounds for APPEND operation`)
+          lines.splice(address + 1, 0, newContent)
+          diffs.push(`  ${address}: ${lines[address]}
++ ${address + 1}: ${lines[address + 1]}`)
+          break
+        }
+        case 'REMOVE': {
+          assert(newContent === undefined, 'newContent must be undefined for REMOVE operation')
+          assert(address < lines.length, `address ${address} is out of bounds for REMOVE operation`)
+          lines.splice(address, 1)
+          diffs.push(`- ${address}: ${lines[address]}`)
+          break
+        }
+        default:
+          throw new Error(`Unknown operation: ${operation}`)
+      }
     }
 
     core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
@@ -69,20 +85,13 @@ The addresses of the consequent lines are not changed.
     core.endGroup()
     core.summary.addHeading(`🔧 Edit a file (${lines.length} lines)`, 3)
     core.summary.addCodeBlock(context.path)
-    for (const change of changes) {
-      const diff = []
-      if (change.originalContent) {
-        diff.push(`- ${change.address}: ${change.originalContent}`)
-      }
-      if (change.newContent) {
-        diff.push(`+ ${change.address}: ${change.newContent}`)
-      }
-      core.info(diff.join('\n'))
-      core.summary.addCodeBlock(diff.join('\n'), 'diff')
+    for (const diff of diffs) {
+      core.info(diff)
+      core.summary.addCodeBlock(diff, 'diff')
     }
 
-    const newContent = lines.filter((line) => line !== undefined).join('\n')
+    const newContent = lines.join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    return { changes }
+    return {}
   },
 })
