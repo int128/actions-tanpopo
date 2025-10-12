@@ -2,13 +2,12 @@ name: actions-tanpopo
 description: Bot for automation of routine tasks
 
 inputs:
+  tasks:
+    description: List of tasks to run
+    required: true
   token:
     description: GitHub App installation token
     required: true
-  dry-run:
-    description: Set true to dry-run
-    required: true
-    default: false
 
 runs:
   using: 'node20'
