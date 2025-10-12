@@ -18,14 +18,15 @@ This tool applies the patches in order and finally writes the lines to the file.
             address: z
               .int()
               .min(0)
-              .describe(`The 0-based address of the line in the file.
+              .describe(`0-based address of the line in the file.
 Address 0 is the first line.
+An address is immutable, it always points to the same line even if lines are added or removed before it.
 `),
             operation: z.enum(['REPLACE', 'INSERT', 'APPEND', 'REMOVE']).describe(`The operation to perform on the line.
 - REPLACE: Replace the line at the address with the new content.
-- INSERT: Insert a new line before the line at the address. The consequent addresses are shifted down after the insertion.
-- APPEND: Insert a new line after the line at the address. The consequent addresses are shifted down after the insertion.
-- REMOVE: Remove the line at the address. The consequent addresses are shifted up after the removal.
+- INSERT: Insert a new line before the line at the address.
+- APPEND: Insert a new line after the line at the address.
+- REMOVE: Remove the line at the address.
 `),
             newContent: z.string().optional().describe(`The new content for the operation.`),
           })
@@ -37,15 +38,14 @@ Address 0 is the first line.
   outputSchema: z.object({}),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
-    const lines = originalContent.split('\n')
+    const lines: (string | undefined)[] = originalContent.split('\n')
 
     const diffs = []
     for (const patch of context.patches) {
       const { address, operation, newContent } = patch
       switch (operation) {
         case 'REPLACE': {
-          assert(newContent !== undefined, 'newContent is required for REPLACE operation')
-          assert(address < lines.length, `address ${address} is out of bounds for REPLACE operation`)
+          assert(newContent !== undefined, 'newContent must be defined for REPLACE operation')
           const originalContent = lines[address]
           lines[address] = newContent
           diffs.push(`\
@@ -54,25 +54,25 @@ Address 0 is the first line.
           break
         }
         case 'INSERT': {
-          assert(newContent !== undefined, 'newContent is required for INSERT operation')
-          assert(address <= lines.length, `address ${address} is out of bounds for INSERT operation`)
-          lines.splice(address, 0, newContent)
-          diffs.push(`+ ${address}: ${lines[address]}
-  ${address + 1}: ${lines[address + 1]}`)
+          assert(newContent !== undefined, 'newContent must be defined for INSERT operation')
+          const originalContent = lines[address]
+          lines[address] = `${newContent}\n${originalContent}`
+          diffs.push(`+ ${address}: ${newContent}
+  ${address}: ${originalContent}`)
           break
         }
         case 'APPEND': {
-          assert(newContent !== undefined, 'newContent is required for APPEND operation')
-          assert(address < lines.length, `address ${address} is out of bounds for APPEND operation`)
-          lines.splice(address + 1, 0, newContent)
-          diffs.push(`  ${address}: ${lines[address]}
-+ ${address + 1}: ${lines[address + 1]}`)
+          assert(newContent !== undefined, 'newContent must be defined for APPEND operation')
+          const originalContent = lines[address]
+          lines[address] = `${originalContent}\n${newContent}`
+          diffs.push(`  ${address}: ${originalContent}
++ ${address}: ${newContent}`)
           break
         }
         case 'REMOVE': {
           assert(newContent === undefined, 'newContent must be undefined for REMOVE operation')
           assert(address < lines.length, `address ${address} is out of bounds for REMOVE operation`)
-          lines.splice(address, 1)
+          lines[address] = undefined
           diffs.push(`- ${address}: ${lines[address]}`)
           break
         }
@@ -92,7 +92,7 @@ Address 0 is the first line.
       core.summary.addCodeBlock(diff, 'diff')
     }
 
-    const newContent = lines.join('\n')
+    const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
     return {}
   },
