@@ -23,13 +23,12 @@ export const run = async (inputs: Inputs, octokit: Octokit, context: Context<Web
 }
 
 const processTask = async (task: string, octokit: Octokit, context: Context<WebhookEvent>) => {
-  const taskDir = path.join(process.cwd(), 'tasks', task)
   let commentId: number | undefined
   const pulls = []
-  const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
+  const repositories = parseRepositoriesFile(await fs.readFile(path.join('tasks', task, 'repositories'), 'utf-8'))
   for (const repository of repositories) {
     core.info(`=== ${repository}`)
-    const pull = await processRepository(repository, taskDir, octokit, context)
+    const pull = await processRepository(repository, task, octokit, context)
     if (!pull) {
       continue
     }
@@ -67,7 +66,7 @@ const parseRepositoriesFile = (repositories: string): string[] => [
 
 const processRepository = async (
   repository: string,
-  taskDir: string,
+  task: string,
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
@@ -76,7 +75,7 @@ const processRepository = async (
   core.info(`Moved to a workspace ${workspace}`)
   await git.clone(repository, context)
 
-  const precondition = await exec.exec('bash', [path.join(context.workspace, taskDir, 'precondition.sh')], {
+  const precondition = await exec.exec('bash', [path.join(context.workspace, 'tasks', task, 'precondition.sh')], {
     ignoreReturnCode: true,
   })
   if (precondition === 99) {
@@ -89,7 +88,7 @@ const processRepository = async (
 
   core.summary.addHeading(`Repository ${repository}`, 2)
   const response = await runCodingAgent({
-    taskReadmePath: path.join(context.workspace, taskDir, 'README.md'),
+    taskReadmePath: path.join(context.workspace, 'tasks', task, 'README.md'),
     githubContext: context,
   })
   assert(response.title, 'response.title should be non-empty')
@@ -101,7 +100,7 @@ const processRepository = async (
   }
 
   const baseBranch = (await git.getDefaultBranch()) ?? 'main'
-  const headBranch = `bot--${taskDir.replaceAll(/[^\w]/g, '-')}`
+  const headBranch = `bot--tasks-${task.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
   await exec.exec('git', ['add', '.'])
   await exec.exec('git', [
