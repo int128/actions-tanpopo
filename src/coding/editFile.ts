@@ -57,7 +57,8 @@ An address is immutable, it always points to the same line even if lines are add
           assert(newContent !== undefined, 'newContent must be defined for INSERT operation')
           const originalContent = lines[address]
           lines[address] = `${newContent}\n${originalContent}`
-          diffs.push(`+ ${address}: ${newContent}
+          diffs.push(`\
++ ${address}: ${newContent}
   ${address}: ${originalContent}`)
           break
         }
@@ -65,15 +66,17 @@ An address is immutable, it always points to the same line even if lines are add
           assert(newContent !== undefined, 'newContent must be defined for APPEND operation')
           const originalContent = lines[address]
           lines[address] = `${originalContent}\n${newContent}`
-          diffs.push(`  ${address}: ${originalContent}
+          diffs.push(`\
+  ${address}: ${originalContent}
 + ${address}: ${newContent}`)
           break
         }
         case 'REMOVE': {
           assert(newContent === undefined, 'newContent must be undefined for REMOVE operation')
           assert(address < lines.length, `address ${address} is out of bounds for REMOVE operation`)
+          const originalContent = lines[address]
           lines[address] = undefined
-          diffs.push(`- ${address}: ${lines[address]}`)
+          diffs.push(`- ${address}: ${originalContent}`)
           break
         }
         default:

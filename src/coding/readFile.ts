@@ -23,7 +23,7 @@ If you want to read from the 101st line, set this to 100.
           address: z
             .int()
             .min(0)
-            .describe('The address of the line in the file. Address 0 is the first line in the file.'),
+            .describe('0-based address of the line in the file. Address 0 is the first line in the file.'),
           line: z
             .string()
             .describe('A line content at the address. This string does not include a trailing newline character.'),
