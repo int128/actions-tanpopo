@@ -4,42 +4,26 @@ import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
-import type { PullRequestEvent, WebhookEvent } from '@octokit/webhooks-types'
+import type { WebhookEvent } from '@octokit/webhooks-types'
 import { runCodingAgent } from './coding/agent.js'
 import * as git from './git.js'
-import { type Context, contextIsPullRequestEvent } from './github.js'
+import type { Context } from './github.js'
 
-export const run = async (octokit: Octokit, context: Context<WebhookEvent>): Promise<void> => {
-  if (contextIsPullRequestEvent(context)) {
-    core.info(`Processing ${context.payload.pull_request.html_url}`)
-    await processPullRequest(octokit, context)
-    return
+type Inputs = {
+  tasks: string[]
+}
+
+export const run = async (inputs: Inputs, octokit: Octokit, context: Context<WebhookEvent>) => {
+  core.info(`Processing tasks: ${inputs.tasks.join(', ')}`)
+  for (const task of inputs.tasks) {
+    core.info(`== Task ${task}`)
+    core.summary.addHeading(`Task ${task}`, 1)
+    await processTask(task, octokit, context)
   }
 }
 
-const processPullRequest = async (octokit: Octokit, context: Context<PullRequestEvent>) => {
-  const { data: files } = await octokit.pulls.listFiles({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    pull_number: context.payload.number,
-    per_page: 100,
-  })
-  const taskDirs = new Set(files.map((file) => path.dirname(file.filename)).filter((dir) => dir.startsWith('tasks/')))
-  if (taskDirs.size === 0) {
-    core.info('Running the smoke test')
-    await processTask('tasks/example', octokit, context)
-    return
-  }
-
-  core.info(`Processing tasks: ${[...taskDirs].join(', ')}`)
-  for (const taskDir of taskDirs) {
-    core.info(`== ${taskDir}`)
-    core.summary.addHeading(`Task ${taskDir}`, 1)
-    await processTask(taskDir, octokit, context)
-  }
-}
-
-const processTask = async (taskDir: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
+const processTask = async (task: string, octokit: Octokit, context: Context<WebhookEvent>) => {
+  const taskDir = path.join(process.cwd(), 'tasks', task)
   let commentId: number | undefined
   const pulls = []
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
@@ -50,22 +34,24 @@ const processTask = async (taskDir: string, octokit: Octokit, context: Context<P
       continue
     }
     pulls.push(pull)
-    const body = pulls.map((pull) => `- ${pull.html_url}`).join('\n')
-    if (commentId === undefined) {
-      const comment = await octokit.rest.issues.createComment({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        issue_number: context.payload.number,
-        body,
-      })
-      commentId = comment.data.id
-    } else {
-      await octokit.rest.issues.updateComment({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        comment_id: commentId,
-        body,
-      })
+    if ('number' in context.payload) {
+      const body = pulls.map((pull) => `- ${pull.html_url}`).join('\n')
+      if (commentId === undefined) {
+        const comment = await octokit.rest.issues.createComment({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          issue_number: context.payload.number,
+          body,
+        })
+        commentId = comment.data.id
+      } else {
+        await octokit.rest.issues.updateComment({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          comment_id: commentId,
+          body,
+        })
+      }
     }
   }
 }
