@@ -9,18 +9,18 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/exec": "1.1.1",
-    "@ai-sdk/google": "2.0.14",
-    "@mastra/core": "0.16.3",
+    "@ai-sdk/google": "2.0.17",
+    "@mastra/core": "0.18.0",
     "@octokit/action": "8.0.2",
-    "@octokit/plugin-retry": "8.0.1",
-    "ai": "5.0.47",
-    "zod": "4.1.9"
+    "@octokit/plugin-retry": "8.0.2",
+    "ai": "5.0.60",
+    "zod": "4.1.11"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.4",
+    "@biomejs/biome": "2.2.5",
     "@octokit/webhooks-types": "7.6.1",
     "@tsconfig/node20": "20.1.6",
-    "@types/node": "20.19.17",
+    "@types/node": "20.19.19",
     "@vercel/ncc": "0.38.4",
     "pnpm": "10.16.0",
     "typescript": "5.9.2",
