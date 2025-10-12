@@ -13,24 +13,26 @@ This tool applies the patches in order and finally writes the lines to the file.
     path: z.string().describe('The path to the file in the repository. The file must exist.'),
     patches: z
       .array(
-        z.object({
-          address: z
-            .int()
-            .min(0)
-            .describe(`The 0-based address of the line in the file.
+        z
+          .object({
+            address: z
+              .int()
+              .min(0)
+              .describe(`The 0-based address of the line in the file.
 Address 0 is the first line.
 `),
-          operation: z.enum(['REPLACE', 'INSERT', 'APPEND', 'REMOVE']).describe(`The operation to perform on the line.
+            operation: z.enum(['REPLACE', 'INSERT', 'APPEND', 'REMOVE']).describe(`The operation to perform on the line.
 - REPLACE: Replace the line at the address with the new content.
-- INSERT: Insert a new line before the line at the address. The consequent lines are shifted down.
-- APPEND: Insert a new line after the line at the address. The consequent lines are shifted down.
-- REMOVE: Remove the line at the address. The consequent lines are shifted up.
+- INSERT: Insert a new line before the line at the address. The consequent addresses are shifted down after the insertion.
+- APPEND: Insert a new line after the line at the address. The consequent addresses are shifted down after the insertion.
+- REMOVE: Remove the line at the address. The consequent addresses are shifted up after the removal.
 `),
-          newContent: z.string().optional().describe(`The new content for the operation.`),
-        }),
+            newContent: z.string().optional().describe(`The new content for the operation.`),
+          })
+          .describe(`A patch to manipulate a line in the file.`),
       )
       .min(1)
-      .describe(`An array of patches to manipulate the lines of the file.`),
+      .describe(`An array of patches. The patches are applied in order.`),
   }),
   outputSchema: z.object({}),
   execute: async ({ context }) => {
