@@ -1,8 +1,8 @@
-import assert from 'assert'
-import * as fs from 'fs/promises'
+import assert from 'node:assert'
+import * as fs from 'node:fs/promises'
 import { Octokit } from '@octokit/action'
-import { PullRequestEvent, WebhookEvent } from '@octokit/webhooks-types'
 import { retry } from '@octokit/plugin-retry'
+import type { WebhookEvent } from '@octokit/webhooks-types'
 
 export const getOctokit = () => new (Octokit.plugin(retry))()
 
@@ -42,13 +42,4 @@ const getRepo = () => {
 const getEnv = (name: string): string => {
   assert(process.env[name], `${name} is required`)
   return process.env[name]
-}
-
-export const contextIsPullRequestEvent = (context: Context<WebhookEvent>): context is Context<PullRequestEvent> =>
-  toPullRequestEvent(context.payload) !== undefined
-
-const toPullRequestEvent = (payload: WebhookEvent): PullRequestEvent | undefined => {
-  if ('pull_request' in payload && 'number' in payload) {
-    return payload
-  }
 }

@@ -1,5 +1,5 @@
+import * as fs from 'node:fs/promises'
 import * as core from '@actions/core'
-import * as fs from 'fs/promises'
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
@@ -18,7 +18,8 @@ export const createFileTool = createTool({
     core.startGroup(`🤖 Created a new file at ${context.path}`)
     core.info(context.content)
     core.endGroup()
-    core.summary.addHeading(`🤖 Created a new file at ${context.path}`, 3)
+    core.summary.addHeading(`🔧 Create a new file`, 3)
+    core.summary.addCodeBlock(context.path)
     core.summary.addCodeBlock(context.content)
     return {
       path: context.path,

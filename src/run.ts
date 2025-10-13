@@ -1,71 +1,56 @@
-import assert from 'assert'
+import assert from 'node:assert'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import * as fs from 'fs/promises'
-import * as git from './git.js'
-import * as path from 'path'
+import type { Octokit } from '@octokit/action'
+import type { WebhookEvent } from '@octokit/webhooks-types'
 import { runCodingAgent } from './coding/agent.js'
-import { Octokit } from '@octokit/action'
-import { Context, contextIsPullRequestEvent } from './github.js'
-import { PullRequestEvent, WebhookEvent } from '@octokit/webhooks-types'
+import * as git from './git.js'
+import type { Context } from './github.js'
 
-export const run = async (octokit: Octokit, context: Context<WebhookEvent>): Promise<void> => {
-  if (contextIsPullRequestEvent(context)) {
-    core.info(`Processing ${context.payload.pull_request.html_url}`)
-    await processPullRequest(octokit, context)
-    return
+type Inputs = {
+  tasks: string[]
+}
+
+export const run = async (inputs: Inputs, octokit: Octokit, context: Context<WebhookEvent>) => {
+  core.info(`Processing tasks: ${inputs.tasks.join(', ')}`)
+  for (const task of inputs.tasks) {
+    core.info(`== Task ${task}`)
+    core.summary.addHeading(`Task ${task}`, 1)
+    await processTask(task, octokit, context)
   }
 }
 
-const processPullRequest = async (octokit: Octokit, context: Context<PullRequestEvent>) => {
-  const { data: files } = await octokit.pulls.listFiles({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    pull_number: context.payload.number,
-    per_page: 100,
-  })
-  const taskDirs = new Set(files.map((file) => path.dirname(file.filename)).filter((dir) => dir.startsWith('tasks/')))
-  if (taskDirs.size === 0) {
-    core.info('Running the smoke test')
-    await processTask('tasks/example', octokit, context)
-    return
-  }
-
-  core.info(`Processing tasks: ${[...taskDirs].join(', ')}`)
-  for (const taskDir of taskDirs) {
-    await processTask(taskDir, octokit, context)
-  }
-}
-
-const processTask = async (taskDir: string, octokit: Octokit, context: Context<PullRequestEvent>) => {
-  core.summary.addHeading(`Task ${taskDir}`, 1)
-
-  let comment
+const processTask = async (task: string, octokit: Octokit, context: Context<WebhookEvent>) => {
+  let commentId: number | undefined
   const pulls = []
-  const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
+  const repositories = parseRepositoriesFile(await fs.readFile(path.join('tasks', task, 'repositories'), 'utf-8'))
   for (const repository of repositories) {
     core.info(`=== ${repository}`)
-    core.summary.addHeading(`Repository ${repository}`, 2)
-    const pull = await createOrUpdatePullRequestForTask(taskDir, repository, octokit, context)
+    const pull = await processRepository(repository, task, octokit, context)
     if (!pull) {
       continue
     }
     pulls.push(pull)
-    const body = pulls.map((pull) => `- ${pull.html_url}`).join('\n')
-    if (comment === undefined) {
-      comment = await octokit.rest.issues.createComment({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        issue_number: context.payload.number,
-        body,
-      })
-    } else {
-      await octokit.rest.issues.updateComment({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        comment_id: comment.data.id,
-        body,
-      })
+    if ('number' in context.payload) {
+      const body = pulls.map((pull) => `- ${pull.html_url}`).join('\n')
+      if (commentId === undefined) {
+        const comment = await octokit.rest.issues.createComment({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          issue_number: context.payload.number,
+          body,
+        })
+        commentId = comment.data.id
+      } else {
+        await octokit.rest.issues.updateComment({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          comment_id: commentId,
+          body,
+        })
+      }
     }
   }
 }
@@ -79,22 +64,18 @@ const parseRepositoriesFile = (repositories: string): string[] => [
   ),
 ]
 
-const createOrUpdatePullRequestForTask = async (
-  taskDir: string,
+const processRepository = async (
   repository: string,
+  task: string,
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
-  const readme = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
-  const taskName = readme.match(/# (.+)/)?.[1]
-  assert(taskName, 'README.md must have a title')
+  const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
+  process.chdir(workspace)
+  core.info(`Moved to a workspace ${workspace}`)
+  await git.clone(repository, context)
 
-  const workspace = await fs.mkdtemp(`${context.runnerTemp}/actions-tanpopo-`)
-  core.info(`Created a workspace at ${workspace}`)
-  await git.clone(repository, workspace, context)
-
-  const precondition = await exec.exec('bash', [path.join(context.workspace, taskDir, 'precondition.sh')], {
-    cwd: workspace,
+  const precondition = await exec.exec('bash', [path.join(context.workspace, 'tasks', task, 'precondition.sh')], {
     ignoreReturnCode: true,
   })
   if (precondition === 99) {
@@ -105,31 +86,47 @@ const createOrUpdatePullRequestForTask = async (
     throw new Error(`precondition failed with exit code ${precondition}`)
   }
 
-  await runCodingAgent(taskDir, workspace, context)
+  core.summary.addHeading(`Repository ${repository}`, 2)
+  const response = await runCodingAgent({
+    taskReadmePath: path.join(context.workspace, 'tasks', task, 'README.md'),
+    githubContext: context,
+  })
+  assert(response.title, 'response.title should be non-empty')
+  assert(response.body, 'response.body should be non-empty')
 
-  const gitStatus = await git.status(workspace)
+  const gitStatus = await git.status()
   if (gitStatus === '') {
     return
   }
 
-  const baseBranch = (await git.getDefaultBranch(workspace)) ?? 'main'
-  const headBranch = `bot--${taskDir.replaceAll(/[^\w]/g, '-')}`
+  const baseBranch = (await git.getDefaultBranch()) ?? 'main'
+  const headBranch = `bot--tasks-${task.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-  await exec.exec('git', ['add', '.'], { cwd: workspace })
-  await exec.exec('git', ['config', 'user.name', context.actor], { cwd: workspace })
-  await exec.exec('git', ['config', 'user.email', `${context.actor}@users.noreply.github.com`], { cwd: workspace })
-  await exec.exec('git', ['commit', '--quiet', '-m', taskName, '-m', workflowRunUrl], { cwd: workspace })
-  await exec.exec('git', ['rev-parse', 'HEAD'], { cwd: workspace })
+  await exec.exec('git', ['add', '.'])
+  await exec.exec('git', [
+    '-c',
+    `user.name=${context.actor}`,
+    '-c',
+    `user.email=${context.actor}@users.noreply.github.com`,
+    'commit',
+    '--quiet',
+    '-m',
+    response.title,
+    '-m',
+    workflowRunUrl,
+  ])
 
   const [owner, repo] = repository.split('/')
-  await pushSignedCommit(owner, repo, headBranch, octokit, workspace)
+  const signedCommitSHA = await signCommit(owner, repo, octokit)
+  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `${signedCommitSHA}:refs/heads/${headBranch}`])
+
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
-    title: taskName,
+    title: response.title,
     head: headBranch,
     base: baseBranch,
-    body: readme,
+    body: response.body,
   })
   await octokit.rest.pulls.requestReviewers({
     owner,
@@ -138,17 +135,22 @@ const createOrUpdatePullRequestForTask = async (
     reviewers: [context.actor],
   })
   core.info(`Requested review from ${context.actor} for pull request: ${pull.html_url}`)
+
+  core.summary.addHeading('Pull request for the task', 3)
+  core.summary.addLink(`${repository}#${pull.number}`, pull.html_url)
+  await core.summary.write()
   return pull
 }
 
-const pushSignedCommit = async (owner: string, repo: string, branch: string, octokit: Octokit, workspace: string) => {
-  const tempBranch = `${branch}--signing`
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `HEAD:${tempBranch}`], { cwd: workspace })
+const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
+  const unsignedCommitSHA = await git.getCommitSHA('HEAD')
+  const signingBranch = `signing--${unsignedCommitSHA}`
+  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `HEAD:refs/heads/${signingBranch}`])
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
       owner,
       repo,
-      branch: tempBranch,
+      branch: signingBranch,
     })
     const { data: signedCommit } = await octokit.rest.git.createCommit({
       owner,
@@ -160,15 +162,15 @@ const pushSignedCommit = async (owner: string, repo: string, branch: string, oct
     await octokit.rest.git.updateRef({
       owner,
       repo,
-      ref: `heads/${tempBranch}`,
+      ref: `heads/${signingBranch}`,
       sha: signedCommit.sha,
       force: true,
     })
-    await exec.exec('git', ['fetch', '--quiet', 'origin', `${tempBranch}:${tempBranch}`], { cwd: workspace })
+    await git.execWithCredentials(['fetch', '--quiet', 'origin', signedCommit.sha])
+    return signedCommit.sha
   } finally {
-    await exec.exec('git', ['push', '--quiet', '--delete', 'origin', `${tempBranch}`], { cwd: workspace })
+    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `refs/heads/${signingBranch}`])
   }
-  await exec.exec('git', ['push', '--quiet', '-f', 'origin', `${tempBranch}:${branch}`], { cwd: workspace })
 }
 
 type CreatePullRequest = NonNullable<Awaited<Parameters<Octokit['rest']['pulls']['create']>[0]>>
@@ -193,13 +195,9 @@ const createOrUpdatePullRequest = async (octokit: Octokit, pull: CreatePullReque
       body: pull.body,
     })
     core.info(`Updated pull request: ${updatedPull.html_url}`)
-    core.summary.addHeading('Updated the existing pull request', 3)
-    core.summary.addRaw(`[#${existingPull.number}](${existingPull.html_url})`)
     return updatedPull
   }
   const { data: createdPull } = await octokit.pulls.create(pull)
   core.info(`Created pull request: ${createdPull.html_url}`)
-  core.summary.addHeading('Created the pull request', 3)
-  core.summary.addRaw(`[#${createdPull.number}](${createdPull.html_url})`)
   return createdPull
 }
