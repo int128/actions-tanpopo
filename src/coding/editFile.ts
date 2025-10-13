@@ -30,6 +30,7 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
   const originalContent = lines[address]
   if (patch.operation === 'REPLACE') {
     assert(newContent !== undefined, 'newContent must be defined for REPLACE operation')
+    assert(originalContent !== undefined, `address ${address} is already removed`)
     lines[address] = newContent
     return {
       address,
@@ -65,6 +66,7 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
     }
   } else if (patch.operation === 'REMOVE') {
     assert(newContent === undefined, 'newContent must be undefined for REMOVE operation')
+    assert(originalContent !== undefined, `address ${address} is already removed`)
     lines[address] = undefined
     return {
       address,
