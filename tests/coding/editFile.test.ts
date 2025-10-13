@@ -9,7 +9,7 @@ describe('applyPatch', () => {
       operation: 'REPLACE',
       newContent: 'new line 2',
     })
-    expect(result).toBe({
+    expect(result).toStrictEqual({
       address: 1,
       diff: `- line 2\n+ new line 2`,
     })
