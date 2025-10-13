@@ -3,14 +3,14 @@
 int128/actions-tanpopo
 int128/kaniko-action
 int128/update-homebrew-formula-action
-# int128/diff-action
-# int128/hide-comment-action
-# int128/datadog-actions-metrics
-# int128/wait-for-deployment-action
-# int128/kustomize-action
-# int128/comment-action
-# int128/list-organization-teams-action
-# int128/deployment-action
+int128/diff-action
+int128/hide-comment-action
+int128/datadog-actions-metrics
+int128/wait-for-deployment-action
+int128/kustomize-action
+int128/comment-action
+int128/list-organization-teams-action
+int128/deployment-action
 # int128/upload-artifact-wiki-action
 # int128/workflow-run-summary-action
 # int128/hello-slack-app
