@@ -45,9 +45,20 @@ pnpm remove @eslint/js eslint prettier typescript-eslint @vitest/eslint-plugin
 }
 ```
 
+If the repository contains `src/generated` directory, add the following setting:
+
+```json
+{
+  "files": {
+    "includes": ["**", "!src/generated"]
+  }
+}
+```
+
 ### Remove the following files
 
 - `.prettierignore`
+- `.prettierrc.json`
 - `prettier.config.js`
 - `eslint.config.js`
 
