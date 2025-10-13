@@ -82,5 +82,9 @@ For example,
 ### Verify
 
 ```bash
+pnpm biome migrate --write
 pnpm run check --fix
 ```
+
+If it reports any errors, leave them.
+You don't need to fix them manually.
