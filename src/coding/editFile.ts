@@ -17,7 +17,7 @@ An address is immutable, it always points to the same line even if lines are add
 - REPLACE: Replace the line at the address with the new content.
 - INSERT: Insert a new line before the line at the address.
 - APPEND: Insert a new line after the line at the address.
-- REMOVE: Remove the line at the address.
+- REMOVE: Mark the line at the address as removed. The line will be removed after all patches are applied.
 `),
     newContent: z.string().optional().describe(`The new content for the operation.`),
   })
@@ -37,6 +37,13 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
     }
   } else if (patch.operation === 'INSERT') {
     assert(newContent !== undefined, 'newContent must be defined for INSERT operation')
+    if (originalContent === undefined) {
+      lines[address] = newContent
+      return {
+        address,
+        diff: `+ ${newContent}`,
+      }
+    }
     lines[address] = `${newContent}\n${originalContent}`
     return {
       address,
@@ -44,6 +51,13 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
     }
   } else if (patch.operation === 'APPEND') {
     assert(newContent !== undefined, 'newContent must be defined for APPEND operation')
+    if (originalContent === undefined) {
+      lines[address] = newContent
+      return {
+        address,
+        diff: `+ ${newContent}`,
+      }
+    }
     lines[address] = `${originalContent}\n${newContent}`
     return {
       address,
