@@ -29,12 +29,19 @@ export const execTool = createTool({
       core.summary.addCodeBlock(stderr)
     }
     return {
-      stdout: stdout.length > 8000 ? `${stdout.slice(0, 8000)}\n... (truncated)` : stdout,
-      stderr: stderr.length > 8000 ? `${stderr.slice(0, 8000)}\n... (truncated)` : stderr,
+      stdout: truncateString(stdout, 8000),
+      stderr: truncateString(stderr, 8000),
       exitCode,
     }
   },
 })
+
+const truncateString = (str: string, maxLength: number) => {
+  if (str.length <= maxLength) {
+    return str
+  }
+  return `${str.slice(0, maxLength)}\n...truncated`
+}
 
 export const sanitizeEnv = (processEnv: NodeJS.ProcessEnv) => {
   const env: Record<string, string> = {}
