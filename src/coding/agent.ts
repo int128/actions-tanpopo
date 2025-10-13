@@ -27,7 +27,7 @@ const codingAgent = new Agent({
 You are an agent for software development.
 Follow the given task.
 The current directory contains the Git repository for your task.
-Before you finish your task, check if your changes are correct using "git status" and "git diff" command.
+Before you finish your task, check if your changes are correct using "git status" command.
 The changes in the current directory will be sent to a pull request after you finish your task.
 
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
