@@ -5,7 +5,9 @@ import { z } from 'zod'
 
 export const readFileTool = createTool({
   id: 'readFile',
-  description: `Read the lines from a file.`,
+  description: `Read the lines from a file.
+If the file has more than 100 lines, you need to call this tool multiple times with different offsets to read all lines.
+`,
   inputSchema: z.object({
     path: z.string().describe('The path to the file in the repository.'),
     offset: z
@@ -31,7 +33,7 @@ If you want to read from the 101st line, set this to 100.
       )
       .max(100)
       .describe('The array of lines read from the file. Up to 100 lines are returned.'),
-    total: z.int().describe('The total number of lines in the file.'),
+    totalLines: z.int().describe('The total number of lines in the file.'),
   }),
   execute: async ({ context }) => {
     const fileContent = await fs.readFile(context.path, 'utf-8')
@@ -46,7 +48,7 @@ If you want to read from the 101st line, set this to 100.
     core.summary.addCodeBlock(context.path)
     return {
       lines: partialLines,
-      total: allLines.length,
+      totalLines: allLines.length,
     }
   },
 })
