@@ -67,7 +67,6 @@ export const editFileTool = createTool({
   id: 'editFile',
   description: `Manipulate the lines of an existing file.
 This tool applies the patches in order and finally writes the lines to the file.
-If any patch is failed, the whole operation is aborted and no changes are made to the file.
 `,
   inputSchema: z.object({
     path: z.string().describe('The path to the file in the repository. The file must exist.'),
@@ -80,22 +79,41 @@ If any patch is failed, the whole operation is aborted and no changes are made t
         diff: z.string().describe('The diff of the modification.'),
       }),
     ),
+    errors: z.array(z.string()).describe(`An array of error messages if any occurred during the patching process.
+If there are errors, no changes are made to the file.
+`),
   }),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
     const lines: BufferLine[] = originalContent.split('\n')
+
     const diffs = []
+    const errors = []
     for (const patch of context.patches) {
-      const diff = applyPatch(lines, patch)
-      diffs.push(diff)
+      try {
+        const diff = applyPatch(lines, patch)
+        diffs.push(diff)
+      } catch (error) {
+        errors.push(`${error}`)
+      }
+    }
+    if (errors.length > 0) {
+      core.info(`❌ Failed to edit ${context.path} due to errors`)
+      core.summary.addHeading(`❌ Edit ${context.path}`, 3)
+      core.startGroup(`Errors`)
+      for (const error of errors) {
+        core.info(`- ${error}`)
+        core.summary.addCodeBlock(`- ${error}`)
+      }
+      core.endGroup()
+      return { diffs: [], errors }
     }
 
     core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
     core.startGroup(`Patch`)
     core.info(JSON.stringify(context.patches, null, 2))
     core.endGroup()
-    core.summary.addHeading(`🔧 Edit a file (${lines.length} lines)`, 3)
-    core.summary.addRaw(context.path, true)
+    core.summary.addHeading(`🔧 Edit ${context.path}`, 3)
     core.summary.addCodeBlock(JSON.stringify(context.patches, null, 2), 'json')
     for (const diff of diffs) {
       core.info(`@@ ${diff.address} @@`)
@@ -105,6 +123,6 @@ If any patch is failed, the whole operation is aborted and no changes are made t
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    return { diffs }
+    return { diffs, errors: [] }
   },
 })
