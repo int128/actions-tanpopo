@@ -29,6 +29,11 @@ pnpm remove @eslint/js eslint prettier typescript-eslint @vitest/eslint-plugin
 ```json
 {
   "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "formatter": {
     "indentStyle": "space",
     "lineWidth": 120
