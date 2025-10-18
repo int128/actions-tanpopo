@@ -34,6 +34,18 @@ For example,
  }
 ```
 
+If `package.json` has `biome` command, remove them.
+For example,
+
+```diff
+ {
+   "private": true,
+   "scripts": {
+-    "check": "biome check",
+   },
+ }
+```
+
 ### Update `.github/workflows/*.yaml` if needed
 
 If any workflow file runs `pnpm lint` or `pnpm format`, replace them with `pnpm biome check --fix`.
@@ -48,7 +60,18 @@ For example,
 +      - run: pnpm biome check --fix
 ```
 
+If any workflow file runs `pnpm run check`, replace it with `pnpm biome check --fix`.
+For example,
+
+```diff
+ jobs:
+   test:
+     steps:
+-      - run: pnpm run check --fix
++      - run: pnpm biome check --fix
+```
+
 ### Return the pull request title and body
 
-Understand the current changes.
+Understand the current changes using `git diff`.
 Return a concise and clear pull request title and body.
