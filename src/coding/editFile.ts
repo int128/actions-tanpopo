@@ -13,11 +13,10 @@ const patchSchema = z
 Address 0 is the first line.
 An address is immutable, it always points to the same line even if lines are added or removed before it.
 `),
-    operation: z.enum(['REPLACE', 'INSERT', 'APPEND', 'REMOVE']).describe(`The operation to perform on the line.
-- REPLACE: Replace the line at the address with the new content.
+    operation: z.enum(['REPLACE', 'INSERT', 'APPEND']).describe(`The operation to perform on the line.
+- REPLACE: Replace the line at the address with the new content. If the new content is undefined, the line is removed.
 - INSERT: Insert a new line before the line at the address.
 - APPEND: Insert a new line after the line at the address.
-- REMOVE: Mark the line at the address as removed. The line will be removed after all patches are applied.
 `),
     newContent: z.string().optional().describe(`The new content for the operation.`),
   })
@@ -29,9 +28,14 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
   const { address, newContent } = patch
   const originalContent = lines[address]
   if (patch.operation === 'REPLACE') {
-    assert(newContent !== undefined, 'newContent must be defined for REPLACE operation')
     assert(originalContent !== undefined, `address ${address} is already removed`)
     lines[address] = newContent
+    if (newContent === undefined) {
+      return {
+        address,
+        diff: `- ${originalContent}`,
+      }
+    }
     return {
       address,
       diff: `- ${originalContent}\n+ ${newContent}`,
@@ -64,14 +68,6 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
       address,
       diff: `  ${originalContent}\n+ ${newContent}`,
     }
-  } else if (patch.operation === 'REMOVE') {
-    assert(newContent === undefined, 'newContent must be undefined for REMOVE operation')
-    assert(originalContent !== undefined, `address ${address} is already removed`)
-    lines[address] = undefined
-    return {
-      address,
-      diff: `- ${originalContent}`,
-    }
   }
   throw new Error(`Unknown operation: ${patch.operation}`)
 }
@@ -85,7 +81,14 @@ This tool applies the patches in order and finally writes the lines to the file.
     path: z.string().describe('The path to the file in the repository. The file must exist.'),
     patches: z.array(patchSchema).min(1).describe(`An array of patches. The patches are applied in order.`),
   }),
-  outputSchema: z.object({}),
+  outputSchema: z.object({
+    diffs: z.array(
+      z.object({
+        address: z.int().min(0).describe('The address of the line that was modified.'),
+        diff: z.string().describe('The diff of the modification.'),
+      }),
+    ),
+  }),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
     const lines: BufferLine[] = originalContent.split('\n')
@@ -110,6 +113,6 @@ This tool applies the patches in order and finally writes the lines to the file.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    return {}
+    return { diffs }
   },
 })
