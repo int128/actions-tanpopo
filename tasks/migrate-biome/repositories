@@ -11,13 +11,13 @@ int128/kustomize-action
 int128/comment-action
 int128/list-organization-teams-action
 int128/deployment-action
-# int128/upload-artifact-wiki-action
-# int128/workflow-run-summary-action
-# int128/hello-slack-app
-# int128/create-ecr-repository-action
-# int128/update-generated-files-action
-# int128/deploy-lambda-action
-# int128/issues-action
+int128/upload-artifact-wiki-action
+int128/workflow-run-summary-action
+int128/hello-slack-app
+int128/create-ecr-repository-action
+int128/update-generated-files-action
+int128/deploy-lambda-action
+int128/issues-action
 # int128/bntp
 # int128/find-codeowners-action
 # int128/github-api-rate-limit-metrics-action
