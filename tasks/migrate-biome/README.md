@@ -10,65 +10,18 @@
 
 - `package.json` has Biome packages.
 - `package.json` does not have Prettier and ESLint packages.
-- `pnpm run check` executes Biome check.
-- `biome.json` configuration file is added.
+- Biome configuration file is added.
 - Prettier and ESLint configuration files are removed.
-- `.github/workflows/*.yaml` runs Biome check.
+- CI runs Biome check.
 
 ## Steps
 
-### Replace the packages
+The workspace is already migrated by [precondition.sh](./precondition.sh).
+Your task is update the below files.
 
-```bash
-pnpm add -D -E @biomejs/biome
-pnpm remove @eslint/js eslint prettier typescript-eslint @vitest/eslint-plugin
-```
+### Remove Prettier and ESLint
 
-### Create `biome.json`
-
-```json
-{
-  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "formatter": {
-    "indentStyle": "space",
-    "lineWidth": 120
-  },
-  "linter": {
-    "enabled": true
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "semicolons": "asNeeded"
-    }
-  }
-}
-```
-
-If the repository contains `src/generated` directory, add the following setting:
-
-```json
-{
-  "files": {
-    "includes": ["**", "!src/generated"]
-  }
-}
-```
-
-### Remove the following files
-
-- `.prettierignore`
-- `.prettierrc.json`
-- `prettier.config.js`
-- `eslint.config.js`
-
-### Update `package.json` to run Biome check
-
+If `package.json` has `prettier` and `eslint` commands, remove them.
 For example,
 
 ```diff
@@ -77,13 +30,11 @@ For example,
    "scripts": {
 -    "format": "prettier --write **/*.ts",
 -    "lint": "eslint .",
-+    "check": "biome check",
    },
  }
 ```
 
-### Update `.github/workflows/*.yaml` to run Biome check
-
+If any workflow file runs `pnpm lint` or `pnpm format`, replace them with `pnpm biome check --fix`.
 For example,
 
 ```diff
@@ -92,15 +43,35 @@ For example,
      steps:
 -      - run: pnpm lint --fix
 -      - run: pnpm format
-+      - run: pnpm run check --fix
++      - run: pnpm biome check --fix
 ```
 
-### Verify
+### Run `pnpm biome check` in CI
 
-```bash
-pnpm biome migrate --write
-pnpm run check --fix
+If `package.json` has `biome` command, remove them.
+For example,
+
+```diff
+ {
+   "private": true,
+   "scripts": {
+-    "check": "biome check",
+   },
+ }
 ```
 
-If it reports any errors, leave them.
-You don't need to fix them manually.
+If any workflow file runs `pnpm run check`, replace it with `pnpm biome check --fix`.
+For example,
+
+```diff
+ jobs:
+   test:
+     steps:
+-      - run: pnpm run check --fix
++      - run: pnpm biome check --fix
+```
+
+### Return the pull request title and body
+
+Understand the current changes using `git diff`.
+Return a concise and clear pull request title and body.

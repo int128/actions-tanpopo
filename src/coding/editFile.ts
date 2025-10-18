@@ -13,12 +13,16 @@ const patchSchema = z
 Address 0 is the first line.
 An address is immutable, it always points to the same line even if lines are added or removed before it.
 `),
-    operation: z.enum(['REPLACE', 'INSERT', 'APPEND']).describe(`The operation to perform on the line.
-- REPLACE: Replace the line at the address with the new content. If the new content is undefined, the line is removed.
+    operation: z.enum(['REPLACE', 'REMOVE', 'INSERT', 'APPEND']).describe(`The operation to perform on the line.
+- REPLACE: Replace the line at the address with the new content.
+- REMOVE: Mark the line at the address as removed. Once a line is marked as removed, it cannot be modified by subsequent patches.
 - INSERT: Insert a new line before the line at the address.
 - APPEND: Insert a new line after the line at the address.
 `),
-    newContent: z.string().optional().describe(`The new content for the operation.`),
+    newContent: z
+      .string()
+      .optional()
+      .describe(`The new content for the operation. Required for REPLACE, INSERT, and APPEND operations.`),
   })
   .describe(`A patch to manipulate a line in the file.`)
 
@@ -27,28 +31,22 @@ type BufferLine = string | undefined
 export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchema>) => {
   const { address, newContent } = patch
   const originalContent = lines[address]
+  assert(originalContent !== undefined, `address ${address} is marked as removed`)
   if (patch.operation === 'REPLACE') {
-    assert(originalContent !== undefined, `address ${address} is already removed`)
+    assert(newContent !== undefined, 'newContent must be defined for REPLACE operation')
     lines[address] = newContent
-    if (newContent === undefined) {
-      return {
-        address,
-        diff: `- ${originalContent}`,
-      }
-    }
     return {
       address,
       diff: `- ${originalContent}\n+ ${newContent}`,
     }
+  } else if (patch.operation === 'REMOVE') {
+    lines[address] = undefined
+    return {
+      address,
+      diff: `- ${originalContent}`,
+    }
   } else if (patch.operation === 'INSERT') {
     assert(newContent !== undefined, 'newContent must be defined for INSERT operation')
-    if (originalContent === undefined) {
-      lines[address] = newContent
-      return {
-        address,
-        diff: `+ ${newContent}`,
-      }
-    }
     lines[address] = `${newContent}\n${originalContent}`
     return {
       address,
@@ -56,13 +54,6 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
     }
   } else if (patch.operation === 'APPEND') {
     assert(newContent !== undefined, 'newContent must be defined for APPEND operation')
-    if (originalContent === undefined) {
-      lines[address] = newContent
-      return {
-        address,
-        diff: `+ ${newContent}`,
-      }
-    }
     lines[address] = `${originalContent}\n${newContent}`
     return {
       address,
@@ -88,22 +79,41 @@ This tool applies the patches in order and finally writes the lines to the file.
         diff: z.string().describe('The diff of the modification.'),
       }),
     ),
+    errors: z.array(z.string()).describe(`An array of error messages if any occurred during the patching process.
+If there are errors, no changes are made to the file.
+`),
   }),
   execute: async ({ context }) => {
     const originalContent = await fs.readFile(context.path, 'utf-8')
     const lines: BufferLine[] = originalContent.split('\n')
+
     const diffs = []
+    const errors = []
     for (const patch of context.patches) {
-      const diff = applyPatch(lines, patch)
-      diffs.push(diff)
+      try {
+        const diff = applyPatch(lines, patch)
+        diffs.push(diff)
+      } catch (error) {
+        errors.push(`${error}`)
+      }
+    }
+    if (errors.length > 0) {
+      core.info(`❌ Failed to edit ${context.path} due to errors`)
+      core.summary.addHeading(`❌ Edit ${context.path}`, 3)
+      core.startGroup(`Errors`)
+      for (const error of errors) {
+        core.info(`- ${error}`)
+        core.summary.addCodeBlock(`- ${error}`)
+      }
+      core.endGroup()
+      return { diffs: [], errors }
     }
 
     core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
     core.startGroup(`Patch`)
     core.info(JSON.stringify(context.patches, null, 2))
     core.endGroup()
-    core.summary.addHeading(`🔧 Edit a file (${lines.length} lines)`, 3)
-    core.summary.addRaw(context.path, true)
+    core.summary.addHeading(`🔧 Edit ${context.path}`, 3)
     core.summary.addCodeBlock(JSON.stringify(context.patches, null, 2), 'json')
     for (const diff of diffs) {
       core.info(`@@ ${diff.address} @@`)
@@ -113,6 +123,6 @@ This tool applies the patches in order and finally writes the lines to the file.
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
     await fs.writeFile(context.path, newContent, 'utf-8')
-    return { diffs }
+    return { diffs, errors: [] }
   },
 })

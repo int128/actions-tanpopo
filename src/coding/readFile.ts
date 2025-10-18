@@ -17,7 +17,15 @@ If you want to read from the 101st line, set this to 100.
 `),
   }),
   outputSchema: z.object({
-    lines: z
+    totalLines: z.int().describe(`The total number of lines in the file.`),
+    nextOffset: z
+      .int()
+      .optional()
+      .describe(`The 0-based address of the next line to read.
+If there are more lines to read, this field is set to the address of the next line.
+If all lines have been read, this field is omitted.
+`),
+    readLines: z
       .array(
         z.object({
           address: z
@@ -31,22 +39,29 @@ If you want to read from the 101st line, set this to 100.
       )
       .max(100)
       .describe('The array of lines read from the file. Up to 100 lines are returned.'),
-    total: z.int().describe('The total number of lines in the file.'),
   }),
   execute: async ({ context }) => {
     const fileContent = await fs.readFile(context.path, 'utf-8')
     const allLines = fileContent.split('\n').map((line, address) => ({ address, line }))
-    const partialLines = allLines.slice(context.offset, context.offset + 100)
+    const readLines = allLines.slice(context.offset, context.offset + 100)
+    const nextOffset =
+      context.offset + readLines.length < allLines.length ? context.offset + readLines.length : undefined
     core.startGroup(`🤖 Reading ${context.path} (offset: ${context.offset})`)
-    for (const { address, line } of partialLines) {
+    for (const { address, line } of readLines) {
       core.info(`${address}: ${line}`)
     }
     core.endGroup()
-    core.summary.addHeading(`🔧 Read a file (offset: ${context.offset})`, 3)
-    core.summary.addCodeBlock(context.path)
+    core.summary.addHeading(`🔧 Read a file: ${context.path}`, 3)
+    core.summary.addList([
+      `offset=${context.offset}`,
+      `readLines=${readLines.length}`,
+      `nextOffset=${nextOffset}`,
+      `totalLines=${allLines.length}`,
+    ])
     return {
-      lines: partialLines,
-      total: allLines.length,
+      totalLines: allLines.length,
+      readLines,
+      nextOffset,
     }
   },
 })
