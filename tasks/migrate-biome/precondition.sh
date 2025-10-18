@@ -6,7 +6,7 @@ taskdir="$(dirname "$0")"
 if [ -d src/generated ]; then
   cp "$taskdir/biome-with-generated.json" biome.json
 else
-  cp "$taskdir/biome.json" biome.json
+  cp "$taskdir/biome-standard.json" biome.json
 fi
 
 rm -f .prettierignore .prettierrc.json prettier.config.js eslint.config.js
