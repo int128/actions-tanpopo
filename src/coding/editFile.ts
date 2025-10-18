@@ -14,7 +14,7 @@ Address 0 is the first line.
 An address is immutable, it always points to the same line even if lines are added or removed before it.
 `),
     operation: z.enum(['REPLACE', 'INSERT', 'APPEND']).describe(`The operation to perform on the line.
-- REPLACE: Replace the line at the address with the new content. If the new content is undefined, the line is removed.
+- REPLACE: Replace the line at the address with the new content. If the new content is an empty string, the line is replaced with an empty line. If the new content is undefined, the line is removed.
 - INSERT: Insert a new line before the line at the address.
 - APPEND: Insert a new line after the line at the address.
 `),
