@@ -17,55 +17,8 @@
 
 ## Steps
 
-### Replace the packages
-
-```bash
-pnpm add -D -E @biomejs/biome
-pnpm remove @eslint/js eslint prettier typescript-eslint @vitest/eslint-plugin
-```
-
-### Create `biome.json`
-
-```json
-{
-  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "formatter": {
-    "indentStyle": "space",
-    "lineWidth": 120
-  },
-  "linter": {
-    "enabled": true
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "semicolons": "asNeeded"
-    }
-  }
-}
-```
-
-If the repository contains `src/generated` directory, add the following setting:
-
-```json
-{
-  "files": {
-    "includes": ["**", "!src/generated"]
-  }
-}
-```
-
-### Remove the following files
-
-- `.prettierignore`
-- `.prettierrc.json`
-- `prettier.config.js`
-- `eslint.config.js`
+The workspace is already migrated by [precondition.sh](./precondition.sh).
+Your task is update the below files.
 
 ### Update `package.json` to run Biome check
 
@@ -94,13 +47,3 @@ For example,
 -      - run: pnpm format
 +      - run: pnpm run check --fix
 ```
-
-### Verify
-
-```bash
-pnpm biome migrate --write
-pnpm run check --fix
-```
-
-If it reports any errors, leave them.
-You don't need to fix them manually.
