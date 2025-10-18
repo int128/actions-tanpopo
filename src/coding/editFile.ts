@@ -15,7 +15,7 @@ An address is immutable, it always points to the same line even if lines are add
 `),
     operation: z.enum(['REPLACE', 'REMOVE', 'INSERT', 'APPEND']).describe(`The operation to perform on the line.
 - REPLACE: Replace the line at the address with the new content.
-- REMOVE: Mark the line at the address as removed.
+- REMOVE: Mark the line at the address as removed. Once a line is marked as removed, it cannot be modified by subsequent patches.
 - INSERT: Insert a new line before the line at the address.
 - APPEND: Insert a new line after the line at the address.
 `),
