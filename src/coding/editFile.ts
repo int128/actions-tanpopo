@@ -13,12 +13,16 @@ const patchSchema = z
 Address 0 is the first line.
 An address is immutable, it always points to the same line even if lines are added or removed before it.
 `),
-    operation: z.enum(['REPLACE', 'INSERT', 'APPEND']).describe(`The operation to perform on the line.
-- REPLACE: Replace the line at the address with the new content. If the new content is an empty string, the line is replaced with an empty line. If the new content is undefined, the line is removed.
+    operation: z.enum(['REPLACE', 'REMOVE', 'INSERT', 'APPEND']).describe(`The operation to perform on the line.
+- REPLACE: Replace the line at the address with the new content.
+- REMOVE: Mark the line at the address as removed.
 - INSERT: Insert a new line before the line at the address.
 - APPEND: Insert a new line after the line at the address.
 `),
-    newContent: z.string().optional().describe(`The new content for the operation.`),
+    newContent: z
+      .string()
+      .optional()
+      .describe(`The new content for the operation. Required for REPLACE, INSERT, and APPEND operations.`),
   })
   .describe(`A patch to manipulate a line in the file.`)
 
@@ -27,28 +31,22 @@ type BufferLine = string | undefined
 export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchema>) => {
   const { address, newContent } = patch
   const originalContent = lines[address]
+  assert(originalContent !== undefined, `address ${address} is marked as removed`)
   if (patch.operation === 'REPLACE') {
-    assert(originalContent !== undefined, `address ${address} is already removed`)
+    assert(newContent !== undefined, 'newContent must be defined for REPLACE operation')
     lines[address] = newContent
-    if (newContent === undefined) {
-      return {
-        address,
-        diff: `- ${originalContent}`,
-      }
-    }
     return {
       address,
       diff: `- ${originalContent}\n+ ${newContent}`,
     }
+  } else if (patch.operation === 'REMOVE') {
+    lines[address] = undefined
+    return {
+      address,
+      diff: `- ${originalContent}`,
+    }
   } else if (patch.operation === 'INSERT') {
     assert(newContent !== undefined, 'newContent must be defined for INSERT operation')
-    if (originalContent === undefined) {
-      lines[address] = newContent
-      return {
-        address,
-        diff: `+ ${newContent}`,
-      }
-    }
     lines[address] = `${newContent}\n${originalContent}`
     return {
       address,
@@ -56,13 +54,6 @@ export const applyPatch = (lines: BufferLine[], patch: z.infer<typeof patchSchem
     }
   } else if (patch.operation === 'APPEND') {
     assert(newContent !== undefined, 'newContent must be defined for APPEND operation')
-    if (originalContent === undefined) {
-      lines[address] = newContent
-      return {
-        address,
-        diff: `+ ${newContent}`,
-      }
-    }
     lines[address] = `${originalContent}\n${newContent}`
     return {
       address,
@@ -76,6 +67,7 @@ export const editFileTool = createTool({
   id: 'editFile',
   description: `Manipulate the lines of an existing file.
 This tool applies the patches in order and finally writes the lines to the file.
+If any patch is failed, the whole operation is aborted and no changes are made to the file.
 `,
   inputSchema: z.object({
     path: z.string().describe('The path to the file in the repository. The file must exist.'),
