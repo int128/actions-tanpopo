@@ -20,8 +20,9 @@
 The workspace is already migrated by [precondition.sh](./precondition.sh).
 Your task is update the below files.
 
-### Update `package.json` to run Biome check
+### Update `package.json` if needed
 
+If `package.json` has `prettier` and `eslint` commands, replace them with `biome check`.
 For example,
 
 ```diff
@@ -35,8 +36,9 @@ For example,
  }
 ```
 
-### Update `.github/workflows/*.yaml` to run Biome check
+### Update `.github/workflows/*.yaml` if needed
 
+If any workflow file runs `pnpm lint` or `pnpm format`, replace them with `pnpm run check`.
 For example,
 
 ```diff
@@ -47,3 +49,8 @@ For example,
 -      - run: pnpm format
 +      - run: pnpm run check --fix
 ```
+
+### Return the pull request title and body
+
+Understand the current changes.
+Return a concise and clear pull request title and body.
