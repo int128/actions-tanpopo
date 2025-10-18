@@ -10,10 +10,9 @@
 
 - `package.json` has Biome packages.
 - `package.json` does not have Prettier and ESLint packages.
-- `pnpm run check` executes Biome check.
-- `biome.json` configuration file is added.
+- Biome configuration file is added.
 - Prettier and ESLint configuration files are removed.
-- `.github/workflows/*.yaml` runs Biome check.
+- CI runs Biome check.
 
 ## Steps
 
@@ -22,7 +21,7 @@ Your task is update the below files.
 
 ### Update `package.json` if needed
 
-If `package.json` has `prettier` and `eslint` commands, replace them with `biome check`.
+If `package.json` has `prettier` and `eslint` commands, remove them.
 For example,
 
 ```diff
@@ -31,14 +30,13 @@ For example,
    "scripts": {
 -    "format": "prettier --write **/*.ts",
 -    "lint": "eslint .",
-+    "check": "biome check",
    },
  }
 ```
 
 ### Update `.github/workflows/*.yaml` if needed
 
-If any workflow file runs `pnpm lint` or `pnpm format`, replace them with `pnpm run check`.
+If any workflow file runs `pnpm lint` or `pnpm format`, replace them with `pnpm biome check --fix`.
 For example,
 
 ```diff
@@ -47,7 +45,7 @@ For example,
      steps:
 -      - run: pnpm lint --fix
 -      - run: pnpm format
-+      - run: pnpm run check --fix
++      - run: pnpm biome check --fix
 ```
 
 ### Return the pull request title and body

@@ -15,7 +15,7 @@ pnpm add -D -E @biomejs/biome
 pnpm remove @eslint/js eslint prettier typescript-eslint @vitest/eslint-plugin || true
 
 pnpm biome migrate --write
-pnpm run check --fix
+pnpm biome check --fix
 
 if [ -z "$(git status --porcelain)" ]; then
   exit 99 # skip the task
