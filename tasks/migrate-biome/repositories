@@ -37,13 +37,13 @@ int128/docker-build-cache-config-action
 int128/glob-changed-files-action
 int128/create-commit-action
 int128/label-action
-# int128/typescript-action-with-graphql-codegen
-# int128/wait-for-workflows-action
-# int128/delete-deployments-action
-# int128/typescript-action
-# int128/wait-for-docker-image-action
-# int128/renovate-merge-bot
-# int128/docker-manifest-create-action
-# int128/parallel-test-action
-# # int128/hello-aws-sdk-client-s3
-# # int128/hello-react-redux-ts
+int128/typescript-action-with-graphql-codegen
+int128/wait-for-workflows-action
+int128/delete-deployments-action
+int128/typescript-action
+int128/wait-for-docker-image-action
+int128/renovate-merge-bot
+int128/docker-manifest-create-action
+int128/parallel-test-action
+# int128/hello-aws-sdk-client-s3
+# int128/hello-react-redux-ts
