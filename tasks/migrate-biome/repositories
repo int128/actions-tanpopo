@@ -18,17 +18,17 @@ int128/create-ecr-repository-action
 int128/update-generated-files-action
 int128/deploy-lambda-action
 int128/issues-action
-# int128/bntp
-# int128/find-codeowners-action
-# int128/github-api-rate-limit-metrics-action
-# int128/docker-build-metadata-action
-# int128/find-ecr-repository-action
+int128/bntp
+int128/find-codeowners-action
+int128/github-api-rate-limit-metrics-action
+int128/docker-build-metadata-action
+int128/find-ecr-repository-action
 # int128/bedrock-action
-# int128/rerun-workflows-action
-# int128/list-matched-workflows-action
-# int128/group-pull-request-action
-# int128/opentelemetry-collector-action
-# int128/trace-workflows-action
+int128/rerun-workflows-action
+int128/list-matched-workflows-action
+int128/group-pull-request-action
+int128/opentelemetry-collector-action
+int128/trace-workflows-action
 # int128/stale-branch-action
 # int128/send-datadog-action
 # int128/list-associated-pull-requests-action
