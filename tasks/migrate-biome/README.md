@@ -19,7 +19,7 @@
 The workspace is already migrated by [precondition.sh](./precondition.sh).
 Your task is update the below files.
 
-### Update `package.json` if needed
+### Remove Prettier and ESLint
 
 If `package.json` has `prettier` and `eslint` commands, remove them.
 For example,
@@ -34,20 +34,6 @@ For example,
  }
 ```
 
-If `package.json` has `biome` command, remove them.
-For example,
-
-```diff
- {
-   "private": true,
-   "scripts": {
--    "check": "biome check",
-   },
- }
-```
-
-### Update `.github/workflows/*.yaml` if needed
-
 If any workflow file runs `pnpm lint` or `pnpm format`, replace them with `pnpm biome check --fix`.
 For example,
 
@@ -58,6 +44,20 @@ For example,
 -      - run: pnpm lint --fix
 -      - run: pnpm format
 +      - run: pnpm biome check --fix
+```
+
+### Run `pnpm biome check` in CI
+
+If `package.json` has `biome` command, remove them.
+For example,
+
+```diff
+ {
+   "private": true,
+   "scripts": {
+-    "check": "biome check",
+   },
+ }
 ```
 
 If any workflow file runs `pnpm run check`, replace it with `pnpm biome check --fix`.
