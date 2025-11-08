@@ -11,7 +11,7 @@
     "@ai-sdk/google": "2.0.26",
     "@mastra/core": "0.18.0",
     "@octokit/action": "8.0.2",
-    "@octokit/plugin-retry": "8.0.2",
+    "@octokit/plugin-retry": "8.0.3",
     "ai": "5.0.79",
     "zod": "4.1.12"
   },
