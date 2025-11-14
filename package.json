@@ -10,7 +10,7 @@
     "@actions/exec": "1.1.1",
     "@ai-sdk/google": "2.0.29",
     "@mastra/core": "0.18.0",
-    "@octokit/action": "8.0.2",
+    "@octokit/action": "8.0.4",
     "@octokit/plugin-retry": "8.0.3",
     "ai": "5.0.86",
     "zod": "4.1.12"
