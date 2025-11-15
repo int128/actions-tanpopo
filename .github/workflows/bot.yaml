@@ -28,7 +28,7 @@ jobs:
       - run: pnpm i
       - run: pnpm build
 
-      - uses: int128/glob-changed-files-action@5ed437a758ce04e8ed5e88d66d719e3025beefad # v2.8.0
+      - uses: int128/glob-changed-files-action@6c38e5c271675418921e9bca14d3045c53f76184 # v2.9.0
         id: changed-tasks
         with:
           paths: |
