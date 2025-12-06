@@ -55,12 +55,13 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
   const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
   runtimeContext.set('githubContext', context.githubContext)
 
-  const response = await codingAgent.generateVNext(instruction, {
+  const response = await codingAgent.generate(instruction, {
     maxSteps: 30,
     runtimeContext,
-    output: z.object({
-      title: z.string().describe('The title of pull request for this task.'),
-      body: z.string().describe(`The body of pull request for this task.
+    structuredOutput: {
+      schema: z.object({
+        title: z.string().describe('The title of pull request for this task.'),
+        body: z.string().describe(`The body of pull request for this task.
 For example:
 \`\`\`
 ## Purpose
@@ -69,7 +70,11 @@ X is deprecated and no longer maintained.
 - Replace X with Y
 \`\`\`
 `),
-    }),
+      }),
+      // For Gemini 2.5 with tools
+      // https://mastra.ai/docs/agents/overview#response-format
+      jsonPromptInjection: true,
+    },
     onStepFinish: (event: unknown) => {
       if (typeof event === 'object' && event !== null) {
         if ('stepType' in event && typeof event.stepType === 'string') {
