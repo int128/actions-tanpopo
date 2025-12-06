@@ -55,7 +55,7 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
   const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
   runtimeContext.set('githubContext', context.githubContext)
 
-  const response = await codingAgent.generateVNext(instruction, {
+  const response = await codingAgent.generate(instruction, {
     maxSteps: 30,
     runtimeContext,
     output: z.object({
