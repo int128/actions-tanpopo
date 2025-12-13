@@ -36,6 +36,8 @@ export const getContext = async (): Promise<Context<WebhookEvent>> => {
 
 const getRepo = () => {
   const [owner, repo] = getEnv('GITHUB_REPOSITORY').split('/')
+  assert(owner, 'GITHUB_REPOSITORY must have an owner part')
+  assert(repo, 'GITHUB_REPOSITORY must have a repo part')
   return { owner, repo }
 }
 

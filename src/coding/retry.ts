@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import * as core from '@actions/core'
 import { APICallError, type LanguageModelMiddleware } from 'ai'
 
@@ -32,9 +33,10 @@ const withRetry = async <T>(fn: () => Promise<T>): Promise<T> => {
 }
 
 const parseRetryAfterSec = (message: string | undefined): number | undefined => {
-  const m = message?.match(/"retryDelay": *"(\d+)s"/)
-  if (m) {
-    const s = Number.parseInt(m[1], 10)
+  const matcher = message?.match(/"retryDelay": *"(\d+)s"/)
+  if (matcher) {
+    assert(matcher[1] !== undefined, `matcher should have a group`)
+    const s = Number.parseInt(matcher[1], 10)
     if (Number.isSafeInteger(s) && s >= 0) {
       return s
     }
