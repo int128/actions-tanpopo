@@ -13,8 +13,13 @@ if grep 'biome migrate --write' package.json; then
   exit 99 # Skip the task
 fi
 
-perl -i -pne 's/"check": "biome check"/"check": "biome migrate --write \&\& biome check --fix"/' package.json
+jq '.scripts.check = "biome migrate --write && biome check --fix"' package.json > package.tmp.json
+mv package.tmp.json package.json
 
-perl -i -pne 's/run: pnpm run check --fix/run: pnpm run check/' .github/workflows/*.yaml
+perl -i -pne 's/run: pnpm biome check --fix/run: pnpm run check/' .github/workflows/*.yaml
+
+if git diff --quiet; then
+  exit 99 # Skip the task
+fi
 
 exit 0

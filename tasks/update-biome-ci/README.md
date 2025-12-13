@@ -7,4 +7,4 @@ When `@biomejs/biome` is updated, we want to automatically update the version in
 ## Step
 
 The workspace is already updated by [precondition.sh](./precondition.sh).
-Your task is generating the description of the change.
+Your task is generating the description of the current change.
