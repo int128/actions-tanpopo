@@ -2,7 +2,8 @@
   "private": true,
   "scripts": {
     "build": "ncc build --source-map --license licenses.txt src/index.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "check": "biome migrate --write && biome check --fix"
   },
   "type": "module",
   "dependencies": {
@@ -21,12 +22,12 @@
     "@tsconfig/node20": "20.1.8",
     "@types/node": "20.19.25",
     "@vercel/ncc": "0.38.4",
-    "pnpm": "10.20.0",
+    "pnpm": "10.24.0",
     "typescript": "5.9.3",
     "vitest": "4.0.15"
   },
   "engines": {
     "node": "20.x"
   },
-  "packageManager": "pnpm@10.20.0"
+  "packageManager": "pnpm@10.24.0"
 }
