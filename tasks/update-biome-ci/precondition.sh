@@ -18,6 +18,7 @@ mv package.tmp.json package.json
 
 perl -i -pne 's/run: pnpm biome check --fix/run: pnpm run check/' .github/workflows/*.yaml
 
+pnpm install
 pnpm run check
 
 if git diff --quiet; then
