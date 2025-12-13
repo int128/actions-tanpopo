@@ -117,6 +117,8 @@ const processRepository = async (
   ])
 
   const [owner, repo] = repository.split('/')
+  assert(owner, 'repository must have an owner part')
+  assert(repo, 'repository must have a repo part')
   const signedCommitSHA = await signCommit(owner, repo, octokit)
   await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `${signedCommitSHA}:refs/heads/${headBranch}`])
 
@@ -173,9 +175,16 @@ const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
   }
 }
 
-type CreatePullRequest = NonNullable<Awaited<Parameters<Octokit['rest']['pulls']['create']>[0]>>
+type CreateOrUpdatePullRequest = {
+  owner: string
+  repo: string
+  title: string
+  head: string
+  base: string
+  body: string
+}
 
-const createOrUpdatePullRequest = async (octokit: Octokit, pull: CreatePullRequest) => {
+const createOrUpdatePullRequest = async (octokit: Octokit, pull: CreateOrUpdatePullRequest) => {
   const { data: existingPulls } = await octokit.pulls.list({
     owner: pull.owner,
     repo: pull.repo,
@@ -184,6 +193,7 @@ const createOrUpdatePullRequest = async (octokit: Octokit, pull: CreatePullReque
     per_page: 1,
   })
   if (existingPulls.length > 0) {
+    assert(existingPulls[0] !== undefined, 'existingPulls should be non-empty')
     const existingPull = existingPulls[0]
     core.info(`Pull request already exists: ${existingPull.html_url}`)
     assert.strictEqual(existingPull.head.ref, pull.head)
