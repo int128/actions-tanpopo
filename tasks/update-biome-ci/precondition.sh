@@ -18,6 +18,8 @@ mv package.tmp.json package.json
 
 perl -i -pne 's/run: pnpm biome check --fix/run: pnpm run check/' .github/workflows/*.yaml
 
+pnpm run check
+
 if git diff --quiet; then
   exit 99 # Skip the task
 fi

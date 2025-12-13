@@ -1,5 +1,8 @@
 # gh repo list --no-archived --source -l typescript --limit 100 | awk '{print $1}'
 int128/actions-tanpopo
+
+int128/typescript-action
+
 # int128/docker-build-metadata-action
 # int128/parallel-test-action
 # int128/kaniko-action
@@ -42,7 +45,6 @@ int128/actions-tanpopo
 # int128/update-generated-files-action
 # int128/create-ecr-repository-action
 # int128/upload-artifact-wiki-action
-# int128/typescript-action
 # int128/hello-slack-app
 # int128/hello-aws-sdk-client-s3
 # int128/hello-react-redux-ts
