@@ -42,16 +42,23 @@ jobs:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-      - if: steps.changed-tasks.outputs.paths != ''
-        name: Run int128/actions-tanpopo
+      - name: Run int128/actions-tanpopo
         uses: ./
         with:
           tasks: ${{ steps.changed-tasks.outputs.paths }}
           token: ${{ steps.token.outputs.token }}
         env:
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.BOT_GEMINI_API_KEY }}
-      - if: steps.changed-tasks.outputs.paths == ''
-        name: Run int128/actions-tanpopo (E2E test)
+
+      - uses: int128/label-action@v1
+        id: require-e2e-test
+        with:
+          match-labels: |
+            renovate/ai
+            renovate/@ai-sdk/google
+            renovate/@mastra/core
+      - if: steps.require-e2e-test.outputs.matched == 'true'
+        name: Run int128/actions-tanpopo (e2e-test)
         uses: ./
         with:
           tasks: example

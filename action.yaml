@@ -4,7 +4,7 @@ description: Bot for automation of routine tasks
 inputs:
   tasks:
     description: List of tasks to run
-    required: true
+    required: false
   token:
     description: GitHub App installation token
     required: true
