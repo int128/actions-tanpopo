@@ -11,6 +11,7 @@ fi
 
 cp /home/runner/work/actions-tanpopo/actions-tanpopo/.github/workflows/wait-for-workflows.yaml .github/workflows/wait-for-workflows.yaml
 
+git add .
 if git diff --quiet; then
   exit 99 # Skip the task
 fi
