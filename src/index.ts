@@ -6,7 +6,7 @@ try {
   const octokit = getOctokit()
   const context = await getContext()
   const inputs = {
-    tasks: core.getMultilineInput('tasks', { required: true }),
+    tasks: core.getMultilineInput('tasks'),
   }
   await run(inputs, octokit, context)
 } catch (e) {
