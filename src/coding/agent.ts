@@ -47,9 +47,7 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
 
 export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
   core.info(context.taskInstruction)
-  core.summary.addRaw('<p>')
-  core.summary.addRaw(context.taskInstruction)
-  core.summary.addRaw('</p>')
+  core.summary.addQuote(context.taskInstruction)
 
   const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
   runtimeContext.set('githubContext', context.githubContext)
@@ -58,9 +56,10 @@ export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
     maxSteps: 30,
     runtimeContext,
     structuredOutput: {
-      schema: z.object({
-        title: z.string().describe('The title of pull request for this task.'),
-        body: z.string().describe(`The body of pull request for this task.
+      schema: z
+        .object({
+          title: z.string().describe('The title of pull request for this task.'),
+          body: z.string().describe(`The body of pull request for this task.
 For example:
 \`\`\`
 ## Purpose
@@ -69,28 +68,20 @@ X is deprecated and no longer maintained.
 - Replace X with Y
 \`\`\`
 `),
-      }),
+        })
+        .describe('A pull request will be created after finishing the task.'),
     },
-    onStepFinish: (event: unknown) => {
-      if (typeof event === 'object' && event !== null) {
-        if ('stepType' in event && typeof event.stepType === 'string') {
-          core.info(`🤖: ${event.stepType}`)
-          core.summary.addHeading(`🤖 ${event.stepType}`, 3)
-        }
-        if ('text' in event && typeof event.text === 'string' && event.text) {
-          core.info(`🤖: ${event.text}`)
-          core.summary.addRaw('<p>\n\n')
-          core.summary.addRaw(event.text)
-          core.summary.addRaw('\n\n</p>')
-        }
-      }
+    onStepFinish: (event) => {
+      core.info(`🤖: ${event.stepType ?? ''}: ${event.text}`)
+      core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
+      core.summary.addRaw('<p>\n\n')
+      core.summary.addRaw(event.text)
+      core.summary.addRaw('\n\n</p>')
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
   core.summary.addHeading(`🤖 Finish (${response.finishReason})`, 3)
-  core.summary.addRaw('<p>\n\n')
-  core.summary.addRaw(response.text)
-  core.summary.addRaw('\n\n</p>')
+  core.summary.addCodeBlock(response.text, 'json')
   assert.equal(response.finishReason, 'stop')
   return response.object
 }
