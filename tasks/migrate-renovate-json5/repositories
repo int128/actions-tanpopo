@@ -10,10 +10,10 @@ int128/release-typescript-action
 int128/latest-gradle-wrapper
 int128/oauth2-github-app
 int128/cronjob-runner
-# int128/parallel-test-action
-# int128/opentelemetry-collector-action
-# int128/workflow-run-summary-action
-# int128/oauth2cli
+int128/parallel-test-action
+int128/opentelemetry-collector-action
+int128/workflow-run-summary-action
+int128/oauth2cli
 # int128/conftest-docker-hub-image-pull-secrets
 # int128/wait-for-docker-image-action
 # int128/kaniko-action
