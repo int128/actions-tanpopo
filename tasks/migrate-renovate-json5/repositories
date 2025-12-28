@@ -4,7 +4,7 @@ int128/gradle-ssh-plugin
 int128/hello-aws-sdk-client-s3
 int128/datadog-actions-metrics
 int128/hide-comment-action
-# int128/hello-rust
+int128/hello-rust
 # int128/actions-runner-controller-in-actions
 # int128/release-typescript-action
 # int128/latest-gradle-wrapper
