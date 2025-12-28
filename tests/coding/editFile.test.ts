@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyPatch } from '../../src/coding/editFile.js'
+import { applyPatch } from '../../src/coding/editFile.ts'
 
 describe('applyPatch', () => {
   it('replaces a line', () => {
