@@ -7,8 +7,8 @@ export const writeFileTool = createTool({
   id: 'writeFile',
   description: 'Write the content to a file. If the file already exists, it will be overwritten.',
   inputSchema: z.object({
-    path: z.string().describe('The absolute path to the new file'),
-    content: z.string().describe('The content of the new file'),
+    path: z.string().describe('The path relative to the workspace. This can be an absolute path.'),
+    content: z.string().describe('The content to write.'),
   }),
   outputSchema: z.object({
     ok: z.boolean().describe('Whether the file was written successfully'),

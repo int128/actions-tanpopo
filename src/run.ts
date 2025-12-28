@@ -70,6 +70,8 @@ const processRepository = async (
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
+  const taskInstruction = await fs.readFile(path.join(context.workspace, 'tasks', task, 'README.md'), 'utf-8')
+
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
   process.chdir(workspace)
   core.info(`Moved to a workspace ${workspace}`)
@@ -88,7 +90,7 @@ const processRepository = async (
 
   core.summary.addHeading(`Repository ${repository}`, 2)
   const response = await runCodingAgent({
-    taskReadmePath: path.join(context.workspace, 'tasks', task, 'README.md'),
+    taskInstruction,
     githubContext: context,
   })
   assert(response.title, 'response.title should be non-empty')

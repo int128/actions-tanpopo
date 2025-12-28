@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 export const execTool = createTool({
   id: 'exec',
-  description: 'Execute a command in the current directory. such as ls, cp or mv',
+  description: 'Execute a command in the workspace, such as ls, cp or mv.',
   inputSchema: z.object({
     commandLine: z.array(z.string()).min(1).describe('The command and arguments.'),
   }),
