@@ -19,16 +19,16 @@ int128/wait-for-docker-image-action
 int128/kaniko-action
 int128/kauthproxy
 int128/oauth2dev
-# int128/github-api-rate-limit-metrics-action
-# int128/find-codeowners-action
-# int128/renovate-base
-# int128/docker-mirror-multiarch
-# int128/docker-build-cache-config-action
-# int128/diff-action
-# int128/create-ecr-repository-action
-# int128/kustomize-action
-# int128/comment-action
-# int128/docker-manifest-create-action
+int128/github-api-rate-limit-metrics-action
+int128/find-codeowners-action
+int128/renovate-base
+int128/docker-mirror-multiarch
+int128/docker-build-cache-config-action
+int128/diff-action
+int128/create-ecr-repository-action
+int128/kustomize-action
+int128/comment-action
+int128/docker-manifest-create-action
 # int128/wait-for-workflows-action
 # int128/send-datadog-action
 # int128/deployment-action
