@@ -71,9 +71,6 @@ X is deprecated and no longer maintained.
 \`\`\`
 `),
       }),
-      // For Gemini 2.5 with tools
-      // https://mastra.ai/docs/agents/overview#response-format
-      jsonPromptInjection: true,
     },
     onStepFinish: (event: unknown) => {
       if (typeof event === 'object' && event !== null) {
