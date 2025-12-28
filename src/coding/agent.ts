@@ -34,7 +34,7 @@ You can create a file or directory under the temporary directory ${githubContext
 `
   },
   model: wrapLanguageModel({
-    model: google('gemini-2.5-flash'),
+    model: google('gemini-3-flash-preview'),
     middleware: [retryMiddleware],
   }),
   tools: {
