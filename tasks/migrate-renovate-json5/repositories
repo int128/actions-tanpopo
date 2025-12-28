@@ -14,11 +14,11 @@ int128/parallel-test-action
 int128/opentelemetry-collector-action
 int128/workflow-run-summary-action
 int128/oauth2cli
-# int128/conftest-docker-hub-image-pull-secrets
-# int128/wait-for-docker-image-action
-# int128/kaniko-action
-# int128/kauthproxy
-# int128/oauth2dev
+int128/conftest-docker-hub-image-pull-secrets
+int128/wait-for-docker-image-action
+int128/kaniko-action
+int128/kauthproxy
+int128/oauth2dev
 # int128/github-api-rate-limit-metrics-action
 # int128/find-codeowners-action
 # int128/renovate-base
