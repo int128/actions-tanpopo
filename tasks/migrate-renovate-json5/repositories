@@ -1,9 +1,9 @@
 # gh search code --limit=100 --owner=int128 --json=repository --jq='.[].repository.nameWithOwner' --filename=.github/renovate.json5
 
 int128/gradle-ssh-plugin
-# int128/hello-aws-sdk-client-s3
-# int128/datadog-actions-metrics
-# int128/hide-comment-action
+int128/hello-aws-sdk-client-s3
+int128/datadog-actions-metrics
+int128/hide-comment-action
 # int128/hello-rust
 # int128/actions-runner-controller-in-actions
 # int128/release-typescript-action
