@@ -29,6 +29,7 @@ Follow the given task.
 The current directory contains the workspace for your task.
 
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
+To find a file, prefer git ls-files command instead of ls command.
 To read a file, prefer readFile tool instead of exec tool with cat command.
 To write a file, prefer writeFile or editFile tool instead of exec tool with redirection.
 `
