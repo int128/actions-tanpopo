@@ -7,7 +7,7 @@ export const readFileTool = createTool({
   id: 'readFile',
   description: `Read the lines from a file.`,
   inputSchema: z.object({
-    path: z.string().describe('The path to the file in the repository.'),
+    path: z.string().describe('The path relative to the workspace. This can be an absolute path.'),
     offset: z
       .int()
       .min(0)
@@ -51,7 +51,7 @@ If all lines have been read, this field is omitted.
       core.info(`${address}: ${line}`)
     }
     core.endGroup()
-    core.summary.addHeading(`🔧 Read a file: ${context.path}`, 3)
+    core.summary.addHeading(`🔧 Read ${context.path}`, 3)
     core.summary.addList([
       `offset=${context.offset}`,
       `readLines=${readLines.length}`,

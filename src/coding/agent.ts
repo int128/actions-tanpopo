@@ -14,7 +14,7 @@ import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
 
 export type CodingAgentRuntimeContext = {
-  taskReadmePath: string
+  taskInstruction: string
   githubContext: Context<WebhookEvent>
 }
 
@@ -26,9 +26,7 @@ const codingAgent = new Agent({
     return `
 You are an agent for software development.
 Follow the given task.
-The current directory contains the Git repository for your task.
-Before you finish your task, check if your changes are correct using "git status" command.
-The changes in the current directory will be sent to a pull request after you finish your task.
+The current directory contains the workspace for your task.
 
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
 To read a file, prefer readFile tool instead of exec tool with cat command.
@@ -48,16 +46,15 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
 })
 
 export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
-  const instruction = `Follow the task described in the file ${context.taskReadmePath}.`
-  core.info(instruction)
+  core.info(context.taskInstruction)
   core.summary.addRaw('<p>')
-  core.summary.addRaw(instruction)
+  core.summary.addRaw(context.taskInstruction)
   core.summary.addRaw('</p>')
 
   const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
   runtimeContext.set('githubContext', context.githubContext)
 
-  const response = await codingAgent.generate(instruction, {
+  const response = await codingAgent.generate(['Follow the task:', context.taskInstruction], {
     maxSteps: 30,
     runtimeContext,
     structuredOutput: {
