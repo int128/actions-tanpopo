@@ -50,7 +50,7 @@ jobs:
         env:
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.BOT_GEMINI_API_KEY }}
 
-      - uses: int128/label-action@99c5f04d69d47fd5dcb896d6139e1bc3de0b5976 # v1
+      - uses: int128/label-action@99c5f04d69d47fd5dcb896d6139e1bc3de0b5976 # v1.14.0
         id: require-e2e-test
         with:
           match-labels: |
