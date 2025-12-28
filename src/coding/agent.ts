@@ -7,11 +7,11 @@ import type { WebhookEvent } from '@octokit/webhooks-types'
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
 import type { Context } from '../github.ts'
-import { createFileTool } from './createFile.ts'
 import { editFileTool } from './editFile.ts'
 import { execTool } from './exec.ts'
 import { readFileTool } from './readFile.ts'
 import { retryMiddleware } from './retry.ts'
+import { writeFileTool } from './writeFile.ts'
 
 export type CodingAgentRuntimeContext = {
   taskReadmePath: string
@@ -31,6 +31,8 @@ Before you finish your task, check if your changes are correct using "git status
 The changes in the current directory will be sent to a pull request after you finish your task.
 
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
+To read a file, prefer readFile tool instead of exec tool with cat command.
+To write a file, prefer writeFile or editFile tool instead of exec tool with redirection.
 `
   },
   model: wrapLanguageModel({
@@ -38,10 +40,10 @@ You can create a file or directory under the temporary directory ${githubContext
     middleware: [retryMiddleware],
   }),
   tools: {
-    execTool,
-    createFileTool,
     readFileTool,
+    writeFileTool,
     editFileTool,
+    execTool,
   },
 })
 
