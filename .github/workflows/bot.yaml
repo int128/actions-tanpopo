@@ -23,9 +23,15 @@ jobs:
       - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version-file: .node-version
-          package-manager-cache: false
       - run: npm install -g pnpm@latest-10
       - run: pnpm i
+
+      - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: token
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
 
       - uses: int128/glob-changed-files-action@1a4f75e3ee971fc3840bda9d2cbd260dc87b6998 # v2.10.0
         id: changed-tasks
@@ -34,19 +40,10 @@ jobs:
             tasks/:task/**
           transform: |
             :task
-
-      - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
-        id: token
-        with:
-          app-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-      - name: Run int128/actions-tanpopo
-        uses: ./
-        with:
-          tasks: ${{ steps.changed-tasks.outputs.paths }}
-          token: ${{ steps.token.outputs.token }}
+      - run: pnpm start
         env:
+          INPUT_TASKS: ${{ steps.changed-tasks.outputs.paths }}
+          INPUT_TOKEN: ${{ steps.token.outputs.token }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.BOT_GEMINI_API_KEY }}
 
       - uses: int128/label-action@99c5f04d69d47fd5dcb896d6139e1bc3de0b5976 # v1.14.0
@@ -59,9 +56,8 @@ jobs:
             renovate/@mastra/core
       - if: steps.require-smoke-test.outputs.matched == 'true'
         name: Run int128/actions-tanpopo (smoke-test)
-        uses: ./
-        with:
-          tasks: example
-          token: ${{ steps.token.outputs.token }}
+        run: pnpm start
         env:
+          INPUT_TASKS: example
+          INPUT_TOKEN: ${{ steps.token.outputs.token }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}

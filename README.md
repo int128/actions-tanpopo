@@ -1,6 +1,6 @@
 # actions-tanpopo [![ts](https://github.com/int128/actions-tanpopo/actions/workflows/ts.yaml/badge.svg)](https://github.com/int128/actions-tanpopo/actions/workflows/ts.yaml)
 
-This is the action to automate a routine task for each repository.
+Automate routine tasks for each repository.
 
 ## Purpose
 
@@ -50,33 +50,4 @@ Install the GitHub App to your repositories.
 ### Create a workflow
 
 Create a workflow to run this action.
-
-```yaml
-name: bot
-
-on:
-  pull_request:
-    paths:
-      - tasks/**
-      - .github/workflows/bot.yaml
-
-concurrency:
-  cancel-in-progress: true
-  group: ${{ github.workflow }}--${{ github.event.pull_request.id }}--${{ github.actor }}
-
-jobs:
-  run:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
-        id: token
-        with:
-          app-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-      - uses: int128/actions-tanpopo@v0
-        with:
-          token: ${{ steps.token.outputs.token }}
-```
+See [bot.yaml](.github/workflows/bot.yaml).
