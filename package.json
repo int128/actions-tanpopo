@@ -7,7 +7,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@actions/core": "1.11.1",
+    "@actions/core": "2.0.1",
     "@actions/exec": "2.0.0",
     "@ai-sdk/google": "2.0.51",
     "@mastra/core": "0.24.9",
