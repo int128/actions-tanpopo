@@ -8,6 +8,14 @@
 - Replace `config:base` preset with `github>int128/renovate-base` preset
 - Keep existing configurations intact
 
+## Acceptance Criteria
+
+Validate that the resulting `.github/renovate.json` is valid JSON by running:
+
+```bash
+jq . .github/renovate.json > /dev/null
+```
+
 ## Example
 
 ```json
