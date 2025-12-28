@@ -34,7 +34,7 @@ You can create a file or directory under the temporary directory ${githubContext
 `
   },
   model: wrapLanguageModel({
-    model: google('gemini-2.5-flash'),
+    model: google('gemini-3-flash-preview'),
     middleware: [retryMiddleware],
   }),
   tools: {
@@ -71,9 +71,6 @@ X is deprecated and no longer maintained.
 \`\`\`
 `),
       }),
-      // For Gemini 2.5 with tools
-      // https://mastra.ai/docs/agents/overview#response-format
-      jsonPromptInjection: true,
     },
     onStepFinish: (event: unknown) => {
       if (typeof event === 'object' && event !== null) {
