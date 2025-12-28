@@ -5,10 +5,10 @@ import { z } from 'zod'
 
 export const execTool = createTool({
   id: 'exec',
-  description: 'Run a shell command. The command is run in the current directory.',
+  description: 'Execute a command in the current directory',
   inputSchema: z.object({
-    command: z.string().describe('The command to run'),
-    args: z.array(z.string()).optional().describe('The arguments to the command'),
+    command: z.string().describe('The command such as ls, cp or mv'),
+    args: z.array(z.string()).optional().describe('The arguments to pass to the command'),
   }),
   outputSchema: z.object({
     stdout: z.string().describe('The standard output of the command. If the output is large, it may be truncated.'),

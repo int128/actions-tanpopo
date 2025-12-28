@@ -3,26 +3,25 @@ import * as core from '@actions/core'
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
-export const createFileTool = createTool({
-  id: 'createFile',
-  description: 'Create a new file.',
+export const writeFileTool = createTool({
+  id: 'writeFile',
+  description: 'Write the content to a file. If the file already exists, it will be overwritten.',
   inputSchema: z.object({
     path: z.string().describe('The absolute path to the new file'),
     content: z.string().describe('The content of the new file'),
   }),
   outputSchema: z.object({
-    path: z.string().describe('The absolute path to the new file'),
+    ok: z.boolean().describe('Whether the file was written successfully'),
   }),
   execute: async ({ context }) => {
     await fs.writeFile(context.path, context.content)
-    core.startGroup(`🤖 Created a new file at ${context.path}`)
+    core.startGroup(`🤖 Wrote ${context.path}`)
     core.info(context.content)
     core.endGroup()
-    core.summary.addHeading(`🔧 Create a new file`, 3)
-    core.summary.addCodeBlock(context.path)
+    core.summary.addHeading(`🔧 Write ${context.path}`, 3)
     core.summary.addCodeBlock(context.content)
     return {
-      path: context.path,
+      ok: true,
     }
   },
 })
