@@ -1,14 +1,15 @@
 {
   "private": true,
   "scripts": {
-    "build": "ncc build --source-map --license licenses.txt src/index.ts",
+    "start": "node src/index.ts",
+    "typecheck": "tsc",
     "test": "vitest",
     "check": "biome migrate --write && biome check --fix"
   },
   "type": "module",
   "dependencies": {
-    "@actions/core": "1.11.1",
-    "@actions/exec": "1.1.1",
+    "@actions/core": "2.0.1",
+    "@actions/exec": "2.0.0",
     "@ai-sdk/google": "2.0.51",
     "@mastra/core": "0.24.9",
     "@octokit/action": "8.0.4",
@@ -19,16 +20,15 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
     "@octokit/webhooks-types": "7.6.1",
-    "@tsconfig/node20": "20.1.8",
+    "@tsconfig/node24": "24.0.3",
     "@tsconfig/strictest": "2.0.8",
-    "@types/node": "20.19.27",
-    "@vercel/ncc": "0.38.4",
+    "@types/node": "24.10.4",
     "pnpm": "10.26.0",
     "typescript": "5.9.3",
     "vitest": "4.0.16"
   },
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "packageManager": "pnpm@10.26.0"
 }
