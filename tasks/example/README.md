@@ -1,6 +1,8 @@
-# Example task
+# Smoke test
 
-This is an example task to demonstrate the use of the coding agent.
+This is an example task to test the coding agent.
 
-Inspect the current environment using `lsb_release` command.
-Create a new file `ENVIRONMENT.md` with the summary of the environment.
+## Instructions
+
+- Inspect the current environment using `lsb_release` command.
+- Create a new file `ENVIRONMENT.md` with the summary of the environment.
