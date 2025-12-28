@@ -5,9 +5,9 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
 import type { WebhookEvent } from '@octokit/webhooks-types'
-import { runCodingAgent } from './coding/agent.js'
-import * as git from './git.js'
-import type { Context } from './github.js'
+import { runCodingAgent } from './coding/agent.ts'
+import * as git from './git.ts'
+import type { Context } from './github.ts'
 
 type Inputs = {
   tasks: string[]

@@ -6,12 +6,12 @@ import { RuntimeContext } from '@mastra/core/runtime-context'
 import type { WebhookEvent } from '@octokit/webhooks-types'
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
-import type { Context } from '../github.js'
-import { createFileTool } from './createFile.js'
-import { editFileTool } from './editFile.js'
-import { execTool } from './exec.js'
-import { readFileTool } from './readFile.js'
-import { retryMiddleware } from './retry.js'
+import type { Context } from '../github.ts'
+import { createFileTool } from './createFile.ts'
+import { editFileTool } from './editFile.ts'
+import { execTool } from './exec.ts'
+import { readFileTool } from './readFile.ts'
+import { retryMiddleware } from './retry.ts'
 
 export type CodingAgentRuntimeContext = {
   taskReadmePath: string

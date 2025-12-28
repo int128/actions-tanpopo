@@ -26,7 +26,6 @@ jobs:
           package-manager-cache: false
       - run: npm install -g pnpm@latest-10
       - run: pnpm i
-      - run: pnpm build
 
       - uses: int128/glob-changed-files-action@1a4f75e3ee971fc3840bda9d2cbd260dc87b6998 # v2.10.0
         id: changed-tasks
