@@ -14,8 +14,4 @@ cp /home/runner/work/actions-tanpopo/actions-tanpopo/.github/workflows/wait-for-
 jq '.platformAutomerge = true' .github/renovate.json > .github/renovate.tmp.json
 mv .github/renovate.tmp.json .github/renovate.json
 
-if [ -z "$(git status --porcelain)" ]; then
-  exit 99 # Skip the task
-fi
-
-exit 0
+exit 109 # Skip the coding agent

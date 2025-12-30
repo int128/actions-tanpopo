@@ -6,7 +6,7 @@
 # int128/wait-for-workflows-action
 
 int128/stale-branch-action
-# int128/deploy-lambda-action
+int128/deploy-lambda-action
 # int128/typescript-action-with-graphql-codegen
 # int128/send-datadog-action
 # int128/list-organization-teams-action
