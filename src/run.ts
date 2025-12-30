@@ -1,7 +1,6 @@
 import assert from 'node:assert'
 import * as fs from 'node:fs/promises'
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
 import * as git from './git.ts'
 import type { Context } from './github.ts'
@@ -58,17 +57,6 @@ const processRepository = async (repository: string, task: Task, octokit: Octoki
   process.chdir(workspace)
   core.info(`Moved to a workspace ${workspace}`)
   await git.clone(repository, context)
-
-  const precondition = await exec.exec('bash', [task.preconditionScriptPath], {
-    ignoreReturnCode: true,
-  })
-  if (precondition === 99) {
-    core.info(`Skip the task by precondition.sh`)
-    return
-  }
-  if (precondition !== 0) {
-    throw new Error(`precondition failed with exit code ${precondition}`)
-  }
 
   core.summary.addHeading(`Repository ${repository}`, 2)
   const taskResponse = await performTask(task, context)
