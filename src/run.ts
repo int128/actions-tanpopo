@@ -1,12 +1,10 @@
 import assert from 'node:assert'
 import * as fs from 'node:fs/promises'
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
-import { runCodingAgent } from './coding/agent.ts'
 import * as git from './git.ts'
 import type { Context } from './github.ts'
-import { parseTask, type Task } from './task.ts'
+import { parseTask, performTask, type Task } from './task.ts'
 
 type Inputs = {
   tasks: string[]
@@ -60,48 +58,34 @@ const processRepository = async (repository: string, task: Task, octokit: Octoki
   core.info(`Moved to a workspace ${workspace}`)
   await git.clone(repository, context)
 
-  const precondition = await exec.exec('bash', [task.preconditionScriptPath], {
-    ignoreReturnCode: true,
-  })
-  if (precondition === 99) {
-    core.info(`Skip the task by precondition.sh`)
+  core.summary.addHeading(`Repository ${repository}`, 2)
+  const taskResponse = await performTask(task, context)
+  if (taskResponse === null) {
     return
   }
-  if (precondition !== 0) {
-    throw new Error(`precondition failed with exit code ${precondition}`)
-  }
-
-  core.summary.addHeading(`Repository ${repository}`, 2)
-  const response = await runCodingAgent({
-    taskInstruction: task.instruction,
-    githubContext: context,
-  })
-  assert(response.title, 'response.title should be non-empty')
-  assert(response.body, 'response.body should be non-empty')
 
   const gitStatus = await git.status()
   if (gitStatus === '') {
     return
   }
-
   const baseBranch = (await git.getDefaultBranch()) ?? 'main'
   const headBranch = `bot--tasks-${task.name.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-  await git.commit(response.title, [workflowRunUrl])
+  await git.commit(taskResponse.title, [workflowRunUrl])
 
   const [owner, repo] = repository.split('/')
   assert(owner, 'repository must have an owner part')
   assert(repo, 'repository must have a repo part')
   const signedCommitSHA = await signCommit(owner, repo, octokit)
-  await git.push(`${signedCommitSHA}`, `refs/heads/${headBranch}`)
+  await git.push(signedCommitSHA, `refs/heads/${headBranch}`)
 
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
-    title: response.title,
+    title: taskResponse.title,
     head: headBranch,
     base: baseBranch,
-    body: response.body,
+    body: taskResponse.body,
   })
   await octokit.rest.pulls.requestReviewers({
     owner,
