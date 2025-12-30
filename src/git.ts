@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import type { WebhookEvent } from '@octokit/webhooks-types'
 import type { Context } from './github.ts'
 
 const execWithCredentials = async (args: string[], options?: exec.ExecOptions) => {
@@ -9,7 +8,7 @@ const execWithCredentials = async (args: string[], options?: exec.ExecOptions) =
   return await exec.exec('git', ['-c', `http.extraheader=AUTHORIZATION: basic ${credentials}`, ...args], options)
 }
 
-export const clone = async (repository: string, context: Context<WebhookEvent>) => {
+export const clone = async (repository: string, context: Context) => {
   await exec.exec('git', ['init', '--quiet', '.'])
   await exec.exec('git', ['remote', 'add', 'origin', `${context.serverUrl}/${repository}.git`])
   await fetch()

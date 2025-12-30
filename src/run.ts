@@ -3,7 +3,6 @@ import * as fs from 'node:fs/promises'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
-import type { WebhookEvent } from '@octokit/webhooks-types'
 import { runCodingAgent } from './coding/agent.ts'
 import * as git from './git.ts'
 import type { Context } from './github.ts'
@@ -13,7 +12,7 @@ type Inputs = {
   tasks: string[]
 }
 
-export const run = async (inputs: Inputs, octokit: Octokit, context: Context<WebhookEvent>) => {
+export const run = async (inputs: Inputs, octokit: Octokit, context: Context) => {
   core.info(`Processing tasks: ${inputs.tasks.join(', ')}`)
   for (const taskName of inputs.tasks) {
     core.info(`== Task ${taskName}`)
@@ -23,7 +22,7 @@ export const run = async (inputs: Inputs, octokit: Octokit, context: Context<Web
   }
 }
 
-const processTask = async (task: Task, octokit: Octokit, context: Context<WebhookEvent>) => {
+const processTask = async (task: Task, octokit: Octokit, context: Context) => {
   let commentId: number | undefined
   const pulls = []
   for (const repository of task.repositories) {
@@ -55,7 +54,7 @@ const processTask = async (task: Task, octokit: Octokit, context: Context<Webhoo
   }
 }
 
-const processRepository = async (repository: string, task: Task, octokit: Octokit, context: Context<WebhookEvent>) => {
+const processRepository = async (repository: string, task: Task, octokit: Octokit, context: Context) => {
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
   process.chdir(workspace)
   core.info(`Moved to a workspace ${workspace}`)
