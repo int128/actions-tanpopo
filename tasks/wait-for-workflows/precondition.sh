@@ -11,6 +11,9 @@ fi
 
 cp /home/runner/work/actions-tanpopo/actions-tanpopo/.github/workflows/wait-for-workflows.yaml .github/workflows/wait-for-workflows.yaml
 
+jq '.platformAutomerge = true' .github/renovate.json > .github/renovate.tmp.json
+mv .github/renovate.tmp.json .github/renovate.json
+
 if [ -z "$(git status --porcelain)" ]; then
   exit 99 # Skip the task
 fi
