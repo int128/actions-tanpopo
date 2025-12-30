@@ -1,6 +1,5 @@
 import assert from 'node:assert'
 import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
@@ -8,6 +7,7 @@ import type { WebhookEvent } from '@octokit/webhooks-types'
 import { runCodingAgent } from './coding/agent.ts'
 import * as git from './git.ts'
 import type { Context } from './github.ts'
+import { parseTask, type Task } from './task.ts'
 
 type Inputs = {
   tasks: string[]
@@ -15,18 +15,18 @@ type Inputs = {
 
 export const run = async (inputs: Inputs, octokit: Octokit, context: Context<WebhookEvent>) => {
   core.info(`Processing tasks: ${inputs.tasks.join(', ')}`)
-  for (const task of inputs.tasks) {
-    core.info(`== Task ${task}`)
-    core.summary.addHeading(`Task ${task}`, 1)
+  for (const taskName of inputs.tasks) {
+    core.info(`== Task ${taskName}`)
+    core.summary.addHeading(`Task ${taskName}`, 1)
+    const task = await parseTask(taskName, context)
     await processTask(task, octokit, context)
   }
 }
 
-const processTask = async (task: string, octokit: Octokit, context: Context<WebhookEvent>) => {
+const processTask = async (task: Task, octokit: Octokit, context: Context<WebhookEvent>) => {
   let commentId: number | undefined
   const pulls = []
-  const repositories = parseRepositoriesFile(await fs.readFile(path.join('tasks', task, 'repositories'), 'utf-8'))
-  for (const repository of repositories) {
+  for (const repository of task.repositories) {
     core.info(`=== ${repository}`)
     const pull = await processRepository(repository, task, octokit, context)
     if (!pull) {
@@ -55,29 +55,13 @@ const processTask = async (task: string, octokit: Octokit, context: Context<Webh
   }
 }
 
-const parseRepositoriesFile = (repositories: string): string[] => [
-  ...new Set(
-    repositories
-      .split('\n')
-      .map((line) => line.replace(/#.*$/, '').trim())
-      .filter((line) => line !== ''),
-  ),
-]
-
-const processRepository = async (
-  repository: string,
-  task: string,
-  octokit: Octokit,
-  context: Context<WebhookEvent>,
-) => {
-  const taskInstruction = await fs.readFile(path.join(context.workspace, 'tasks', task, 'README.md'), 'utf-8')
-
+const processRepository = async (repository: string, task: Task, octokit: Octokit, context: Context<WebhookEvent>) => {
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
   process.chdir(workspace)
   core.info(`Moved to a workspace ${workspace}`)
   await git.clone(repository, context)
 
-  const precondition = await exec.exec('bash', [path.join(context.workspace, 'tasks', task, 'precondition.sh')], {
+  const precondition = await exec.exec('bash', [task.preconditionScriptPath], {
     ignoreReturnCode: true,
   })
   if (precondition === 99) {
@@ -90,7 +74,7 @@ const processRepository = async (
 
   core.summary.addHeading(`Repository ${repository}`, 2)
   const response = await runCodingAgent({
-    taskInstruction,
+    taskInstruction: task.instruction,
     githubContext: context,
   })
   assert(response.title, 'response.title should be non-empty')
@@ -102,7 +86,7 @@ const processRepository = async (
   }
 
   const baseBranch = (await git.getDefaultBranch()) ?? 'main'
-  const headBranch = `bot--tasks-${task.replaceAll(/[^\w]/g, '-')}`
+  const headBranch = `bot--tasks-${task.name.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
   await exec.exec('git', ['add', '.'])
   await exec.exec('git', [
