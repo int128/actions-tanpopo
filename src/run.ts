@@ -88,25 +88,13 @@ const processRepository = async (repository: string, task: Task, octokit: Octoki
   const baseBranch = (await git.getDefaultBranch()) ?? 'main'
   const headBranch = `bot--tasks-${task.name.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-  await exec.exec('git', ['add', '.'])
-  await exec.exec('git', [
-    '-c',
-    `user.name=${context.actor}`,
-    '-c',
-    `user.email=${context.actor}@users.noreply.github.com`,
-    'commit',
-    '--quiet',
-    '-m',
-    response.title,
-    '-m',
-    workflowRunUrl,
-  ])
+  await git.commit(response.title, [workflowRunUrl])
 
   const [owner, repo] = repository.split('/')
   assert(owner, 'repository must have an owner part')
   assert(repo, 'repository must have a repo part')
   const signedCommitSHA = await signCommit(owner, repo, octokit)
-  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `${signedCommitSHA}:refs/heads/${headBranch}`])
+  await git.push(`${signedCommitSHA}`, `refs/heads/${headBranch}`)
 
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
@@ -133,7 +121,7 @@ const processRepository = async (repository: string, task: Task, octokit: Octoki
 const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
   const unsignedCommitSHA = await git.getCommitSHA('HEAD')
   const signingBranch = `signing--${unsignedCommitSHA}`
-  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `HEAD:refs/heads/${signingBranch}`])
+  await git.push('HEAD', `refs/heads/${signingBranch}`)
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
       owner,
@@ -154,10 +142,10 @@ const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
       sha: signedCommit.sha,
       force: true,
     })
-    await git.execWithCredentials(['fetch', '--quiet', 'origin', signedCommit.sha])
+    await git.fetch(signedCommit.sha)
     return signedCommit.sha
   } finally {
-    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `refs/heads/${signingBranch}`])
+    await git.deleteRef(`refs/heads/${signingBranch}`)
   }
 }
 
