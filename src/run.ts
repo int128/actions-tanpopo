@@ -5,7 +5,7 @@ import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
 import * as git from './git.ts'
 import type { Context } from './github.ts'
-import { performTask, parseTask, type Task } from './task.ts'
+import { parseTask, performTask, type Task } from './task.ts'
 
 type Inputs = {
   tasks: string[]

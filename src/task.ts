@@ -1,7 +1,7 @@
-import * as core from '@actions/core'
-import * as exec from '@actions/exec'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
+import * as core from '@actions/core'
+import * as exec from '@actions/exec'
 import { runCodingAgent } from './coding/agent.ts'
 import type { Context } from './github.ts'
 
