@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import type { WebhookEvent } from '@octokit/webhooks-types'
-import type { Context } from './github.js'
+import type { Context } from './github.ts'
 
 export const execWithCredentials = async (args: string[], options?: exec.ExecOptions) => {
   const credentials = Buffer.from(`x-access-token:${core.getInput('token')}`).toString('base64')

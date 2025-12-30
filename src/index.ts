@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import { getContext, getOctokit } from './github.js'
-import { run } from './run.js'
+import { getContext, getOctokit } from './github.ts'
+import { run } from './run.ts'
 
 try {
   const octokit = getOctokit()

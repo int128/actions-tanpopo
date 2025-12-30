@@ -5,9 +5,9 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
 import type { WebhookEvent } from '@octokit/webhooks-types'
-import { runCodingAgent } from './coding/agent.js'
-import * as git from './git.js'
-import type { Context } from './github.js'
+import { runCodingAgent } from './coding/agent.ts'
+import * as git from './git.ts'
+import type { Context } from './github.ts'
 
 type Inputs = {
   tasks: string[]
@@ -70,6 +70,8 @@ const processRepository = async (
   octokit: Octokit,
   context: Context<WebhookEvent>,
 ) => {
+  const taskInstruction = await fs.readFile(path.join(context.workspace, 'tasks', task, 'README.md'), 'utf-8')
+
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
   process.chdir(workspace)
   core.info(`Moved to a workspace ${workspace}`)
@@ -88,7 +90,7 @@ const processRepository = async (
 
   core.summary.addHeading(`Repository ${repository}`, 2)
   const response = await runCodingAgent({
-    taskReadmePath: path.join(context.workspace, 'tasks', task, 'README.md'),
+    taskInstruction,
     githubContext: context,
   })
   assert(response.title, 'response.title should be non-empty')

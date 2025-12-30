@@ -69,7 +69,7 @@ export const editFileTool = createTool({
 This tool applies the patches in order and finally writes the lines to the file.
 `,
   inputSchema: z.object({
-    path: z.string().describe('The path to the file in the repository. The file must exist.'),
+    path: z.string().describe('The path relative to the workspace. This can be an absolute path.'),
     patches: z.array(patchSchema).min(1).describe(`An array of patches. The patches are applied in order.`),
   }),
   outputSchema: z.object({

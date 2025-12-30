@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { createTool } from '@mastra/core/tools'
@@ -5,23 +6,25 @@ import { z } from 'zod'
 
 export const execTool = createTool({
   id: 'exec',
-  description: 'Run a shell command. The command is run in the current directory.',
+  description: 'Execute a command in the workspace, such as cp or mv.',
   inputSchema: z.object({
-    command: z.string().describe('The command to run'),
-    args: z.array(z.string()).optional().describe('The arguments to the command'),
+    commandLine: z.array(z.string()).min(1).describe('The command and arguments.'),
   }),
   outputSchema: z.object({
-    stdout: z.string().describe('The standard output of the command. If the output is large, it may be truncated.'),
-    stderr: z.string().describe('The standard error of the command. If the error is large, it may be truncated.'),
+    stdout: z.string().describe('The standard output of the command. If the output is too large, it may be truncated.'),
+    stderr: z.string().describe('The standard error of the command. If the error is too large, it may be truncated.'),
     exitCode: z.number().describe('The exit code of the command. 0 means success, non-zero means failure'),
   }),
   execute: async ({ context }) => {
-    const { stdout, stderr, exitCode } = await exec.getExecOutput(context.command, context.args, {
+    const command = context.commandLine[0]
+    assert(command, 'commandLine[0] is required')
+    const args = context.commandLine.slice(1)
+    const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
       ignoreReturnCode: true,
       env: sanitizeEnv(process.env),
     })
     core.summary.addHeading(`🔧 Exec (exit code ${exitCode})`, 3)
-    core.summary.addCodeBlock(`${process.cwd()}> ${context.command} ${context.args?.join(' ') ?? ''}`, 'console')
+    core.summary.addCodeBlock(`${process.cwd()}> ${context.commandLine.join(' ')}`, 'console')
     if (stdout) {
       core.summary.addCodeBlock(stdout)
     }
