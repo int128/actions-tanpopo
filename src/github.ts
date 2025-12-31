@@ -6,7 +6,7 @@ import type { WebhookEvent } from '@octokit/webhooks-types'
 
 export const getOctokit = () => new (Octokit.plugin(retry))()
 
-export type Context<E extends WebhookEvent> = {
+export type Context = {
   repo: {
     owner: string
     repo: string
@@ -17,10 +17,10 @@ export type Context<E extends WebhookEvent> = {
   runnerTemp: string
   serverUrl: string
   workspace: string
-  payload: E
+  payload: WebhookEvent
 }
 
-export const getContext = async (): Promise<Context<WebhookEvent>> => {
+export const getContext = async (): Promise<Context> => {
   // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
   return {
     repo: getRepo(),

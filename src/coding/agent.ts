@@ -3,7 +3,6 @@ import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
 import { RuntimeContext } from '@mastra/core/runtime-context'
-import type { WebhookEvent } from '@octokit/webhooks-types'
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
 import type { Context } from '../github.ts'
@@ -15,7 +14,7 @@ import { writeFileTool } from './writeFile.ts'
 
 export type CodingAgentRuntimeContext = {
   taskInstruction: string
-  githubContext: Context<WebhookEvent>
+  githubContext: Context
 }
 
 const codingAgent = new Agent({

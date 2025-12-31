@@ -1,32 +1,29 @@
 import assert from 'node:assert'
 import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
 import type { Octokit } from '@octokit/action'
-import type { WebhookEvent } from '@octokit/webhooks-types'
-import { runCodingAgent } from './coding/agent.ts'
 import * as git from './git.ts'
 import type { Context } from './github.ts'
+import { parseTask, performTask, type Task } from './task.ts'
 
 type Inputs = {
   tasks: string[]
 }
 
-export const run = async (inputs: Inputs, octokit: Octokit, context: Context<WebhookEvent>) => {
+export const run = async (inputs: Inputs, octokit: Octokit, context: Context) => {
   core.info(`Processing tasks: ${inputs.tasks.join(', ')}`)
-  for (const task of inputs.tasks) {
-    core.info(`== Task ${task}`)
-    core.summary.addHeading(`Task ${task}`, 1)
+  for (const taskName of inputs.tasks) {
+    core.info(`== Task ${taskName}`)
+    core.summary.addHeading(`Task ${taskName}`, 1)
+    const task = await parseTask(taskName, context)
     await processTask(task, octokit, context)
   }
 }
 
-const processTask = async (task: string, octokit: Octokit, context: Context<WebhookEvent>) => {
+const processTask = async (task: Task, octokit: Octokit, context: Context) => {
   let commentId: number | undefined
   const pulls = []
-  const repositories = parseRepositoriesFile(await fs.readFile(path.join('tasks', task, 'repositories'), 'utf-8'))
-  for (const repository of repositories) {
+  for (const repository of task.repositories) {
     core.info(`=== ${repository}`)
     const pull = await processRepository(repository, task, octokit, context)
     if (!pull) {
@@ -55,82 +52,40 @@ const processTask = async (task: string, octokit: Octokit, context: Context<Webh
   }
 }
 
-const parseRepositoriesFile = (repositories: string): string[] => [
-  ...new Set(
-    repositories
-      .split('\n')
-      .map((line) => line.replace(/#.*$/, '').trim())
-      .filter((line) => line !== ''),
-  ),
-]
-
-const processRepository = async (
-  repository: string,
-  task: string,
-  octokit: Octokit,
-  context: Context<WebhookEvent>,
-) => {
-  const taskInstruction = await fs.readFile(path.join(context.workspace, 'tasks', task, 'README.md'), 'utf-8')
-
+const processRepository = async (repository: string, task: Task, octokit: Octokit, context: Context) => {
   const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
   process.chdir(workspace)
   core.info(`Moved to a workspace ${workspace}`)
   await git.clone(repository, context)
 
-  const precondition = await exec.exec('bash', [path.join(context.workspace, 'tasks', task, 'precondition.sh')], {
-    ignoreReturnCode: true,
-  })
-  if (precondition === 99) {
-    core.info(`Skip the task by precondition.sh`)
+  core.summary.addHeading(`Repository ${repository}`, 2)
+  const taskResponse = await performTask(task, context)
+  if (taskResponse === null) {
     return
   }
-  if (precondition !== 0) {
-    throw new Error(`precondition failed with exit code ${precondition}`)
-  }
-
-  core.summary.addHeading(`Repository ${repository}`, 2)
-  const response = await runCodingAgent({
-    taskInstruction,
-    githubContext: context,
-  })
-  assert(response.title, 'response.title should be non-empty')
-  assert(response.body, 'response.body should be non-empty')
 
   const gitStatus = await git.status()
   if (gitStatus === '') {
     return
   }
-
   const baseBranch = (await git.getDefaultBranch()) ?? 'main'
-  const headBranch = `bot--tasks-${task.replaceAll(/[^\w]/g, '-')}`
+  const headBranch = `bot--tasks-${task.name.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-  await exec.exec('git', ['add', '.'])
-  await exec.exec('git', [
-    '-c',
-    `user.name=${context.actor}`,
-    '-c',
-    `user.email=${context.actor}@users.noreply.github.com`,
-    'commit',
-    '--quiet',
-    '-m',
-    response.title,
-    '-m',
-    workflowRunUrl,
-  ])
+  await git.commit(taskResponse.title, [workflowRunUrl])
 
   const [owner, repo] = repository.split('/')
   assert(owner, 'repository must have an owner part')
   assert(repo, 'repository must have a repo part')
   const signedCommitSHA = await signCommit(owner, repo, octokit)
-  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `${signedCommitSHA}:refs/heads/${headBranch}`])
+  await git.push(signedCommitSHA, `refs/heads/${headBranch}`)
 
   const pull = await createOrUpdatePullRequest(octokit, {
     owner,
     repo,
-    title: response.title,
+    title: taskResponse.title,
     head: headBranch,
     base: baseBranch,
-    body: response.body,
+    body: taskResponse.body,
   })
   await octokit.rest.pulls.requestReviewers({
     owner,
@@ -149,7 +104,7 @@ const processRepository = async (
 const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
   const unsignedCommitSHA = await git.getCommitSHA('HEAD')
   const signingBranch = `signing--${unsignedCommitSHA}`
-  await git.execWithCredentials(['push', '--quiet', '--force', 'origin', `HEAD:refs/heads/${signingBranch}`])
+  await git.push('HEAD', `refs/heads/${signingBranch}`)
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
       owner,
@@ -170,10 +125,10 @@ const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
       sha: signedCommit.sha,
       force: true,
     })
-    await git.execWithCredentials(['fetch', '--quiet', 'origin', signedCommit.sha])
+    await git.fetch(signedCommit.sha)
     return signedCommit.sha
   } finally {
-    await git.execWithCredentials(['push', '--quiet', '--delete', 'origin', `refs/heads/${signingBranch}`])
+    await git.deleteRef(`refs/heads/${signingBranch}`)
   }
 }
 

@@ -1,2 +1,3 @@
 #!/bin/bash
-exit 0
+date > NOW.md
+exit 109
