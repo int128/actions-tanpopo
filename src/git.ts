@@ -87,14 +87,7 @@ export const push = async (localRef: string, remoteRef: string) => {
 export const deleteRef = async (ref: string) => {
   await exec.exec(
     'git',
-    [
-      '--config-env=http.extraheader=CONFIG_GIT_HTTP_EXTRAHEADER',
-      'push',
-      '--quiet',
-      '--delete',
-      'origin',
-      ref,
-    ],
+    ['--config-env=http.extraheader=CONFIG_GIT_HTTP_EXTRAHEADER', 'push', '--quiet', '--delete', 'origin', ref],
     {
       env: {
         ...(process.env as Record<string, string>),
