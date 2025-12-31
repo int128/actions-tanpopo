@@ -13,7 +13,7 @@ export const fetch = async (...refspec: string[]) => {
   await exec.exec(
     'git',
     [
-      '--config-env=http.extraheader=ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER',
+      '--config-env=http.extraheader=CONFIG_GIT_HTTP_EXTRAHEADER',
       'fetch',
       '--quiet',
       '--depth=1',
@@ -24,7 +24,7 @@ export const fetch = async (...refspec: string[]) => {
     {
       env: {
         ...(process.env as Record<string, string>),
-        ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
+        CONFIG_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
       },
     },
   )
@@ -68,7 +68,7 @@ export const push = async (localRef: string, remoteRef: string) => {
   await exec.exec(
     'git',
     [
-      '--config-env=http.extraheader=ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER',
+      '--config-env=http.extraheader=CONFIG_GIT_HTTP_EXTRAHEADER',
       'push',
       '--quiet',
       '--force',
@@ -78,7 +78,7 @@ export const push = async (localRef: string, remoteRef: string) => {
     {
       env: {
         ...(process.env as Record<string, string>),
-        ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
+        CONFIG_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
       },
     },
   )
@@ -88,7 +88,7 @@ export const deleteRef = async (ref: string) => {
   await exec.exec(
     'git',
     [
-      '--config-env=http.extraheader=ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER',
+      '--config-env=http.extraheader=CONFIG_GIT_HTTP_EXTRAHEADER',
       'push',
       '--quiet',
       '--delete',
@@ -98,7 +98,7 @@ export const deleteRef = async (ref: string) => {
     {
       env: {
         ...(process.env as Record<string, string>),
-        ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
+        CONFIG_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
       },
     },
   )
