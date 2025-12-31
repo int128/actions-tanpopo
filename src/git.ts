@@ -2,12 +2,6 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import type { Context } from './github.ts'
 
-const execWithCredentials = async (args: string[], options?: exec.ExecOptions) => {
-  const credentials = Buffer.from(`x-access-token:${core.getInput('token')}`).toString('base64')
-  core.setSecret(credentials)
-  return await exec.exec('git', ['-c', `http.extraheader=AUTHORIZATION: basic ${credentials}`, ...args], options)
-}
-
 export const clone = async (repository: string, context: Context) => {
   await exec.exec('git', ['init', '--quiet', '.'])
   await exec.exec('git', ['remote', 'add', 'origin', `${context.serverUrl}/${repository}.git`])
@@ -16,7 +10,24 @@ export const clone = async (repository: string, context: Context) => {
 }
 
 export const fetch = async (...refspec: string[]) => {
-  await exec.exec('git', ['fetch', '--quiet', '--depth=1', '--no-tags', 'origin', ...refspec])
+  await exec.exec(
+    'git',
+    [
+      '--config-env=http.extraheader=ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER',
+      'fetch',
+      '--quiet',
+      '--depth=1',
+      '--no-tags',
+      'origin',
+      ...refspec,
+    ],
+    {
+      env: {
+        ...(process.env as Record<string, string>),
+        ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
+      },
+    },
+  )
 }
 
 export const status = async (): Promise<string> => {
@@ -54,9 +65,47 @@ export const commit = async (message: string, additionalMessages: string[]) => {
 }
 
 export const push = async (localRef: string, remoteRef: string) => {
-  await execWithCredentials(['push', '--quiet', '--force', 'origin', `${localRef}:${remoteRef}`])
+  await exec.exec(
+    'git',
+    [
+      '--config-env=http.extraheader=ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER',
+      'push',
+      '--quiet',
+      '--force',
+      'origin',
+      `${localRef}:${remoteRef}`,
+    ],
+    {
+      env: {
+        ...(process.env as Record<string, string>),
+        ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
+      },
+    },
+  )
 }
 
 export const deleteRef = async (ref: string) => {
-  await execWithCredentials(['push', '--quiet', '--delete', 'origin', ref])
+  await exec.exec(
+    'git',
+    [
+      '--config-env=http.extraheader=ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER',
+      'push',
+      '--quiet',
+      '--delete',
+      'origin',
+      ref,
+    ],
+    {
+      env: {
+        ...(process.env as Record<string, string>),
+        ACTIONS_TANPOPO_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
+      },
+    },
+  )
+}
+
+const authorizationHeader = () => {
+  const credentials = Buffer.from(`x-access-token:${core.getInput('token')}`).toString('base64')
+  core.setSecret(credentials)
+  return `AUTHORIZATION: basic ${credentials}`
 }
