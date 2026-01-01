@@ -53,8 +53,8 @@ export const commit = async (message: string, additionalMessages: string[]) => {
     {
       env: {
         ...(process.env as Record<string, string>),
-        GIT_COMMITTER_NAME: 'github-actions',
-        GIT_COMMITTER_EMAIL: 'actions@github.com',
+        GIT_AUTHOR_NAME: 'github-actions',
+        GIT_AUTHOR_EMAIL: 'actions@github.com',
       },
     },
   )
