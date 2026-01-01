@@ -41,27 +41,25 @@ export const getCommitSHA = async (refspec: string): Promise<string> => {
 }
 
 export const getDefaultBranch = async (): Promise<string | undefined> => {
-  const { stdout: defaultBranchRef } = await exec.getExecOutput('git', [
-    'rev-parse',
-    '--symbolic-full-name',
-    'origin/HEAD',
-  ])
-  return defaultBranchRef.trim().split('/').pop()
+  const { stdout } = await exec.getExecOutput('git', ['rev-parse', '--symbolic-full-name', 'origin/HEAD'])
+  return stdout.trim().split('/').pop()
 }
 
 export const commit = async (message: string, additionalMessages: string[]) => {
   await exec.exec('git', ['add', '.'])
-  await exec.exec('git', [
-    '-c',
-    `user.name=github-actions`,
-    '-c',
-    `user.email=actions@github.com`,
-    'commit',
-    '--quiet',
-    '-m',
-    message,
-    ...additionalMessages.flatMap((message) => ['-m', message]),
-  ])
+  await exec.exec(
+    'git',
+    ['commit', '--quiet', '-m', message, ...additionalMessages.flatMap((message) => ['-m', message])],
+    {
+      env: {
+        ...(process.env as Record<string, string>),
+        GIT_AUTHOR_NAME: 'github-actions',
+        GIT_AUTHOR_EMAIL: 'actions@github.com',
+        GIT_COMMITTER_NAME: 'github-actions',
+        GIT_COMMITTER_EMAIL: 'actions@github.com',
+      },
+    },
+  )
 }
 
 export const push = async (localRef: string, remoteRef: string) => {
