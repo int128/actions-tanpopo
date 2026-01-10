@@ -9,8 +9,9 @@
   "packageRules": [
     {
       "description": "Group mastra related packages",
-      "matchPackageNames": ["@mastra/core", "ai", "@ai-sdk/google"],
-      "groupName": "mastra"
+      "matchPackageNames": ["@mastra/*", "ai", "@ai-sdk/*"],
+      "groupName": "mastra",
+      "addLabels": ["/require-smoke-test"]
     }
   ]
 }

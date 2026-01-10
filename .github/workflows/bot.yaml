@@ -59,9 +59,6 @@ jobs:
         with:
           match-labels: |
             /require-smoke-test
-            renovate/ai
-            renovate/@ai-sdk/google
-            renovate/@mastra/core
       - if: steps.require-smoke-test.outputs.matched == 'true'
         name: Run int128/actions-tanpopo (smoke-test)
         run: pnpm start
