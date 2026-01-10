@@ -5,5 +5,16 @@
     "github>int128/typescript-action-renovate-config#v1.10.0",
     "helpers:pinGitHubActionDigests"
   ],
-  "platformAutomerge": true
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "description": "Group mastra related packages",
+      "matchPackageNames": [
+        "@mastra/core",
+        "ai",
+        "@ai-sdk/google"
+      ],
+      "groupName": "mastra"
+    }
+  ]
 }
