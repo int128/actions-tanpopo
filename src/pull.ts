@@ -89,7 +89,7 @@ const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
   }
 }
 
-type CreateOrUpdatePullRequest = {
+type RawPullRequestInput = {
   owner: string
   repo: string
   title: string
@@ -98,7 +98,7 @@ type CreateOrUpdatePullRequest = {
   body: string
 }
 
-const openPullRequest = async (pull: CreateOrUpdatePullRequest, octokit: Octokit) => {
+const openPullRequest = async (pull: RawPullRequestInput, octokit: Octokit) => {
   const { data: existingPulls } = await octokit.pulls.list({
     owner: pull.owner,
     repo: pull.repo,
