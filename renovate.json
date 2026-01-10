@@ -9,11 +9,7 @@
   "packageRules": [
     {
       "description": "Group mastra related packages",
-      "matchPackageNames": [
-        "@mastra/core",
-        "ai",
-        "@ai-sdk/google"
-      ],
+      "matchPackageNames": ["@mastra/core", "ai", "@ai-sdk/google"],
       "groupName": "mastra"
     }
   ]
