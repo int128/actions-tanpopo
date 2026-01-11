@@ -10,12 +10,12 @@
   "dependencies": {
     "@actions/core": "2.0.1",
     "@actions/exec": "2.0.0",
-    "@ai-sdk/google": "2.0.51",
+    "@ai-sdk/google": "2.0.52",
     "@mastra/core": "0.24.9",
     "@octokit/action": "8.0.4",
     "@octokit/plugin-retry": "8.0.3",
-    "ai": "5.0.116",
-    "zod": "4.1.13"
+    "ai": "5.0.117",
+    "zod": "4.3.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
@@ -23,12 +23,12 @@
     "@tsconfig/node24": "24.0.3",
     "@tsconfig/strictest": "2.0.8",
     "@types/node": "24.10.4",
-    "pnpm": "10.26.0",
+    "pnpm": "10.27.0",
     "typescript": "5.9.3",
     "vitest": "4.0.16"
   },
   "engines": {
     "node": "24.x"
   },
-  "packageManager": "pnpm@10.26.0"
+  "packageManager": "pnpm@10.27.0"
 }

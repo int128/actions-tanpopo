@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>int128/renovate-base",
+    "github>int128/typescript-action-renovate-config#v1.10.0",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "description": "Group mastra related packages",
+      "matchPackageNames": ["@mastra/*", "ai", "@ai-sdk/*"],
+      "groupName": "mastra",
+      "addLabels": ["/require-smoke-test"]
+    }
+  ]
+}
