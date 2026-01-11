@@ -2,24 +2,34 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
+import { z } from 'zod'
 import { runCodingAgent } from './coding/agent.ts'
 import type { Context } from './github.ts'
 
 export type Task = {
   name: string
+  metadata: TaskMetadata
   repositories: string[]
   instruction: string
   preconditionScriptPath: string
 }
 
-export const parseTask = async (taskName: string, context: Context) => {
+const TaskMetadata = z.object({
+  enablePullRequestAutoMerge: z.boolean().optional(),
+})
+
+export type TaskMetadata = z.infer<typeof TaskMetadata>
+
+export const parseTask = async (taskName: string, context: Context): Promise<Task> => {
   const taskDir = path.join(context.workspace, 'tasks', taskName)
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   const instruction = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
+  const metadata = TaskMetadata.parse(JSON.parse(await fs.readFile(path.join(taskDir, 'task.json'), 'utf-8')))
   return {
     name: taskName,
     repositories,
     instruction,
+    metadata,
     preconditionScriptPath: path.join(taskDir, 'precondition.sh'),
   }
 }

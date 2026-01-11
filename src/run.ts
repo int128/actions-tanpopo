@@ -70,6 +70,7 @@ const processRepository = async (repository: string, task: Task, octokit: Octoki
       repository,
       title: taskResponse.title,
       body: taskResponse.body,
+      enablePullRequestAutoMerge: task.metadata.enablePullRequestAutoMerge ?? false,
     },
     context,
     octokit,

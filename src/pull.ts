@@ -9,6 +9,7 @@ type PullRequestInput = {
   repository: string
   title: string
   body: string
+  enablePullRequestAutoMerge: boolean
 }
 
 type PullRequestOutput = {
@@ -26,14 +27,16 @@ export const openPullRequestWithWorkspaceChange = async (
     return
   }
 
-  const baseBranch = (await git.getDefaultBranch()) ?? 'main'
+  const [owner, repo] = input.repository.split('/')
+  assert(owner, 'repository must have an owner part')
+  assert(repo, 'repository must have a repo part')
+  const { data: repository } = await octokit.rest.repos.get({ owner, repo })
+
+  const baseBranch = repository.default_branch
   const headBranch = `bot--tasks-${input.taskName.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
   await git.commit(input.title, [workflowRunUrl])
 
-  const [owner, repo] = input.repository.split('/')
-  assert(owner, 'repository must have an owner part')
-  assert(repo, 'repository must have a repo part')
   const signedCommitSHA = await signCommit(owner, repo, octokit)
   await git.push(signedCommitSHA, `refs/heads/${headBranch}`)
 
@@ -55,6 +58,19 @@ export const openPullRequestWithWorkspaceChange = async (
     reviewers: [context.actor],
   })
   core.info(`Requested review from ${context.actor} for pull request: ${pull.html_url}`)
+
+  if (input.enablePullRequestAutoMerge) {
+    let method: string
+    if (repository.allow_squash_merge) {
+      method = 'SQUASH'
+    } else if (repository.allow_rebase_merge) {
+      method = 'REBASE'
+    } else {
+      method = 'MERGE'
+    }
+    await enablePullRequestAutoMerge(pull.node_id, method, octokit)
+    core.info(`Enabled auto-merge for pull request: ${pull.html_url}`)
+  }
   return pull
 }
 
@@ -124,4 +140,17 @@ const openPullRequest = async (pull: RawPullRequestInput, octokit: Octokit) => {
   const { data: createdPull } = await octokit.pulls.create(pull)
   core.info(`Created pull request: ${createdPull.html_url}`)
   return createdPull
+}
+
+const enablePullRequestAutoMerge = async (pullRequestId: string, mergeMethod: string, octokit: Octokit) => {
+  await octokit.graphql(
+    `
+    mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+      enablePullRequestAutoMerge(input: { pullRequestId: $pullRequestId, mergeMethod: $mergeMethod }) {
+        clientMutationId
+      }
+    }
+  `,
+    { pullRequestId, mergeMethod },
+  )
 }
