@@ -142,15 +142,15 @@ const openPullRequest = async (pull: RawPullRequestInput, octokit: Octokit) => {
   return createdPull
 }
 
-const enablePullRequestAutoMerge = async (id: string, method: string, octokit: Octokit) => {
+const enablePullRequestAutoMerge = async (pullRequestId: string, mergeMethod: string, octokit: Octokit) => {
   await octokit.graphql(
     `
-    mutation ($id: ID!, $method: PullRequestMergeMethod!) {
-      enablePullRequestAutoMerge(input: { pullRequestId: $id, mergeMethod: $method }) {
+    mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+      enablePullRequestAutoMerge(input: { pullRequestId: $pullRequestId, mergeMethod: $mergeMethod }) {
         clientMutationId
       }
     }
   `,
-    { id, method },
+    { pullRequestId, mergeMethod },
   )
 }
