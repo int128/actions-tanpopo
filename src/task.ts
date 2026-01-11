@@ -24,7 +24,7 @@ export const parseTask = async (taskName: string, context: Context): Promise<Tas
   const taskDir = path.join(context.workspace, 'tasks', taskName)
   const repositories = parseRepositoriesFile(await fs.readFile(path.join(taskDir, 'repositories'), 'utf-8'))
   const instruction = await fs.readFile(path.join(taskDir, 'README.md'), 'utf-8')
-  const metadata = TaskMetadata.parse(await fs.readFile(path.join(taskDir, 'task.json'), 'utf-8'))
+  const metadata = TaskMetadata.parse(JSON.parse(await fs.readFile(path.join(taskDir, 'task.json'), 'utf-8')))
   return {
     name: taskName,
     repositories,
