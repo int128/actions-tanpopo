@@ -68,8 +68,12 @@ export const openPullRequestWithWorkspaceChange = async (
     } else {
       method = 'MERGE'
     }
-    await enablePullRequestAutoMerge(pull.node_id, method, octokit)
-    core.info(`Enabled auto-merge for pull request: ${pull.html_url}`)
+    try {
+      await enablePullRequestAutoMerge(pull.node_id, method, octokit)
+      core.info(`Enabled auto-merge for pull request: ${pull.html_url}`)
+    } catch (error) {
+      core.warning(`Failed to enable auto-merge: ${error}`)
+    }
   }
   return pull
 }
