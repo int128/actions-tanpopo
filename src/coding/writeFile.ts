@@ -13,13 +13,13 @@ export const writeFileTool = createTool({
   outputSchema: z.object({
     ok: z.boolean().describe('Whether the file was written successfully'),
   }),
-  execute: async ({ context }) => {
-    await fs.writeFile(context.path, context.content)
-    core.startGroup(`🤖 Wrote ${context.path}`)
-    core.info(context.content)
+  execute: async (inputData) => {
+    await fs.writeFile(inputData.path, inputData.content)
+    core.startGroup(`🤖 Wrote ${inputData.path}`)
+    core.info(inputData.content)
     core.endGroup()
-    core.summary.addHeading(`🔧 Write ${context.path}`, 3)
-    core.summary.addCodeBlock(context.content)
+    core.summary.addHeading(`🔧 Write ${inputData.path}`, 3)
+    core.summary.addCodeBlock(inputData.content)
     return {
       ok: true,
     }
