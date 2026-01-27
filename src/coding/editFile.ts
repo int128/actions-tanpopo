@@ -83,13 +83,13 @@ This tool applies the patches in order and finally writes the lines to the file.
 If there are errors, no changes are made to the file.
 `),
   }),
-  execute: async ({ context }) => {
-    const originalContent = await fs.readFile(context.path, 'utf-8')
+  execute: async (inputData) => {
+    const originalContent = await fs.readFile(inputData.path, 'utf-8')
     const lines: BufferLine[] = originalContent.split('\n')
 
     const diffs = []
     const errors = []
-    for (const patch of context.patches) {
+    for (const patch of inputData.patches) {
       try {
         const diff = applyPatch(lines, patch)
         diffs.push(diff)
@@ -98,8 +98,8 @@ If there are errors, no changes are made to the file.
       }
     }
     if (errors.length > 0) {
-      core.info(`❌ Failed to edit ${context.path} due to errors`)
-      core.summary.addHeading(`❌ Edit ${context.path}`, 3)
+      core.info(`❌ Failed to edit ${inputData.path} due to errors`)
+      core.summary.addHeading(`❌ Edit ${inputData.path}`, 3)
       core.startGroup(`Errors`)
       for (const error of errors) {
         core.info(`- ${error}`)
@@ -109,12 +109,12 @@ If there are errors, no changes are made to the file.
       return { diffs: [], errors }
     }
 
-    core.info(`🤖 Edited ${context.path} (${lines.length} lines)`)
+    core.info(`🤖 Edited ${inputData.path} (${lines.length} lines)`)
     core.startGroup(`Patch`)
-    core.info(JSON.stringify(context.patches, null, 2))
+    core.info(JSON.stringify(inputData.patches, null, 2))
     core.endGroup()
-    core.summary.addHeading(`🔧 Edit ${context.path}`, 3)
-    core.summary.addCodeBlock(JSON.stringify(context.patches, null, 2), 'json')
+    core.summary.addHeading(`🔧 Edit ${inputData.path}`, 3)
+    core.summary.addCodeBlock(JSON.stringify(inputData.patches, null, 2), 'json')
     for (const diff of diffs) {
       core.info(`@@ ${diff.address} @@`)
       core.info(diff.diff)
@@ -122,7 +122,7 @@ If there are errors, no changes are made to the file.
     }
 
     const newContent = lines.filter((line) => line !== undefined).join('\n')
-    await fs.writeFile(context.path, newContent, 'utf-8')
+    await fs.writeFile(inputData.path, newContent, 'utf-8')
     return { diffs, errors: [] }
   },
 })
