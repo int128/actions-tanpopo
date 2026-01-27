@@ -3,6 +3,7 @@ import * as core from '@actions/core'
 import { APICallError, type LanguageModelMiddleware } from 'ai'
 
 export const retryMiddleware: LanguageModelMiddleware = {
+  specificationVersion: 'v3',
   wrapGenerate: async ({ doGenerate }) => {
     return withRetry(async () => await doGenerate())
   },

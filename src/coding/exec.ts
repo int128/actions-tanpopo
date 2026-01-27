@@ -15,16 +15,16 @@ export const execTool = createTool({
     stderr: z.string().describe('The standard error of the command. If the error is too large, it may be truncated.'),
     exitCode: z.number().describe('The exit code of the command. 0 means success, non-zero means failure'),
   }),
-  execute: async ({ context }) => {
-    const command = context.commandLine[0]
+  execute: async (inputData) => {
+    const command = inputData.commandLine[0]
     assert(command, 'commandLine[0] is required')
-    const args = context.commandLine.slice(1)
+    const args = inputData.commandLine.slice(1)
     const { stdout, stderr, exitCode } = await exec.getExecOutput(command, args, {
       ignoreReturnCode: true,
       env: sanitizeEnv(process.env),
     })
     core.summary.addHeading(`🔧 Exec (exit code ${exitCode})`, 3)
-    core.summary.addCodeBlock(`${process.cwd()}> ${context.commandLine.join(' ')}`, 'console')
+    core.summary.addCodeBlock(`${process.cwd()}> ${inputData.commandLine.join(' ')}`, 'console')
     if (stdout) {
       core.summary.addCodeBlock(stdout)
     }
