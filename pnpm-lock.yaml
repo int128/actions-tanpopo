@@ -27,8 +27,8 @@ importers:
         specifier: 8.0.3
         version: 8.0.3(@octokit/core@7.0.6)
       ai:
-        specifier: 5.0.121
-        version: 5.0.121(zod@4.3.6)
+        specifier: 5.0.123
+        version: 5.0.123(zod@4.3.6)
       zod:
         specifier: 4.3.6
         version: 4.3.6
@@ -88,8 +88,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/gateway@2.0.27':
-    resolution: {integrity: sha512-8hbezMsGa0crSt7/DKjkYL1UbbJJW/UFxTfhmf5qcIeYeeWG4dTNmm+DWbUdIsTaWvp59KC4eeC9gYXBbTHd7w==}
+  '@ai-sdk/gateway@2.0.29':
+    resolution: {integrity: sha512-1b7E9F/B5gex/1uCkhs+sGIbH0KsZOItHnNz3iY5ir+nc4ZUA6WOU5Cu2w1USlc+3UVbhf+H+iNLlxVjLe4VvQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -1269,8 +1269,8 @@ packages:
       react:
         optional: true
 
-  ai@5.0.121:
-    resolution: {integrity: sha512-3iYPdARKGLryC/7OA9RgBUaym1gynvWS7UPy8NwoRNCKP52lshldtHB5xcEfVviw7liWH2zJlW9yEzsDglcIEQ==}
+  ai@5.0.123:
+    resolution: {integrity: sha512-V3Imb0tg0pHCa6a/VsoW/FZpT07mwUw/4Hj6nexJC1Nvf1eyKQJyaYVkl+YTLnA8cKQSUkoarKhXWbFy4CSgjw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -2299,7 +2299,7 @@ snapshots:
       '@vercel/oidc': 3.0.5
       zod: 4.3.6
 
-  '@ai-sdk/gateway@2.0.27(zod@4.3.6)':
+  '@ai-sdk/gateway@2.0.29(zod@4.3.6)':
     dependencies:
       '@ai-sdk/provider': 2.0.1
       '@ai-sdk/provider-utils': 3.0.20(zod@4.3.6)
@@ -3666,9 +3666,9 @@ snapshots:
     optionalDependencies:
       react: 19.1.1
 
-  ai@5.0.121(zod@4.3.6):
+  ai@5.0.123(zod@4.3.6):
     dependencies:
-      '@ai-sdk/gateway': 2.0.27(zod@4.3.6)
+      '@ai-sdk/gateway': 2.0.29(zod@4.3.6)
       '@ai-sdk/provider': 2.0.1
       '@ai-sdk/provider-utils': 3.0.20(zod@4.3.6)
       '@opentelemetry/api': 1.9.0
