@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
-import { RuntimeContext } from '@mastra/core/runtime-context'
+import { RequestContext } from '@mastra/core/request-context'
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
 import type { Context } from '../github.ts'
@@ -12,16 +12,16 @@ import { readFileTool } from './readFile.ts'
 import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
 
-export type CodingAgentRuntimeContext = {
+export type CodingAgentRequestContext = {
   taskInstruction: string
   githubContext: Context
 }
 
 const codingAgent = new Agent({
+  id: 'coding-agent',
   name: 'coding-agent',
-  instructions: async ({ runtimeContext }) => {
-    const typedRuntimeContext: RuntimeContext<CodingAgentRuntimeContext> = runtimeContext
-    const githubContext = typedRuntimeContext.get('githubContext')
+  instructions: async ({ requestContext }) => {
+    const githubContext: Context = requestContext.get('githubContext')
     return `
 You are an agent for software development.
 Follow the given task.
@@ -45,16 +45,16 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
   },
 })
 
-export const runCodingAgent = async (context: CodingAgentRuntimeContext) => {
+export const runCodingAgent = async (context: CodingAgentRequestContext) => {
   core.info(context.taskInstruction)
   core.summary.addQuote(context.taskInstruction)
 
-  const runtimeContext = new RuntimeContext<CodingAgentRuntimeContext>()
-  runtimeContext.set('githubContext', context.githubContext)
+  const requestContext = new RequestContext()
+  requestContext.set('githubContext', context.githubContext)
 
   const response = await codingAgent.generate(['Follow the task:', context.taskInstruction], {
     maxSteps: 30,
-    runtimeContext,
+    requestContext,
     structuredOutput: {
       schema: z
         .object({

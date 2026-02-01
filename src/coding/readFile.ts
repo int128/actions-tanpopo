@@ -40,20 +40,20 @@ If all lines have been read, this field is omitted.
       .max(100)
       .describe('The array of lines read from the file. Up to 100 lines are returned.'),
   }),
-  execute: async ({ context }) => {
-    const fileContent = await fs.readFile(context.path, 'utf-8')
+  execute: async (inputData) => {
+    const fileContent = await fs.readFile(inputData.path, 'utf-8')
     const allLines = fileContent.split('\n').map((line, address) => ({ address, line }))
-    const readLines = allLines.slice(context.offset, context.offset + 100)
+    const readLines = allLines.slice(inputData.offset, inputData.offset + 100)
     const nextOffset =
-      context.offset + readLines.length < allLines.length ? context.offset + readLines.length : undefined
-    core.startGroup(`🤖 Reading ${context.path} (offset: ${context.offset})`)
+      inputData.offset + readLines.length < allLines.length ? inputData.offset + readLines.length : undefined
+    core.startGroup(`🤖 Reading ${inputData.path} (offset: ${inputData.offset})`)
     for (const { address, line } of readLines) {
       core.info(`${address}: ${line}`)
     }
     core.endGroup()
-    core.summary.addHeading(`🔧 Read ${context.path}`, 3)
+    core.summary.addHeading(`🔧 Read ${inputData.path}`, 3)
     core.summary.addList([
-      `offset=${context.offset}`,
+      `offset=${inputData.offset}`,
       `readLines=${readLines.length}`,
       `nextOffset=${nextOffset}`,
       `totalLines=${allLines.length}`,
