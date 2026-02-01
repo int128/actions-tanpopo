@@ -18,6 +18,7 @@ export type CodingAgentRequestContext = {
 }
 
 const codingAgent = new Agent({
+  id: 'coding-agent',
   name: 'coding-agent',
   instructions: async ({ requestContext }) => {
     const githubContext: Context = requestContext.get('githubContext')
