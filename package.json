@@ -10,11 +10,11 @@
   "dependencies": {
     "@actions/core": "2.0.2",
     "@actions/exec": "2.0.0",
-    "@ai-sdk/google": "3.0.13",
+    "@ai-sdk/google": "3.0.18",
     "@mastra/core": "1.1.0",
     "@octokit/action": "8.0.4",
     "@octokit/plugin-retry": "8.0.3",
-    "ai": "6.0.49",
+    "ai": "6.0.62",
     "zod": "4.3.6"
   },
   "devDependencies": {
