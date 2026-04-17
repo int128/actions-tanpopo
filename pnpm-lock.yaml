@@ -27,8 +27,8 @@ importers:
         specifier: 8.1.0
         version: 8.1.0(@octokit/core@7.0.6)
       ai:
-        specifier: 6.0.157
-        version: 6.0.157(zod@4.3.6)
+        specifier: 6.0.158
+        version: 6.0.158(zod@4.3.6)
       zod:
         specifier: 4.3.6
         version: 4.3.6
@@ -612,8 +612,8 @@ packages:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
     engines: {node: '>= 0.6'}
 
-  ai@6.0.157:
-    resolution: {integrity: sha512-NvGOPIkaMGlaHhu7xXjCdDtILeNN0Yws6JiZLYaq4cGBf8JUFfGcOPCt4LdV5z5qwEbvp1jiH3yzgoqFl0BeSQ==}
+  ai@6.0.158:
+    resolution: {integrity: sha512-gLTp1UXFtMqKUi3XHs33K7UFglbvojkxF/aq337TxnLGOhHIW9+GyP2jwW4hYX87f1es+wId3VQoPRRu9zEStQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -2302,7 +2302,7 @@ snapshots:
       mime-types: 3.0.2
       negotiator: 1.0.0
 
-  ai@6.0.157(zod@4.3.6):
+  ai@6.0.158(zod@4.3.6):
     dependencies:
       '@ai-sdk/gateway': 3.0.95(zod@4.3.6)
       '@ai-sdk/provider': 3.0.8
