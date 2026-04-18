@@ -26,7 +26,7 @@ jobs:
       - run: npm install -g pnpm@latest-10
       - run: pnpm i
 
-      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
+      - uses: actions/create-github-app-token@7bd03711494f032dfa3be3558f7dc8787b0be333 # v3.1.0
         id: token
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
