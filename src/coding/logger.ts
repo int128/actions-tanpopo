@@ -16,5 +16,17 @@ export const loggerMiddleware: LanguageModelMiddleware = {
     }
     return response
   },
-  wrapStream: async ({ doStream }) => await doStream(),
+  wrapStream: async ({ doStream }) => {
+    const stream = await doStream()
+    for await (const content of stream.stream) {
+      switch (content.type) {
+        case 'text-delta':
+        case 'reasoning-delta':
+          core.info(`🤖: ${content.delta}`)
+          core.summary.addHeading(`🤖: ${content.delta}`, 3)
+          break
+      }
+    }
+    return stream
+  },
 }
