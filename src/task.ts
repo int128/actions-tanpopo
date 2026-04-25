@@ -3,7 +3,7 @@ import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { z } from 'zod'
-import { CodingAgentResponse, runCodingAgent } from './coding/agent.ts'
+import { type CodingAgentResponse, runCodingAgent } from './coding/agent.ts'
 import type { Context } from './github.ts'
 
 export type Task = {
