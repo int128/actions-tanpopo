@@ -79,7 +79,9 @@ X is deprecated and no longer maintained.
     onStepFinish: (event) => {
       core.info(`🤖: ${event.stepType ?? ''}: ${event.text}`)
       core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
-      core.info(JSON.stringify(event, null, 2))
+      core.summary.addRaw('<p>\n\n')
+      core.summary.addRaw(event.text)
+      core.summary.addRaw('\n\n</p>')
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
