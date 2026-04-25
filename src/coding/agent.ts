@@ -27,7 +27,8 @@ const codingAgent = new Agent({
     return `
 You are an agent for software development.
 Follow the given task.
-If the instruction is ambiguous or unresolvable, stop immediately and return the failure.
+Explain your reasoning step by step.
+If the instruction is unclear or unresolvable, stop immediately and return the failure.
 
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
@@ -85,7 +86,7 @@ export const runCodingAgent = async (context: CodingAgentRequestContext): Promis
   requestContext.set('githubContext', context.githubContext)
 
   const response = await codingAgent.generate(['Follow the task:', context.taskInstruction], {
-    maxSteps: 30,
+    maxSteps: 20,
     requestContext,
     structuredOutput: {
       schema: CodingAgentResponse,
