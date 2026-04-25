@@ -27,7 +27,7 @@ const codingAgent = new Agent({
     return `
 You are an agent for software development.
 Follow the given task.
-If you could not complete the task, explain the reason and return failure.
+If you cannot complete the task, explain the reason and return failure.
 
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
