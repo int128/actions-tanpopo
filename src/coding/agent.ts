@@ -9,11 +9,11 @@ import type { Context } from '../github.ts'
 import { editFileTool } from './editFile.ts'
 import { execTool } from './exec.ts'
 import { grepTool } from './grep.ts'
+import { loggerMiddleware } from './logger.ts'
 import { lsTool } from './ls.ts'
 import { readFileTool } from './readFile.ts'
 import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
-import { loggerMiddleware } from './logger.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
