@@ -3,6 +3,7 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
+import { sanitizeEnv } from './sanitize.ts'
 
 export const execTool = createTool({
   id: 'exec',
@@ -44,14 +45,4 @@ const truncateString = (str: string, maxLength: number) => {
     return str
   }
   return `${str.slice(0, maxLength)}\n...truncated`
-}
-
-export const sanitizeEnv = (processEnv: NodeJS.ProcessEnv) => {
-  const env: Record<string, string> = {}
-  for (const [key, value] of Object.entries(processEnv)) {
-    if (value && !key.startsWith('GITHUB_') && !key.startsWith('INPUT_')) {
-      env[key] = value
-    }
-  }
-  return env
 }
