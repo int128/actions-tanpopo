@@ -9,11 +9,11 @@ import type { Context } from '../github.ts'
 import { editFileTool } from './editFile.ts'
 import { execTool } from './exec.ts'
 import { grepTool } from './grep.ts'
-import { loggerMiddleware } from './logger.ts'
 import { lsTool } from './ls.ts'
 import { readFileTool } from './readFile.ts'
 import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
+import { reportTool } from './report.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
@@ -28,7 +28,7 @@ const codingAgent = new Agent({
     return `
 You are an agent for software development.
 Follow the given task.
-Explain your reasoning step by step.
+Report your reasoning step by step.
 
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
@@ -40,9 +40,10 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
   },
   model: wrapLanguageModel({
     model: google('gemini-3-flash-preview'),
-    middleware: [retryMiddleware, loggerMiddleware],
+    middleware: [retryMiddleware],
   }),
   tools: {
+    reportTool,
     lsTool,
     grepTool,
     readFileTool,
