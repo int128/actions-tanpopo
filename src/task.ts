@@ -3,7 +3,7 @@ import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { z } from 'zod'
-import { runCodingAgent } from './coding/agent.ts'
+import { CodingAgentResponse, runCodingAgent } from './coding/agent.ts'
 import type { Context } from './github.ts'
 
 export type Task = {
@@ -43,7 +43,7 @@ const parseRepositoriesFile = (s: string): string[] => [
   ),
 ]
 
-export const performTask = async (task: Task, context: Context) => {
+export const performTask = async (task: Task, context: Context): Promise<CodingAgentResponse | null> => {
   const preconditionCode = await exec.exec('bash', [task.preconditionScriptPath], {
     ignoreReturnCode: true,
   })
@@ -55,6 +55,7 @@ export const performTask = async (task: Task, context: Context) => {
     core.info(`Skip the coding agent by precondition.sh with exit code ${preconditionCode}`)
     const instructionLines = task.instruction.split('\n')
     return {
+      conclusion: 'success',
       title:
         instructionLines
           .find((line) => line.startsWith('#'))
