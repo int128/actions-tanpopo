@@ -13,6 +13,7 @@ import { lsTool } from './ls.ts'
 import { readFileTool } from './readFile.ts'
 import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
+import { loggerMiddleware } from './logger.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
@@ -27,8 +28,6 @@ const codingAgent = new Agent({
     return `
 You are an agent for software development.
 Follow the given task.
-Explain your reasoning step by step.
-If the instruction is unclear or unresolvable, stop immediately and return the failure.
 
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
@@ -40,7 +39,7 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
   },
   model: wrapLanguageModel({
     model: google('gemini-3-flash-preview'),
-    middleware: [retryMiddleware],
+    middleware: [retryMiddleware, loggerMiddleware],
   }),
   tools: {
     lsTool,
@@ -90,13 +89,6 @@ export const runCodingAgent = async (context: CodingAgentRequestContext): Promis
     requestContext,
     structuredOutput: {
       schema: CodingAgentResponse,
-    },
-    onStepFinish: (event) => {
-      core.info(`🤖: ${event.stepType ?? ''}: ${event.text}`)
-      core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
-      core.summary.addRaw('<p>\n\n')
-      core.summary.addRaw(event.text)
-      core.summary.addRaw('\n\n</p>')
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
