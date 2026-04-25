@@ -11,9 +11,9 @@ import { execTool } from './exec.ts'
 import { grepTool } from './grep.ts'
 import { lsTool } from './ls.ts'
 import { readFileTool } from './readFile.ts'
+import { reportTool } from './report.ts'
 import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
-import { reportTool } from './report.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
