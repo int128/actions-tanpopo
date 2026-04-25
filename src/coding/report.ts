@@ -11,7 +11,8 @@ export const reportTool = createTool({
   outputSchema: z.object({}),
   execute: async (inputData) => {
     core.info(`🤖: ${inputData.message}`)
-    core.summary.addHeading(`🤖: ${inputData.message}`, 3)
+    core.summary.addHeading(`🤖 Reasoning`, 3)
+    core.summary.addRaw(inputData.message)
     return {}
   },
 })
