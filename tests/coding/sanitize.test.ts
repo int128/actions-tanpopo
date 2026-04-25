@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sanitizeEnv } from '../../src/coding/exec.ts'
+import { sanitizeEnv } from '../../src/coding/sanitize.ts'
 
 describe('sanitizeEnv', () => {
   it('removes GITHUB_ and INPUT_ variables', () => {

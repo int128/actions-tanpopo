@@ -8,6 +8,8 @@ import z from 'zod'
 import type { Context } from '../github.ts'
 import { editFileTool } from './editFile.ts'
 import { execTool } from './exec.ts'
+import { grepTool } from './grep.ts'
+import { lsTool } from './ls.ts'
 import { readFileTool } from './readFile.ts'
 import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
@@ -28,7 +30,8 @@ Follow the given task.
 The current directory contains the workspace for your task.
 
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
-To find a file, prefer git ls-files command instead of ls command.
+To find a file, prefer ls tool instead of a command.
+To grep a pattern, prefer grep tool instead of a command.
 To read a file, prefer readFile tool instead of exec tool with cat command.
 To write a file, prefer writeFile or editFile tool instead of exec tool with redirection.
 `
@@ -38,6 +41,8 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
     middleware: [retryMiddleware],
   }),
   tools: {
+    lsTool,
+    grepTool,
     readFileTool,
     writeFileTool,
     editFileTool,
