@@ -18,7 +18,7 @@ export const lsTool = createTool({
     const { stdout } = await exec.getExecOutput(`git`, args, {
       env: sanitizeEnv(process.env),
     })
-    core.summary.addHeading(`🔧 LS`, 3)
+    core.summary.addHeading(`🔧 Ls`, 3)
     core.summary.addCodeBlock(`git ${args.join(' ')}`, 'bash')
     core.summary.addCodeBlock(stdout)
     return {
