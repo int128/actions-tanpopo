@@ -11,7 +11,6 @@ import { execTool } from './exec.ts'
 import { grepTool } from './grep.ts'
 import { lsTool } from './ls.ts'
 import { readFileTool } from './readFile.ts'
-import { reportTool } from './report.ts'
 import { retryMiddleware } from './retry.ts'
 import { writeFileTool } from './writeFile.ts'
 
@@ -28,7 +27,6 @@ const codingAgent = new Agent({
     return `
 You are an agent for software development.
 Follow the given task.
-Report your reasoning step by step.
 
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
@@ -43,7 +41,6 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
     middleware: [retryMiddleware],
   }),
   tools: {
-    reportTool,
     lsTool,
     grepTool,
     readFileTool,
@@ -91,6 +88,12 @@ export const runCodingAgent = async (context: CodingAgentRequestContext): Promis
     requestContext,
     structuredOutput: {
       schema: CodingAgentResponse,
+    },
+    onStepFinish: (step) => {
+      if (step.text) {
+        core.info(`🤖: ${step.text}`)
+        core.summary.addRaw(`🤖: ${step.text}`)
+      }
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
