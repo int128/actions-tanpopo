@@ -5,7 +5,7 @@ if [[ ! -d .github/workflows ]]; then
   exit 99 # Skip the task
 fi
 
-if ! grep 'npm install -g corepack' .github/workflows/*; then
+if ! grep 'npm install -g pnpm@' .github/workflows/*; then
   exit 99 # Skip the task
 fi
 
