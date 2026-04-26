@@ -55,7 +55,6 @@ export const performTask = async (task: Task, context: Context): Promise<CodingA
     core.info(`Skip the coding agent by precondition.sh with exit code ${preconditionCode}`)
     const instructionLines = task.instruction.split('\n')
     return {
-      conclusion: 'success',
       title:
         instructionLines
           .find((line) => line.startsWith('#'))

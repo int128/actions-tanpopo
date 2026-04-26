@@ -63,9 +63,6 @@ const processRepository = async (repository: string, task: Task, octokit: Octoki
   if (taskResponse === null) {
     return
   }
-  if (taskResponse.conclusion === 'failure') {
-    throw new Error(`Task failed for ${repository} with reason: ${taskResponse.reason}`)
-  }
 
   const pull = await openPullRequestWithWorkspaceChange(
     {

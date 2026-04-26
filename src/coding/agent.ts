@@ -25,8 +25,7 @@ const codingAgent = new Agent({
   instructions: async ({ requestContext }) => {
     const githubContext: Context = requestContext.get('githubContext')
     return `
-You are an agent for software development.
-Follow the given task.
+You are a coding agent for software development.
 
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
@@ -50,12 +49,10 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
   },
 })
 
-const CodingAgentResponse = z.discriminatedUnion('conclusion', [
-  z
-    .object({
-      conclusion: z.literal('success').describe('The conclusion of the task.'),
-      title: z.string().describe('The title of pull request for this task.'),
-      body: z.string().describe(`The body of pull request for this task.
+const CodingAgentResponse = z
+  .object({
+    title: z.string().describe('The title of pull request for this task.'),
+    body: z.string().describe(`The body of pull request for this task.
 For example:
 \`\`\`
 ## Purpose
@@ -64,15 +61,8 @@ X is deprecated and no longer maintained.
 - Replace X with Y
 \`\`\`
 `),
-    })
-    .describe('If successful, return this object. A pull request will be created.'),
-  z
-    .object({
-      conclusion: z.literal('failure').describe('The conclusion of the task.'),
-      reason: z.string().describe('The reason of failure.'),
-    })
-    .describe('If failed, return this object.'),
-])
+  })
+  .describe('A pull request to be created for the task.')
 
 export type CodingAgentResponse = z.infer<typeof CodingAgentResponse>
 
@@ -83,19 +73,24 @@ export const runCodingAgent = async (context: CodingAgentRequestContext): Promis
   const requestContext = new RequestContext()
   requestContext.set('githubContext', context.githubContext)
 
-  const response = await codingAgent.generate(['Follow the task:', context.taskInstruction], {
-    maxSteps: 20,
+  const planResponse = await codingAgent.generate(['Create a plan for the task:', context.taskInstruction], {
+    maxSteps: 10,
     requestContext,
-    structuredOutput: {
-      schema: CodingAgentResponse,
-    },
-    onStepFinish: (step) => {
-      if (step.text) {
-        core.info(`🤖: ${step.text}`)
-        core.summary.addRaw(`🤖: ${step.text}`)
-      }
-    },
   })
+  core.info(`🤖 Plan:\n${planResponse.text}`)
+  core.summary.addHeading(`🤖 Plan`, 3)
+  core.summary.addRaw(planResponse.text)
+
+  const response = await codingAgent.generate(
+    ['Based on the plan and execute the task:', planResponse.text, context.taskInstruction],
+    {
+      maxSteps: 20,
+      requestContext,
+      structuredOutput: {
+        schema: CodingAgentResponse,
+      },
+    },
+  )
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
   core.summary.addHeading(`🤖 Finish (${response.finishReason})`, 3)
   core.summary.addCodeBlock(response.text, 'json')
