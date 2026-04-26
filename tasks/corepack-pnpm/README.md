@@ -13,7 +13,6 @@ Before:
 - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
   with:
     node-version-file: .node-version
-    package-manager-cache: false
 - run: npm install -g pnpm@latest-10
 - run: pnpm i
 ```
