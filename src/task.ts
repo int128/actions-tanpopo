@@ -3,7 +3,7 @@ import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { z } from 'zod'
-import { type CodingAgentResponse, runCodingAgent } from './coding/agent.ts'
+import { runCodingAgent } from './coding/agent.ts'
 import type { Context } from './github.ts'
 
 export type Task = {
@@ -43,7 +43,7 @@ const parseRepositoriesFile = (s: string): string[] => [
   ),
 ]
 
-export const performTask = async (task: Task, context: Context): Promise<CodingAgentResponse | null> => {
+export const performTask = async (task: Task, context: Context) => {
   const preconditionCode = await exec.exec('bash', [task.preconditionScriptPath], {
     ignoreReturnCode: true,
   })
