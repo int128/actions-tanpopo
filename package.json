@@ -15,7 +15,7 @@
     "@octokit/action": "8.0.4",
     "@octokit/plugin-retry": "8.1.0",
     "ai": "6.0.174",
-    "zod": "4.3.6"
+    "zod": "4.4.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
