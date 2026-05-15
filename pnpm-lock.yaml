@@ -49,8 +49,8 @@ importers:
         specifier: 24.10.4
         version: 24.10.4
       pnpm:
-        specifier: 10.33.2
-        version: 10.33.2
+        specifier: 10.33.4
+        version: 10.33.4
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -1254,8 +1254,8 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
-  pnpm@10.33.2:
-    resolution: {integrity: sha512-qQ+vb+6rca1sblf5Tg/hoS9dzCLNdU20CulZPraj4LaxLjVAIYuzeuCDQEsfLObbKkEh6XmCm0r/lLmfSdoc+A==}
+  pnpm@10.33.4:
+    resolution: {integrity: sha512-HGezs1my1AgRm6HtKJ80uPw8aHNBK+xv0mT73IJInlEPy+y5zp0i2ufzt2Jp2EQQRgFL3KU7mXnNelYa1jG4AA==}
     engines: {node: '>=18.12'}
     hasBin: true
 
@@ -2879,7 +2879,7 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
-  pnpm@10.33.2: {}
+  pnpm@10.33.4: {}
 
   postcss@8.5.10:
     dependencies:
