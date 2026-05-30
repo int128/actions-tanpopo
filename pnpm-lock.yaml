@@ -46,8 +46,8 @@ importers:
         specifier: 2.0.8
         version: 2.0.8
       '@types/node':
-        specifier: 24.10.4
-        version: 24.10.4
+        specifier: 24.12.4
+        version: 24.12.4
       pnpm:
         specifier: 10.33.4
         version: 10.33.4
@@ -56,7 +56,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 4.1.7
-        version: 4.1.7(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(vite@8.0.10(@types/node@24.10.4))
+        version: 4.1.7(@opentelemetry/api@1.9.0)(@types/node@24.12.4)(vite@8.0.10(@types/node@24.12.4))
 
 packages:
 
@@ -529,8 +529,8 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
-  '@types/node@24.10.4':
-    resolution: {integrity: sha512-vnDVpYPMzs4wunl27jHrfmwojOGKya0xyM3sH+UE5iv5uPS6vX7UIoh6m+vQc5LGBq52HBKPIn/zcSZVzeDEZg==}
+  '@types/node@24.12.4':
+    resolution: {integrity: sha512-GUUEShf+PBCGW2KaXwcIt3Yk+e3pkKwWKb9GSyM9WQVE+ep2jzmHdGsHzu4wgcZy5fN9FBdVzjpBQsYlpfpgLA==}
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
@@ -2062,7 +2062,7 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
-  '@types/node@24.10.4':
+  '@types/node@24.12.4':
     dependencies:
       undici-types: 7.16.0
 
@@ -2079,13 +2079,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.7(vite@8.0.10(@types/node@24.10.4))':
+  '@vitest/mocker@4.1.7(vite@8.0.10(@types/node@24.12.4))':
     dependencies:
       '@vitest/spy': 4.1.7
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.10(@types/node@24.10.4)
+      vite: 8.0.10(@types/node@24.12.4)
 
   '@vitest/pretty-format@4.1.7':
     dependencies:
@@ -3167,7 +3167,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@8.0.10(@types/node@24.10.4):
+  vite@8.0.10(@types/node@24.12.4):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -3175,13 +3175,13 @@ snapshots:
       rolldown: 1.0.0-rc.17
       tinyglobby: 0.2.16
     optionalDependencies:
-      '@types/node': 24.10.4
+      '@types/node': 24.12.4
       fsevents: 2.3.3
 
-  vitest@4.1.7(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(vite@8.0.10(@types/node@24.10.4)):
+  vitest@4.1.7(@opentelemetry/api@1.9.0)(@types/node@24.12.4)(vite@8.0.10(@types/node@24.12.4)):
     dependencies:
       '@vitest/expect': 4.1.7
-      '@vitest/mocker': 4.1.7(vite@8.0.10(@types/node@24.10.4))
+      '@vitest/mocker': 4.1.7(vite@8.0.10(@types/node@24.12.4))
       '@vitest/pretty-format': 4.1.7
       '@vitest/runner': 4.1.7
       '@vitest/snapshot': 4.1.7
@@ -3198,11 +3198,11 @@ snapshots:
       tinyexec: 1.1.1
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-      vite: 8.0.10(@types/node@24.10.4)
+      vite: 8.0.10(@types/node@24.12.4)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
-      '@types/node': 24.10.4
+      '@types/node': 24.12.4
     transitivePeerDependencies:
       - msw
 
