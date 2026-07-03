@@ -55,7 +55,7 @@ jobs:
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
           
-      - uses: int128/label-action@4f0432890dd3de225265bb81efa347bd0b00b5d2 # v1.34.0
+      - uses: int128/label-action@b5b30efbcd9bd74c810670afb0d4b1ec41140232 # v1.35.0
         id: require-smoke-test
         with:
           match-labels: |
