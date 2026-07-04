@@ -39,7 +39,7 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
 `
   },
   model: wrapLanguageModel({
-    model: google('gemini-3-flash-preview'),
+    model: google('gemini-3.5-flash'),
     middleware: [retryMiddleware],
   }),
   tools: {
