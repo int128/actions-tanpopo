@@ -58,7 +58,6 @@ export const performTask = async (task: Task, workspace: Workspace, githubContex
   const preconditionCode = await exec.exec('bash', [task.preconditionScriptPath], {
     cwd: workspace.workspace,
     ignoreReturnCode: true,
-    cwd: context.workspace,
   })
   if (preconditionCode === 99) {
     core.info(`Skip the task by precondition.sh with exit code ${preconditionCode}`)
@@ -85,7 +84,7 @@ export const performTask = async (task: Task, workspace: Workspace, githubContex
 
   return await runCodingAgent({
     taskInstruction: task.instruction,
-    workspace,
+    workspaceContext: workspace,
     githubContext,
   })
 }

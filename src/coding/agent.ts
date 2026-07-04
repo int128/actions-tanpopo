@@ -7,12 +7,12 @@ import { LocalFilesystem, LocalSandbox, Workspace } from '@mastra/core/workspace
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
 import type { Context } from '../github.ts'
-import type { Workspace } from '../task.ts'
+import type { Workspace as WorkspaceContext } from '../task.ts'
 import { retryMiddleware } from './retry.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
-  workspace: Workspace
+  workspaceContext: WorkspaceContext
   githubContext: Context
 }
 
@@ -35,14 +35,18 @@ You can create a file or directory under the temporary directory ${githubContext
   workspace: new Workspace({
     filesystem: ({ requestContext }) => {
       const githubContext: Context = requestContext.get('githubContext')
+      const workspaceContext: WorkspaceContext = requestContext.get('workspaceContext')
       return new LocalFilesystem({
-        basePath: './',
+        basePath: workspaceContext.workspace,
         allowedPaths: [githubContext.runnerTemp],
       })
     },
-    sandbox: new LocalSandbox({
-      workingDirectory: './',
-    }),
+    sandbox: ({ requestContext }) => {
+      const workspaceContext: WorkspaceContext = requestContext.get('workspaceContext')
+      return new LocalSandbox({
+        workingDirectory: workspaceContext.workspace,
+      })
+    },
   }),
 })
 
@@ -50,10 +54,9 @@ export const runCodingAgent = async (context: CodingAgentRequestContext) => {
   core.info(context.taskInstruction)
   core.summary.addQuote(context.taskInstruction)
 
-  process.chdir(context.workspace.workspace)
-
   const requestContext = new RequestContext()
   requestContext.set('githubContext', context.githubContext)
+  requestContext.set('workspaceContext', context.workspaceContext)
 
   const response = await codingAgent.generate(['Follow the task:', context.taskInstruction], {
     maxSteps: 30,
