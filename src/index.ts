@@ -13,7 +13,5 @@ try {
   core.setFailed(e instanceof Error ? e : String(e))
   console.error(e)
 } finally {
-  core.info(`Shutting down`)
   await core.summary.write()
-  core.info(`Exiting`)
 }
