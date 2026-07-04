@@ -6,6 +6,7 @@ import { RequestContext } from '@mastra/core/request-context'
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
 import type { Context } from '../github.ts'
+import type { Workspace } from '../task.ts'
 import { editFileTool } from './editFile.ts'
 import { execTool } from './exec.ts'
 import { grepTool } from './grep.ts'
@@ -16,6 +17,7 @@ import { writeFileTool } from './writeFile.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
+  workspace: Workspace
   githubContext: Context
 }
 
@@ -53,6 +55,8 @@ To write a file, prefer writeFile or editFile tool instead of exec tool with red
 export const runCodingAgent = async (context: CodingAgentRequestContext) => {
   core.info(context.taskInstruction)
   core.summary.addQuote(context.taskInstruction)
+
+  process.chdir(context.workspace.workspace)
 
   const requestContext = new RequestContext()
   requestContext.set('githubContext', context.githubContext)

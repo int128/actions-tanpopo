@@ -1,15 +1,20 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import type { Context } from './github.ts'
 
-export const clone = async (repository: string, context: Context) => {
-  await exec.exec('git', ['init', '--quiet', '.'])
-  await exec.exec('git', ['remote', 'add', 'origin', `${context.serverUrl}/${repository}.git`])
-  await fetch()
-  await exec.exec('git', ['checkout', '--quiet', '--detach', 'origin/HEAD'])
+export type Context = {
+  workspace: string
 }
 
-export const fetch = async (...refspec: string[]) => {
+export const clone = async (context: Context, repoURL: string) => {
+  await exec.exec('git', ['init', '--quiet', '.'], { cwd: context.workspace })
+  await exec.exec('git', ['remote', 'add', 'origin', repoURL], {
+    cwd: context.workspace,
+  })
+  await fetch(context)
+  await exec.exec('git', ['checkout', '--quiet', '--detach', 'origin/HEAD'], { cwd: context.workspace })
+}
+
+export const fetch = async (context: Context, ...refspec: string[]) => {
   await exec.exec(
     'git',
     [
@@ -22,6 +27,7 @@ export const fetch = async (...refspec: string[]) => {
       ...refspec,
     ],
     {
+      cwd: context.workspace,
       env: {
         ...(process.env as Record<string, string>),
         CONFIG_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
@@ -30,27 +36,23 @@ export const fetch = async (...refspec: string[]) => {
   )
 }
 
-export const status = async (): Promise<string> => {
-  const { stdout } = await exec.getExecOutput('git', ['status', '--porcelain'])
+export const status = async (context: Context): Promise<string> => {
+  const { stdout } = await exec.getExecOutput('git', ['status', '--porcelain'], { cwd: context.workspace })
   return stdout
 }
 
-export const getCommitSHA = async (refspec: string): Promise<string> => {
-  const { stdout } = await exec.getExecOutput('git', ['rev-parse', refspec])
+export const getCommitSHA = async (context: Context, refspec: string): Promise<string> => {
+  const { stdout } = await exec.getExecOutput('git', ['rev-parse', refspec], { cwd: context.workspace })
   return stdout.trim()
 }
 
-export const getDefaultBranch = async (): Promise<string | undefined> => {
-  const { stdout } = await exec.getExecOutput('git', ['rev-parse', '--symbolic-full-name', 'origin/HEAD'])
-  return stdout.trim().split('/').pop()
-}
-
-export const commit = async (message: string, additionalMessages: string[]) => {
-  await exec.exec('git', ['add', '.'])
+export const commit = async (context: Context, message: string, additionalMessages: string[]) => {
+  await exec.exec('git', ['add', '.'], { cwd: context.workspace })
   await exec.exec(
     'git',
     ['commit', '--quiet', '-m', message, ...additionalMessages.flatMap((message) => ['-m', message])],
     {
+      cwd: context.workspace,
       env: {
         ...(process.env as Record<string, string>),
         GIT_AUTHOR_NAME: 'github-actions',
@@ -62,7 +64,7 @@ export const commit = async (message: string, additionalMessages: string[]) => {
   )
 }
 
-export const push = async (localRef: string, remoteRef: string) => {
+export const push = async (context: Context, localRef: string, remoteRef: string) => {
   await exec.exec(
     'git',
     [
@@ -74,6 +76,7 @@ export const push = async (localRef: string, remoteRef: string) => {
       `${localRef}:${remoteRef}`,
     ],
     {
+      cwd: context.workspace,
       env: {
         ...(process.env as Record<string, string>),
         CONFIG_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
@@ -82,11 +85,12 @@ export const push = async (localRef: string, remoteRef: string) => {
   )
 }
 
-export const deleteRef = async (ref: string) => {
+export const deleteRef = async (context: Context, ref: string) => {
   await exec.exec(
     'git',
     ['--config-env=http.extraheader=CONFIG_GIT_HTTP_EXTRAHEADER', 'push', '--quiet', '--delete', 'origin', ref],
     {
+      cwd: context.workspace,
       env: {
         ...(process.env as Record<string, string>),
         CONFIG_GIT_HTTP_EXTRAHEADER: authorizationHeader(),
