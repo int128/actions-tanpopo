@@ -19,6 +19,7 @@ export const run = async (inputs: Inputs, octokit: Octokit, context: Context) =>
     const taskDir = path.join(context.workspace, 'tasks', taskName)
     const task = await parseTask(taskDir)
     await processTask(task, octokit, context)
+    core.info(`Finished processing task: ${taskName}`)
   }
 }
 
@@ -29,6 +30,7 @@ const processTask = async (task: Task, octokit: Octokit, context: Context) => {
     core.info(`=== ${repository.owner}/${repository.repo}`)
     core.summary.addHeading(`Repository ${repository.owner}/${repository.repo}`, 2)
     const pull = await processRepository(repository, task, octokit, context)
+    core.info(`Finished processing repository: ${repository.owner}/${repository.repo}`)
     if (!pull) {
       continue
     }
