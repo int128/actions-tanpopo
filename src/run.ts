@@ -1,10 +1,11 @@
 import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
 import * as core from '@actions/core'
 import type { Octokit } from '@octokit/action'
 import * as git from './git.ts'
-import type { Context } from './github.ts'
+import type { Context, Repository } from './github.ts'
 import { openPullRequestWithWorkspaceChange } from './pull.ts'
-import { parseTask, performTask, type Task } from './task.ts'
+import { parseTask, performTask, type Task, type Workspace } from './task.ts'
 
 type Inputs = {
   tasks: string[]
@@ -15,7 +16,8 @@ export const run = async (inputs: Inputs, octokit: Octokit, context: Context) =>
   for (const taskName of inputs.tasks) {
     core.info(`== Task ${taskName}`)
     core.summary.addHeading(`Task ${taskName}`, 1)
-    const task = await parseTask(taskName, context)
+    const taskDir = path.join(context.workspace, 'tasks', taskName)
+    const task = await parseTask(taskDir)
     await processTask(task, octokit, context)
   }
 }
@@ -24,7 +26,8 @@ const processTask = async (task: Task, octokit: Octokit, context: Context) => {
   let commentId: number | undefined
   const pulls = []
   for (const repository of task.repositories) {
-    core.info(`=== ${repository}`)
+    core.info(`=== ${repository.owner}/${repository.repo}`)
+    core.summary.addHeading(`Repository ${repository.owner}/${repository.repo}`, 2)
     const pull = await processRepository(repository, task, octokit, context)
     if (!pull) {
       continue
@@ -52,34 +55,22 @@ const processTask = async (task: Task, octokit: Octokit, context: Context) => {
   }
 }
 
-const processRepository = async (repository: string, task: Task, octokit: Octokit, context: Context) => {
-  const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
-  process.chdir(workspace)
-  core.info(`Moved to a workspace ${workspace}`)
-  await git.clone(repository, context)
-
-  core.summary.addHeading(`Repository ${repository}`, 2)
-  const taskResponse = await performTask(task, context)
+const processRepository = async (repository: Repository, task: Task, octokit: Octokit, context: Context) => {
+  const workspace: Workspace = {
+    workspace: await fs.mkdtemp(`${context.runnerTemp}/workspace-`),
+    repository,
+  }
+  await git.clone(workspace, `${context.serverUrl}/${repository.owner}/${repository.repo}.git`)
+  const taskResponse = await performTask(task, workspace, context)
   if (taskResponse === null) {
     return
   }
-
-  const pull = await openPullRequestWithWorkspaceChange(
-    {
-      taskName: task.name,
-      repository,
-      title: taskResponse.title,
-      body: taskResponse.body,
-      enablePullRequestAutoMerge: task.metadata.enablePullRequestAutoMerge ?? false,
-    },
-    context,
-    octokit,
-  )
+  const pull = await openPullRequestWithWorkspaceChange(taskResponse, task, workspace, context, octokit)
   if (pull === undefined) {
     return
   }
   core.summary.addHeading('Pull request for the task', 3)
-  core.summary.addLink(`${repository}#${pull.number}`, pull.html_url)
+  core.summary.addLink(`${repository.owner}/${repository.repo}#${pull.number}`, pull.html_url)
   await core.summary.write()
   return pull
 }

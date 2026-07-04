@@ -6,11 +6,13 @@ import type { WebhookEvent } from '@octokit/webhooks-types'
 
 export const getOctokit = () => new (Octokit.plugin(retry))()
 
+export type Repository = {
+  owner: string
+  repo: string
+}
+
 export type Context = {
-  repo: {
-    owner: string
-    repo: string
-  }
+  repo: Repository
   eventName: string
   actor: string
   runId: number
@@ -34,7 +36,7 @@ export const getContext = async (): Promise<Context> => {
   }
 }
 
-const getRepo = () => {
+const getRepo = (): Repository => {
   const [owner, repo] = getEnv('GITHUB_REPOSITORY').split('/')
   assert(owner, 'GITHUB_REPOSITORY must have an owner part')
   assert(repo, 'GITHUB_REPOSITORY must have a repo part')
