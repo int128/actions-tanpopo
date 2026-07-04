@@ -3,13 +3,11 @@ import * as core from '@actions/core'
 import type { Octokit } from '@octokit/action'
 import * as git from './git.ts'
 import type { Context } from './github.ts'
+import type { Task, Workspace } from './task.ts'
 
 type PullRequestInput = {
-  taskName: string
-  repository: string
   title: string
   body: string
-  enablePullRequestAutoMerge: boolean
 }
 
 type PullRequestOutput = {
@@ -19,31 +17,29 @@ type PullRequestOutput = {
 
 export const openPullRequestWithWorkspaceChange = async (
   input: PullRequestInput,
+  task: Task,
+  workspace: Workspace,
   context: Context,
   octokit: Octokit,
 ): Promise<PullRequestOutput | undefined> => {
-  const gitStatus = await git.status()
+  const gitStatus = await git.status(workspace)
   if (gitStatus === '') {
     return
   }
 
-  const [owner, repo] = input.repository.split('/')
-  assert(owner, 'repository must have an owner part')
-  assert(repo, 'repository must have a repo part')
-  const { data: repository } = await octokit.rest.repos.get({ owner, repo })
-
+  const { data: repository } = await octokit.rest.repos.get(workspace.repository)
   const baseBranch = repository.default_branch
-  const headBranch = `bot--tasks-${input.taskName.replaceAll(/[^\w]/g, '-')}`
+  const headBranch = `bot--tasks-${task.name.replaceAll(/[^\w]/g, '-')}`
   const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-  await git.commit(input.title, [workflowRunUrl])
+  await git.commit(workspace, input.title, [workflowRunUrl])
 
-  const signedCommitSHA = await signCommit(owner, repo, octokit)
-  await git.push(signedCommitSHA, `refs/heads/${headBranch}`)
+  const signedCommitSHA = await signCommit(workspace, octokit)
+  await git.push(workspace, signedCommitSHA, `refs/heads/${headBranch}`)
 
   const pull = await openPullRequest(
     {
-      owner,
-      repo,
+      owner: workspace.repository.owner,
+      repo: workspace.repository.repo,
       title: input.title,
       head: headBranch,
       base: baseBranch,
@@ -52,14 +48,14 @@ export const openPullRequestWithWorkspaceChange = async (
     octokit,
   )
   await octokit.rest.pulls.requestReviewers({
-    owner,
-    repo,
+    owner: workspace.repository.owner,
+    repo: workspace.repository.repo,
     pull_number: pull.number,
     reviewers: [context.actor],
   })
   core.info(`Requested review from ${context.actor} for pull request: ${pull.html_url}`)
 
-  if (input.enablePullRequestAutoMerge) {
+  if (task.metadata.enablePullRequestAutoMerge) {
     let method: string
     if (repository.allow_squash_merge) {
       method = 'SQUASH'
@@ -78,34 +74,34 @@ export const openPullRequestWithWorkspaceChange = async (
   return pull
 }
 
-const signCommit = async (owner: string, repo: string, octokit: Octokit) => {
-  const unsignedCommitSHA = await git.getCommitSHA('HEAD')
+const signCommit = async (workspace: Workspace, octokit: Octokit) => {
+  const unsignedCommitSHA = await git.getCommitSHA(workspace, 'HEAD')
   const signingBranch = `signing--${unsignedCommitSHA}`
-  await git.push('HEAD', `refs/heads/${signingBranch}`)
+  await git.push(workspace, 'HEAD', `refs/heads/${signingBranch}`)
   try {
     const { data: unsigned } = await octokit.rest.repos.getBranch({
-      owner,
-      repo,
+      owner: workspace.repository.owner,
+      repo: workspace.repository.repo,
       branch: signingBranch,
     })
     const { data: signedCommit } = await octokit.rest.git.createCommit({
-      owner,
-      repo,
+      owner: workspace.repository.owner,
+      repo: workspace.repository.repo,
       message: unsigned.commit.commit.message,
       tree: unsigned.commit.commit.tree.sha,
       parents: unsigned.commit.parents.map((parent) => parent.sha),
     })
     await octokit.rest.git.updateRef({
-      owner,
-      repo,
+      owner: workspace.repository.owner,
+      repo: workspace.repository.repo,
       ref: `heads/${signingBranch}`,
       sha: signedCommit.sha,
       force: true,
     })
-    await git.fetch(signedCommit.sha)
+    await git.fetch(workspace, signedCommit.sha)
     return signedCommit.sha
   } finally {
-    await git.deleteRef(`refs/heads/${signingBranch}`)
+    await git.deleteRef(workspace, `refs/heads/${signingBranch}`)
   }
 }
 
