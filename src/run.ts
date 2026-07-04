@@ -4,7 +4,7 @@ import * as core from '@actions/core'
 import type { Octokit } from '@octokit/action'
 import * as git from './git.ts'
 import type { Context, Repository } from './github.ts'
-import { openPullRequestWithWorkspaceChange } from './pull.ts'
+import { openPullRequestWithWorkspaceChange as openPullRequestForTask } from './pull.ts'
 import { parseTask, performTask, type Task, type Workspace } from './task.ts'
 
 type Inputs = {
@@ -65,7 +65,7 @@ const processRepository = async (repository: Repository, task: Task, octokit: Oc
   if (taskResponse === null) {
     return
   }
-  const pull = await openPullRequestWithWorkspaceChange(taskResponse, task, workspace, context, octokit)
+  const pull = await openPullRequestForTask(taskResponse, task, workspace, context, octokit)
   if (pull === undefined) {
     return
   }
