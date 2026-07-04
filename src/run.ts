@@ -53,17 +53,17 @@ const processTask = async (task: Task, octokit: Octokit, context: Context) => {
 }
 
 const processRepository = async (repository: string, task: Task, octokit: Octokit, context: Context) => {
-  const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
-  process.chdir(workspace)
-  core.info(`Moved to a workspace ${workspace}`)
-  await git.clone(repository, context)
-
   core.summary.addHeading(`Repository ${repository}`, 2)
+  const workspace = await fs.mkdtemp(`${context.runnerTemp}/workspace-`)
+  await git.clone(repository, context)
+  return await createPullRequestForTask(task, repository, octokit, context)
+}
+
+const createPullRequestForTask = async (task: Task, repository: string, octokit: Octokit, context: Context) => {
   const taskResponse = await performTask(task, context)
   if (taskResponse === null) {
     return
   }
-
   const pull = await openPullRequestWithWorkspaceChange(
     {
       taskName: task.name,

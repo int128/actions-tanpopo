@@ -46,6 +46,7 @@ const parseRepositoriesFile = (s: string): string[] => [
 export const performTask = async (task: Task, context: Context) => {
   const preconditionCode = await exec.exec('bash', [task.preconditionScriptPath], {
     ignoreReturnCode: true,
+    cwd: context.workspace,
   })
   if (preconditionCode === 99) {
     core.info(`Skip the task by precondition.sh with exit code ${preconditionCode}`)

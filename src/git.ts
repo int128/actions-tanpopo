@@ -3,10 +3,12 @@ import * as exec from '@actions/exec'
 import type { Context } from './github.ts'
 
 export const clone = async (repository: string, context: Context) => {
-  await exec.exec('git', ['init', '--quiet', '.'])
-  await exec.exec('git', ['remote', 'add', 'origin', `${context.serverUrl}/${repository}.git`])
+  await exec.exec('git', ['init', '--quiet', '.'], { cwd: context.workspace })
+  await exec.exec('git', ['remote', 'add', 'origin', `${context.serverUrl}/${repository}.git`], {
+    cwd: context.workspace,
+  })
   await fetch()
-  await exec.exec('git', ['checkout', '--quiet', '--detach', 'origin/HEAD'])
+  await exec.exec('git', ['checkout', '--quiet', '--detach', 'origin/HEAD'], { cwd: context.workspace })
 }
 
 export const fetch = async (...refspec: string[]) => {
