@@ -78,13 +78,16 @@ X is deprecated and no longer maintained.
         .describe('A pull request will be created after finishing the task.'),
     },
     onStepFinish: (event) => {
-      core.info(`🤖: ${event.stepType ?? ''}: ${event.text}`)
       if (event.text) {
+        core.info(`🤖: ${event.stepType ?? ''}: ${event.text}`)
         core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
         core.summary.addCodeBlock(event.text)
       }
       if (event.toolResults.length > 0) {
         for (const toolResult of event.toolResults) {
+          core.info(`🤖 Tool: ${toolResult.payload.toolName}`)
+          core.info(JSON.stringify(toolResult.payload.args, null, 2))
+          core.info(String(toolResult.payload.result))
           core.summary.addHeading(`🤖 Tool: ${toolResult.payload.toolName}`, 3)
           core.summary.addCodeBlock(JSON.stringify(toolResult.payload.args, null, 2), 'json')
           core.summary.addCodeBlock(String(toolResult.payload.result))
