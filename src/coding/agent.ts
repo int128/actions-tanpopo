@@ -3,63 +3,60 @@ import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
 import { RequestContext } from '@mastra/core/request-context'
+import { LocalFilesystem, LocalSandbox, Workspace } from '@mastra/core/workspace'
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
 import type { Context } from '../github.ts'
-import type { Workspace } from '../task.ts'
-import { editFileTool } from './editFile.ts'
-import { execTool } from './exec.ts'
-import { grepTool } from './grep.ts'
-import { lsTool } from './ls.ts'
-import { readFileTool } from './readFile.ts'
+import type { Workspace as WorkspaceContext } from '../task.ts'
 import { retryMiddleware } from './retry.ts'
-import { writeFileTool } from './writeFile.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
-  workspace: Workspace
+  workspaceContext: WorkspaceContext
   githubContext: Context
 }
 
 const codingAgent = new Agent({
   id: 'coding-agent',
   name: 'coding-agent',
-  instructions: async ({ requestContext }) => {
+  instructions: ({ requestContext }) => {
     const githubContext: Context = requestContext.get('githubContext')
     return `
 You are an agent for software development.
 Follow the given task.
 The current directory contains the workspace for your task.
-
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
-To find a file, prefer ls tool instead of a command.
-To grep a pattern, prefer grep tool instead of a command.
-To read a file, prefer readFile tool instead of exec tool with cat command.
-To write a file, prefer writeFile or editFile tool instead of exec tool with redirection.
 `
   },
   model: wrapLanguageModel({
     model: google('gemini-3.5-flash'),
     middleware: [retryMiddleware],
   }),
-  tools: {
-    lsTool,
-    grepTool,
-    readFileTool,
-    writeFileTool,
-    editFileTool,
-    execTool,
-  },
+  workspace: new Workspace({
+    filesystem: ({ requestContext }) => {
+      const githubContext: Context = requestContext.get('githubContext')
+      const workspaceContext: WorkspaceContext = requestContext.get('workspaceContext')
+      return new LocalFilesystem({
+        basePath: workspaceContext.workspace,
+        allowedPaths: [githubContext.runnerTemp],
+      })
+    },
+    sandbox: ({ requestContext }) => {
+      const workspaceContext: WorkspaceContext = requestContext.get('workspaceContext')
+      return new LocalSandbox({
+        workingDirectory: workspaceContext.workspace,
+      })
+    },
+  }),
 })
 
 export const runCodingAgent = async (context: CodingAgentRequestContext) => {
   core.info(context.taskInstruction)
   core.summary.addQuote(context.taskInstruction)
 
-  process.chdir(context.workspace.workspace)
-
   const requestContext = new RequestContext()
   requestContext.set('githubContext', context.githubContext)
+  requestContext.set('workspaceContext', context.workspaceContext)
 
   const response = await codingAgent.generate(['Follow the task:', context.taskInstruction], {
     maxSteps: 30,
@@ -82,10 +79,17 @@ X is deprecated and no longer maintained.
     },
     onStepFinish: (event) => {
       core.info(`🤖: ${event.stepType ?? ''}: ${event.text}`)
-      core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
-      core.summary.addRaw('<p>\n\n')
-      core.summary.addRaw(event.text)
-      core.summary.addRaw('\n\n</p>')
+      if (event.text) {
+        core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
+        core.summary.addCodeBlock(event.text)
+      }
+      if (event.toolResults.length > 0) {
+        for (const toolResult of event.toolResults) {
+          core.summary.addHeading(`🤖 Tool: ${toolResult.payload.toolName}`, 3)
+          core.summary.addCodeBlock(JSON.stringify(toolResult.payload.args, null, 2), 'json')
+          core.summary.addCodeBlock(String(toolResult.payload.result))
+        }
+      }
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)

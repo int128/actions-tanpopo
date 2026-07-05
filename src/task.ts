@@ -84,7 +84,7 @@ export const performTask = async (task: Task, workspace: Workspace, githubContex
 
   return await runCodingAgent({
     taskInstruction: task.instruction,
-    workspace,
+    workspaceContext: workspace,
     githubContext,
   })
 }
