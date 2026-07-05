@@ -79,8 +79,17 @@ X is deprecated and no longer maintained.
     },
     onStepFinish: (event) => {
       core.info(`🤖: ${event.stepType ?? ''}: ${event.text}`)
-      core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
-      core.summary.addCodeBlock(JSON.stringify(event, null, 2), 'json')
+      if (event.text) {
+        core.summary.addHeading(`🤖 Step: ${event.stepType ?? ''}`, 3)
+        core.summary.addCodeBlock(event.text)
+      }
+      if (event.toolResults.length > 0) {
+        for (const toolResult of event.toolResults) {
+          core.summary.addHeading(`🤖 Tool: ${toolResult.payload.toolName}`, 3)
+          core.summary.addCodeBlock(JSON.stringify(toolResult.payload.args, null, 2), 'json')
+          core.summary.addCodeBlock(String(toolResult.payload.result))
+        }
+      }
     },
   })
   core.info(`🤖: ${response.finishReason}: ${response.text}`)
