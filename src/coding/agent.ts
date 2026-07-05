@@ -29,7 +29,7 @@ You can create a file or directory under the temporary directory ${githubContext
 `
   },
   model: wrapLanguageModel({
-    model: google('gemini-3-flash-preview'),
+    model: google('gemini-3.5-flash'),
     middleware: [retryMiddleware],
   }),
   workspace: new Workspace({
