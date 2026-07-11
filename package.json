@@ -4,7 +4,8 @@
     "start": "node src/index.ts",
     "typecheck": "tsc",
     "test": "vitest",
-    "check": "biome migrate --write && biome check --fix"
+    "check": "biome migrate --write && biome check --fix",
+    "studio": "mastra dev --request-context-presets src/mastra/request-context-presets.json"
   },
   "type": "module",
   "dependencies": {
@@ -23,6 +24,7 @@
     "@tsconfig/node24": "24.0.4",
     "@tsconfig/strictest": "2.0.8",
     "@types/node": "24.13.2",
+    "mastra": "1.18.2",
     "pnpm": "11.9.0",
     "typescript": "6.0.3",
     "vitest": "4.1.9"
