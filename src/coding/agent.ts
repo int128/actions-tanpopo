@@ -2,7 +2,6 @@ import assert from 'node:assert'
 import * as core from '@actions/core'
 import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
-import { RequestContext } from '@mastra/core/request-context'
 import { LocalFilesystem, LocalSandbox, Workspace } from '@mastra/core/workspace'
 import { wrapLanguageModel } from 'ai'
 import z from 'zod'
@@ -16,51 +15,38 @@ export type CodingAgentRequestContext = {
   githubContext: Context
 }
 
-export const codingAgent = new Agent({
-  id: 'coding-agent',
-  name: 'coding-agent',
-  instructions: ({ requestContext }) => {
-    const githubContext: Context = requestContext.get('githubContext')
-    return `
+export const createCodingAgent = (githubContext: Context, workspaceContext: WorkspaceContext) =>
+  new Agent({
+    id: 'coding-agent',
+    name: 'coding-agent',
+    instructions: `
 You are an agent for software development.
 Follow the given task.
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
-`
-  },
-  model: wrapLanguageModel({
-    model: google('gemini-3.5-flash'),
-    middleware: [retryMiddleware],
-  }),
-  workspace: new Workspace({
-    filesystem: ({ requestContext }) => {
-      const githubContext: Context = requestContext.get('githubContext')
-      const workspaceContext: WorkspaceContext = requestContext.get('workspaceContext')
-      return new LocalFilesystem({
+`,
+    model: wrapLanguageModel({
+      model: google('gemini-3.5-flash'),
+      middleware: [retryMiddleware],
+    }),
+    workspace: new Workspace({
+      filesystem: new LocalFilesystem({
         basePath: workspaceContext.workspace,
         allowedPaths: [githubContext.runnerTemp],
-      })
-    },
-    sandbox: ({ requestContext }) => {
-      const workspaceContext: WorkspaceContext = requestContext.get('workspaceContext')
-      return new LocalSandbox({
+      }),
+      sandbox: new LocalSandbox({
         workingDirectory: workspaceContext.workspace,
-      })
-    },
-  }),
-})
+      }),
+    }),
+  })
 
 export const runCodingAgent = async (context: CodingAgentRequestContext) => {
   core.info(context.taskInstruction)
   core.summary.addQuote(context.taskInstruction)
 
-  const requestContext = new RequestContext()
-  requestContext.set('githubContext', context.githubContext)
-  requestContext.set('workspaceContext', context.workspaceContext)
-
+  const codingAgent = createCodingAgent(context.githubContext, context.workspaceContext)
   const response = await codingAgent.generate(['Follow the task:', context.taskInstruction], {
     maxSteps: 30,
-    requestContext,
     structuredOutput: {
       schema: z
         .object({
