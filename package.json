@@ -5,7 +5,7 @@
     "typecheck": "tsc",
     "test": "vitest",
     "check": "biome migrate --write && biome check --fix",
-    "studio": "mastra dev --request-context-presets src/mastra/request-context-presets.json"
+    "studio": "mastra dev"
   },
   "type": "module",
   "dependencies": {
