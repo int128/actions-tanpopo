@@ -1,0 +1,10 @@
+{
+  "development": {
+    "githubContext": {
+      "runnerTemp": "/tmp"
+    },
+    "workspaceContext": {
+      "workspace": "."
+    }
+  }
+}
