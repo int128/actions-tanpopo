@@ -52,8 +52,8 @@ importers:
         specifier: 1.18.2
         version: 1.18.2(@hono/node-server@1.19.14(hono@4.12.26))(@mastra/core@1.50.1(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)
       pnpm:
-        specifier: 11.9.0
-        version: 11.9.0
+        specifier: 11.11.0
+        version: 11.11.0
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -2343,8 +2343,8 @@ packages:
   pkg-types@2.3.1:
     resolution: {integrity: sha512-y+ichcgc2LrADuhLNAx8DFjVfgz91pRxfZdI3UDhxHvcVEZsenLO+7XaU5vOp0u/7V/wZ+plyuQxtrDlZJ+yeg==}
 
-  pnpm@11.9.0:
-    resolution: {integrity: sha512-vWgtXQP+Ul73yf1ngMaITR51asTJyf4AxTh4KCQxDc+Q493E9Tg18G3669UIXkGFXgvLs7YN4qxburieUDbwOw==}
+  pnpm@11.11.0:
+    resolution: {integrity: sha512-RGP2X9gO2A1pvB1L8WPulPYFxzgPwxi7Wy6+FfjNEtScUaTVnpUbQB52TTtsp1HL9RvFDtcAGmvLSTXmhMNIgg==}
     engines: {node: '>=22.13'}
     hasBin: true
 
@@ -5311,7 +5311,7 @@ snapshots:
       exsolve: 1.1.0
       pathe: 2.0.3
 
-  pnpm@11.9.0: {}
+  pnpm@11.11.0: {}
 
   postcss@8.5.15:
     dependencies:
