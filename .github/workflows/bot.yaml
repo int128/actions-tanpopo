@@ -34,7 +34,7 @@ jobs:
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
-      - uses: int128/glob-changed-files-action@e626d5604a9c08ef834e38a13d52d65f392aa38e # v2.38.0
+      - uses: int128/glob-changed-files-action@020dcfe1cbbe4116b75ca8e2d235af538193f513 # v2.39.0
         id: changed-tasks
         with:
           paths: |
