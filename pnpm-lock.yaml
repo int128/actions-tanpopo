@@ -49,8 +49,8 @@ importers:
         specifier: 24.13.3
         version: 24.13.3
       mastra:
-        specifier: 1.27.2
-        version: 1.27.2(@hono/node-server@1.19.14(hono@4.12.26))(@mastra/core@1.63.2(ai@7.0.84(zod@4.4.3))(express@5.2.1(supports-color@7.2.0))(supports-color@7.2.0)(zod@4.4.3))(supports-color@7.2.0)(typescript@6.0.3)(zod@4.4.3)
+        specifier: 1.27.3
+        version: 1.27.3(@hono/node-server@1.19.14(hono@4.12.26))(@mastra/core@1.63.2(ai@7.0.84(zod@4.4.3))(express@5.2.1(supports-color@7.2.0))(supports-color@7.2.0)(zod@4.4.3))(supports-color@7.2.0)(typescript@6.0.3)(zod@4.4.3)
       pnpm:
         specifier: 11.15.0
         version: 11.15.0
@@ -1851,8 +1851,8 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  mastra@1.27.2:
-    resolution: {integrity: sha512-RYkMpNbKXSLJhq0DhNmpSKf3+RaySg56Zg4rlQTMFGIYp6aE/d7PTQWORTAfVra33h2gJkS7t+d6R+iFGOLEIA==}
+  mastra@1.27.3:
+    resolution: {integrity: sha512-X8OJo3U+edUThIkOz2uATE3YN2jCpDxH8bbCZPj1WDta5SXsFnly27HUpL7gCWoOlN6qlgq8X6h1QtfNNzZ5Yw==}
     engines: {node: '>=22.13.0'}
     hasBin: true
     peerDependencies:
@@ -4353,7 +4353,7 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  mastra@1.27.2(@hono/node-server@1.19.14(hono@4.12.26))(@mastra/core@1.63.2(ai@7.0.84(zod@4.4.3))(express@5.2.1(supports-color@7.2.0))(supports-color@7.2.0)(zod@4.4.3))(supports-color@7.2.0)(typescript@6.0.3)(zod@4.4.3):
+  mastra@1.27.3(@hono/node-server@1.19.14(hono@4.12.26))(@mastra/core@1.63.2(ai@7.0.84(zod@4.4.3))(express@5.2.1(supports-color@7.2.0))(supports-color@7.2.0)(zod@4.4.3))(supports-color@7.2.0)(typescript@6.0.3)(zod@4.4.3):
     dependencies:
       '@babel/parser': 8.0.4
       '@babel/types': 8.0.4
