@@ -25,12 +25,12 @@
     "@tsconfig/strictest": "2.0.8",
     "@types/node": "24.13.3",
     "mastra": "1.27.3",
-    "pnpm": "11.15.0",
+    "pnpm": "12.3.4",
     "typescript": "6.0.3",
     "vitest": "4.1.11"
   },
   "engines": {
     "node": "24.x"
   },
-  "packageManager": "pnpm@11.15.0"
+  "packageManager": "pnpm@12.3.4"
 }
