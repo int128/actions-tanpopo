@@ -9,7 +9,7 @@ jq '.packageManager = "pnpm@12.3.4" | .devDependencies.pnpm = "12.3.4"' package.
 mv package.json.new package.json
 
 # Avoid ERR_PNPM_OUTDATED_LOCKFILE
-unset CI
+export CI="false"
 
 pnpm i || true
 
