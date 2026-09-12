@@ -1,0 +1,24 @@
+#!/bin/bash
+set -eux -o pipefail
+
+if [[ ! -f pnpm-lock.yaml ]]; then
+  exit 99 # Skip the task
+fi
+
+if jq .packageManager package.json | grep pnpm@12; then
+  exit 99 # Skip the task
+fi
+
+jq '.packageManager = "pnpm@12.3.4" | .devDependencies.pnpm = "12.3.4"' package.json > package.json.new
+mv package.json.new package.json
+
+# Avoid ERR_PNPM_OUTDATED_LOCKFILE
+export CI="false"
+
+pnpm i || true
+
+pnpm approve-builds '!pnpm'
+
+pnpm i
+
+exit 109 # Skip the coding agent
