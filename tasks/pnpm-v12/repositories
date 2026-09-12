@@ -1,7 +1,7 @@
 # gh repo list --no-archived --source -l typescript --limit 100 | awk '{print $1}'
 
 int128/typescript-action
-# int128/actions-tanpopo
+int128/actions-tanpopo
 # int128/parallel-test-action
 # int128/glob-changed-files-action
 # int128/docker-build-cache-config-action
