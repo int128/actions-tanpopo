@@ -31,25 +31,11 @@ jobs:
       - run: pnpm i --prod
 
       - id: openai
-        shell: bash
-        env:
-          AUDIENCE: "https://api.openai.com"
-          IDENTITY_PROVIDER_ID: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
-          SERVICE_ACCOUNT_ID: ${{ secrets.OPENAI_SERVICE_ACCOUNT_ID }}
-        run: |
-          ENCODED_AUDIENCE="$(jq -rn --arg audience "$AUDIENCE" '$audience | @uri')"
-          EXTERNAL_OIDC_JWT="$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${ENCODED_AUDIENCE}" | jq -r .value)"
-          TOKEN_RESPONSE="$(curl https://auth.openai.com/oauth/token \
-            -H "Content-Type: application/json" \
-            -d '{
-              "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-              "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
-              "subject_token": "'"$EXTERNAL_OIDC_JWT"'",
-              "identity_provider_id": "'"$IDENTITY_PROVIDER_ID"'",
-              "service_account_id": "'"$SERVICE_ACCOUNT_ID"'"
-            }')"
-          TOKEN="$(echo "$TOKEN_RESPONSE" | jq -r .access_token)"
-          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+        uses: int128/openai-auth-action@77f2a86f043c07f19d9c45dd6b8be5dbdc07ed80 # v0.1.0
+        with:
+          audience: "https://api.openai.com"
+          identity-provider-id: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
+          service-account-id: ${{ secrets.OPENAI_SERVICE_ACCOUNT_ID }}
 
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: token
