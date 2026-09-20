@@ -45,7 +45,7 @@ jobs:
         env:
           INPUT_TASKS: ${{ steps.changed-tasks.outputs.paths }}
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.BOT_GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - if: steps.changed-tasks.outputs.paths == ''
         name: Run int128/actions-tanpopo (example)
@@ -53,7 +53,6 @@ jobs:
         env:
           INPUT_TASKS: example
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
           
       - uses: int128/label-action@0babf4451713e3480d22b0dd162a53e9c864e441 # v1.48.0
         id: require-smoke-test
@@ -66,4 +65,4 @@ jobs:
         env:
           INPUT_TASKS: smoke-test
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

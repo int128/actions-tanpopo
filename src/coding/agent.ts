@@ -1,13 +1,10 @@
 import assert from 'node:assert'
 import * as core from '@actions/core'
-import { google } from '@ai-sdk/google'
 import { Agent } from '@mastra/core/agent'
 import { LocalFilesystem, LocalSandbox, Workspace } from '@mastra/core/workspace'
-import { wrapLanguageModel } from 'ai'
 import z from 'zod'
 import type { Context } from '../github.ts'
 import type { Workspace as WorkspaceContext } from '../task.ts'
-import { retryMiddleware } from './retry.ts'
 
 export type CodingAgentRequestContext = {
   taskInstruction: string
@@ -25,10 +22,7 @@ Follow the given task.
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
 `,
-    model: wrapLanguageModel({
-      model: google('gemini-3.5-flash'),
-      middleware: [retryMiddleware],
-    }),
+    model: 'openai/gpt-5.6-luna',
     workspace: new Workspace({
       filesystem: new LocalFilesystem({
         basePath: workspaceContext.workspace,

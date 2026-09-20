@@ -115,9 +115,6 @@ importers:
       '@actions/exec':
         specifier: 3.0.0
         version: 3.0.0
-      '@ai-sdk/google':
-        specifier: 4.0.69
-        version: 4.0.69(zod@4.5.4)
       '@mastra/core':
         specifier: 1.66.0
         version: 1.66.0(ai@7.0.99(zod@4.5.4))(express@5.2.1(supports-color@7.2.0))(supports-color@7.2.0)(zod@4.5.4)
@@ -127,9 +124,6 @@ importers:
       '@octokit/plugin-retry':
         specifier: 8.1.1
         version: 8.1.1(@octokit/core@7.0.6)
-      ai:
-        specifier: 7.0.99
-        version: 7.0.99(zod@4.5.4)
       zod:
         specifier: 4.5.4
         version: 4.5.4
@@ -208,12 +202,6 @@ packages:
 
   '@ai-sdk/gateway@4.0.80':
     resolution: {integrity: sha512-6t+07o8lSthpKf64Xb1qHWR2bWvJ3Fd2oFvS9fQc45p31bi2OUqan246e/ojAmZpWCiMPjKyQ4TBr4MYytnTiQ==}
-    engines: {node: '>=22'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/google@4.0.69':
-    resolution: {integrity: sha512-clIivD3RQwutykzKQ8CV+BXIA6EX3xcrfJyXXvAni2SlR9JVATSRbu+JFK/j25a330aZ6WiDwbGyD/u951qXOg==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -2859,12 +2847,7 @@ snapshots:
       '@ai-sdk/provider-utils': 5.0.40(zod@4.5.4)
       '@vercel/oidc': 3.2.0
       zod: 4.5.4
-
-  '@ai-sdk/google@4.0.69(zod@4.5.4)':
-    dependencies:
-      '@ai-sdk/provider': 4.0.14
-      '@ai-sdk/provider-utils': 5.0.40(zod@4.5.4)
-      zod: 4.5.4
+    optional: true
 
   '@ai-sdk/provider-utils@4.0.40(zod@4.5.4)':
     dependencies:
@@ -2889,6 +2872,7 @@ snapshots:
       eventsource-parser: 3.1.0
       undici: 7.29.1
       zod: 4.5.4
+    optional: true
 
   '@ai-sdk/provider@2.0.3':
     dependencies:
@@ -2901,6 +2885,7 @@ snapshots:
   '@ai-sdk/provider@4.0.14':
     dependencies:
       json-schema: 0.4.0
+    optional: true
 
   '@ai-sdk/provider@4.0.4':
     dependencies:
@@ -3738,7 +3723,8 @@ snapshots:
 
   '@types/unist@3.0.3': {}
 
-  '@vercel/oidc@3.2.0': {}
+  '@vercel/oidc@3.2.0':
+    optional: true
 
   '@vitest/expect@4.1.11':
     dependencies:
@@ -3803,6 +3789,7 @@ snapshots:
       '@ai-sdk/provider': 4.0.14
       '@ai-sdk/provider-utils': 5.0.40(zod@4.5.4)
       zod: 4.5.4
+    optional: true
 
   ajv@8.20.0:
     dependencies:
@@ -5444,7 +5431,8 @@ snapshots:
 
   undici@7.28.0: {}
 
-  undici@7.29.1: {}
+  undici@7.29.1:
+    optional: true
 
   unicorn-magic@0.3.0: {}
 
