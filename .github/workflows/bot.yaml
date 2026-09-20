@@ -18,6 +18,9 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -26,6 +29,26 @@ jobs:
       - run: npm install -g corepack
       - run: corepack enable
       - run: pnpm i --prod
+
+      - id: openai
+        shell: bash
+        env:
+          AUDIENCE: "https://api.openai.com"
+          IDENTITY_PROVIDER_ID: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
+          SERVICE_ACCOUNT_ID: ${{ secrets.OPENAI_SERVICE_ACCOUNT_ID }}
+        run: |
+          ENCODED_AUDIENCE="$(jq -rn --arg audience "$AUDIENCE" '$audience | @uri')"
+          EXTERNAL_OIDC_JWT="$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${ENCODED_AUDIENCE}" | jq -r .value)"
+          TOKEN="$(curl https://auth.openai.com/oauth/token \
+            -H "Content-Type: application/json" \
+            -d '{
+              "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+              "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+              "subject_token": "'"$EXTERNAL_OIDC_JWT"'",
+              "identity_provider_id": "'"$IDENTITY_PROVIDER_ID"'",
+              "service_account_id": "'"$SERVICE_ACCOUNT_ID"'"
+            }')"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: token
@@ -45,7 +68,7 @@ jobs:
         env:
           INPUT_TASKS: ${{ steps.changed-tasks.outputs.paths }}
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ steps.openai.outputs.token }}
 
       - if: steps.changed-tasks.outputs.paths == ''
         name: Run int128/actions-tanpopo (example)
@@ -65,4 +88,4 @@ jobs:
         env:
           INPUT_TASKS: smoke-test
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ steps.openai.outputs.token }}
