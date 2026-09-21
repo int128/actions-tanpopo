@@ -1,5 +1,4 @@
 import { Mastra } from '@mastra/core/mastra'
-import type { WebhookEvent } from '@octokit/webhooks-types'
 import { createCodingAgent } from '../coding/agent.ts'
 
 export const mastra = new Mastra({
@@ -16,7 +15,7 @@ export const mastra = new Mastra({
         serverUrl: 'https://github.com',
         runnerTemp: '/tmp',
         workspace: '/tmp/workspace',
-        payload: {} as WebhookEvent,
+        payload: {},
       },
       {
         repository: {
