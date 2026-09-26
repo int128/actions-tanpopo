@@ -31,7 +31,7 @@ jobs:
       - run: pnpm i --prod
 
       - id: openai
-        uses: int128/openai-auth-action@77f2a86f043c07f19d9c45dd6b8be5dbdc07ed80 # v0.1.0
+        uses: int128/openai-auth-action@a165d3ba9b3aaf5ae1e0b74a343da10336b2cd88 # v0.2.0
         with:
           audience: "https://api.openai.com"
           identity-provider-id: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
