@@ -1,0 +1,64 @@
+name: e2e
+
+on:
+  pull_request:
+    paths:
+      - tasks/**
+      - src/**
+      - tests/**
+      - '*.json'
+      - '*.yaml'
+      - .github/workflows/e2e.yaml
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}--${{ github.ref }}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - run: npm install -g corepack
+      - run: corepack enable
+      - run: pnpm i --prod
+
+      - id: openai
+        uses: int128/openai-auth-action@77f2a86f043c07f19d9c45dd6b8be5dbdc07ed80 # v0.1.0
+        with:
+          audience: "https://api.openai.com"
+          identity-provider-id: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
+          service-account-id: ${{ secrets.OPENAI_SERVICE_ACCOUNT_ID }}
+
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: token
+        with:
+          client-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Run int128/actions-tanpopo (example)
+        run: pnpm start
+        env:
+          INPUT_TASKS: example
+          INPUT_TOKEN: ${{ steps.token.outputs.token }}
+
+      - uses: int128/label-action@0babf4451713e3480d22b0dd162a53e9c864e441 # v1.48.0
+        id: require-smoke-test
+        with:
+          match-labels: |
+            /require-smoke-test
+      - if: steps.require-smoke-test.outputs.matched == 'true'
+        name: Run int128/actions-tanpopo (smoke-test)
+        run: pnpm start
+        env:
+          INPUT_TASKS: smoke-test
+          INPUT_TOKEN: ${{ steps.token.outputs.token }}
+          OPENAI_API_KEY: ${{ steps.openai.outputs.token }}

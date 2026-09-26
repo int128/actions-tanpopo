@@ -50,4 +50,4 @@ Install the GitHub App to your repositories.
 ### Create a workflow
 
 Create a workflow to run this action.
-See [bot.yaml](.github/workflows/bot.yaml).
+See [bot--oneshot.yaml](.github/workflows/bot--oneshot.yaml).
