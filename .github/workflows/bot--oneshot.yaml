@@ -1,14 +1,10 @@
-name: bot
+name: bot / oneshot
 
 on:
   pull_request:
     paths:
       - tasks/**
-      - src/**
-      - tests/**
-      - '*.json'
-      - '*.yaml'
-      - .github/workflows/bot.yaml
+      - .github/workflows/bot--oneshot.yaml
 
 concurrency:
   cancel-in-progress: true
@@ -40,7 +36,7 @@ jobs:
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: token
         with:
-          app-id: ${{ secrets.BOT_APP_ID }}
+          client-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
@@ -54,25 +50,5 @@ jobs:
       - run: pnpm start
         env:
           INPUT_TASKS: ${{ steps.changed-tasks.outputs.paths }}
-          INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          OPENAI_API_KEY: ${{ steps.openai.outputs.token }}
-
-      - if: steps.changed-tasks.outputs.paths == ''
-        name: Run int128/actions-tanpopo (example)
-        run: pnpm start
-        env:
-          INPUT_TASKS: example
-          INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          
-      - uses: int128/label-action@0babf4451713e3480d22b0dd162a53e9c864e441 # v1.48.0
-        id: require-smoke-test
-        with:
-          match-labels: |
-            /require-smoke-test
-      - if: steps.require-smoke-test.outputs.matched == 'true'
-        name: Run int128/actions-tanpopo (smoke-test)
-        run: pnpm start
-        env:
-          INPUT_TASKS: smoke-test
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
           OPENAI_API_KEY: ${{ steps.openai.outputs.token }}
