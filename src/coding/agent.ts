@@ -22,7 +22,7 @@ Follow the given task.
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
 `,
-    model: 'openai/gpt-5.6-luna',
+    model: 'openai/gpt-6-luna',
     workspace: new Workspace({
       filesystem: new LocalFilesystem({
         basePath: workspaceContext.workspace,
