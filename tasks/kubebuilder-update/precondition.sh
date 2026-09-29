@@ -16,6 +16,8 @@ if [ ! -x /usr/local/bin/kubebuilder ]; then
 fi
 kubebuilder version
 
+export GOTOOLCHAIN=auto
+
 # kubebuilder assumes that main branch exists.
 git checkout -b main
 
