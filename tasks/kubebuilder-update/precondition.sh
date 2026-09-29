@@ -16,7 +16,7 @@ if [ ! -x /usr/local/bin/kubebuilder ]; then
 fi
 
 kubebuilder version
-kubebuilder alpha update --force
+kubebuilder alpha update --from-branch=HEAD --force
 
 # Since "kubebuilder alpha update" creates a new commit, reset the changes to the working tree.
 git reset HEAD^
