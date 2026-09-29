@@ -14,11 +14,14 @@ if [ ! -x /usr/local/bin/kubebuilder ]; then
   chmod +x kubebuilder
   sudo mv kubebuilder /usr/local/bin/
 fi
-
 kubebuilder version
-kubebuilder alpha update --from-branch=HEAD --force
 
-# Since "kubebuilder alpha update" creates a new commit, reset the changes to the working tree.
+# kubebuilder assumes that main branch exists.
+git checkout -b main
+
+kubebuilder alpha update --force
+
+# kubebuilder created a new commit at this time. Reset the changes to the working tree.
 git reset HEAD^
 git add .
 git restore -s HEAD \
