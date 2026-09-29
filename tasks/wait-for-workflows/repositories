@@ -55,15 +55,15 @@
 # gh repo list --no-archived --source -l go --limit 100 | awk '{print $1}'
 
 int128/argocd-commenter
-# int128/oauth2cli
-# int128/kauthproxy
-# int128/listener
-# int128/cronjob-runner
-# int128/go-timerange
-# int128/oauth2-github-app
-# int128/spot-handler
-# int128/oauth2dev
-# int128/kubebuilder-updates
-# int128/kubelogin
-# int128/ghcp
-# int128/ktunnels
+int128/oauth2cli
+int128/kauthproxy
+int128/listener
+int128/cronjob-runner
+int128/go-timerange
+int128/oauth2-github-app
+int128/spot-handler
+int128/oauth2dev
+int128/kubebuilder-updates
+int128/kubelogin
+int128/ghcp
+int128/ktunnels
