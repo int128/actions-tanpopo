@@ -5,11 +5,11 @@ target_version="4.16.0"
 
 source_version="$(yq .cliVersion PROJECT)"
 
-if [[ "${target_version}" == "v${source_version}" ]]; then
+if [[ $target_version == $source_version ]]; then
   exit 99 # up-to-date
 fi
 
-if [ ! -x /usr/local/bin/kubebuilder ]
+if [ ! -x /usr/local/bin/kubebuilder ]; then
   curl -sfL -o kubebuilder "https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)"
   chmod +x kubebuilder
   sudo mv kubebuilder /usr/local/bin/
