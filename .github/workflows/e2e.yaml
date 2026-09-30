@@ -30,13 +30,6 @@ jobs:
       - run: corepack enable
       - run: pnpm i --prod
 
-      - id: openai
-        uses: int128/openai-auth-action@a165d3ba9b3aaf5ae1e0b74a343da10336b2cd88 # v0.2.0
-        with:
-          audience: "https://api.openai.com"
-          identity-provider-id: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
-          service-account-id: ${{ secrets.OPENAI_SERVICE_ACCOUNT_ID }}
-
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: token
         with:
@@ -61,4 +54,6 @@ jobs:
         env:
           INPUT_TASKS: smoke-test
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
-          OPENAI_API_KEY: ${{ steps.openai.outputs.token }}
+          OPENAI_AUDIENCE: "https://api.openai.com"
+          OPENAI_IDENTITY_PROVIDER_ID: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
+          OPENAI_SERVICE_ACCOUNT_ID: ${{ secrets.OPENAI_SERVICE_ACCOUNT_ID }}

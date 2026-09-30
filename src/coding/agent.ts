@@ -1,6 +1,7 @@
 import assert from 'node:assert'
 import * as core from '@actions/core'
 import { Agent } from '@mastra/core/agent'
+import { StreamErrorRetryProcessor } from '@mastra/core/processors'
 import { LocalFilesystem, LocalSandbox, Workspace } from '@mastra/core/workspace'
 import z from 'zod'
 import type { Context } from '../github.ts'
@@ -25,6 +26,7 @@ You can create a file or directory under the temporary directory ${githubContext
         id: 'openai/gpt-6-luna',
         apiKey: await this.tokenProvider.get(),
       }),
+      errorProcessors: [new StreamErrorRetryProcessor()],
       workspace: new Workspace({
         filesystem: new LocalFilesystem({
           basePath: workspaceContext.workspace,
