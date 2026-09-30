@@ -1,9 +1,9 @@
 import { Mastra } from '@mastra/core/mastra'
-import { createCodingAgent } from '../coding/agent.ts'
+import { CodingAgent } from '../coding/agent.ts'
 
 export const mastra = new Mastra({
   agents: {
-    codingAgent: createCodingAgent(
+    codingAgent: new CodingAgent(
       {
         eventName: 'pull_request',
         repo: {
@@ -24,6 +24,6 @@ export const mastra = new Mastra({
         },
         workspace: '/tmp/workspace',
       },
-    ),
+    ).agent,
   },
 })

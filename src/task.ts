@@ -4,7 +4,7 @@ import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { z } from 'zod'
-import { runCodingAgent } from './coding/agent.ts'
+import { CodingAgent } from './coding/agent.ts'
 import type { Context, Repository } from './github.ts'
 
 export type Workspace = {
@@ -55,6 +55,8 @@ const parseRepositoriesFile = (s: string): Repository[] =>
   })
 
 export const performTask = async (task: Task, workspace: Workspace, githubContext: Context) => {
+  const codingAgent = new CodingAgent(githubContext, workspace)
+
   const preconditionCode = await exec.exec('bash', [task.preconditionScriptPath], {
     cwd: workspace.workspace,
     ignoreReturnCode: true,
@@ -82,9 +84,5 @@ export const performTask = async (task: Task, workspace: Workspace, githubContex
     throw new Error(`precondition.sh failed with exit code ${preconditionCode}`)
   }
 
-  return await runCodingAgent({
-    taskInstruction: task.instruction,
-    workspaceContext: workspace,
-    githubContext,
-  })
+  return await codingAgent.run(task.instruction)
 }
