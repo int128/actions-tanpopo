@@ -18,9 +18,13 @@ You need to resolve the conflicts. For example:
 >>>>>>> tmp-original-29-09-26-08-37
 ```
 
-If both parts contain versions, keep the new version.
+### Rules
 
-If not sure, prefer the original part.
+- If a variable definition is duplicated, keep the new one.
+- If both parts contain versions, keep the new version.
+- For Dockerfile, keep the original `BUILDPLATFORM`, `TARGETOS` and `TARGETARCH`.
+- For a copyright comment, remove it.
+- If not sure, prefer the original part.
 
 ## Verification
 
