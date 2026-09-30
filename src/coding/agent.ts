@@ -32,6 +32,9 @@ You can create a file or directory under the temporary directory ${githubContext
         }),
         sandbox: new LocalSandbox({
           workingDirectory: workspaceContext.workspace,
+          env: {
+            HOME: process.env['HOME'],
+          },
         }),
       }),
     })
@@ -67,9 +70,10 @@ X is deprecated and no longer maintained.
         }
         if (event.toolResults.length > 0) {
           for (const toolResult of event.toolResults) {
-            core.info(`🤖 Tool: ${toolResult.payload.toolName}`)
+            core.startGroup(`🤖 Tool: ${toolResult.payload.toolName}`)
             core.info(JSON.stringify(toolResult.payload.args, null, 2))
             core.info(String(toolResult.payload.result))
+            core.endGroup()
             core.summary.addHeading(`🤖 Tool: ${toolResult.payload.toolName}`, 3)
             core.summary.addCodeBlock(JSON.stringify(toolResult.payload.args, null, 2), 'json')
             core.summary.addCodeBlock(String(toolResult.payload.result))
