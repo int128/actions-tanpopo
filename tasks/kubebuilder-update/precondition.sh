@@ -9,6 +9,8 @@ if [[ $target_version == $source_version ]]; then
   exit 99 # up-to-date
 fi
 
+export GOTOOLCHAIN=auto
+
 if [ ! -x /usr/local/bin/kubebuilder ]; then
   curl -sfL -o kubebuilder "https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)"
   chmod +x kubebuilder
@@ -16,10 +18,11 @@ if [ ! -x /usr/local/bin/kubebuilder ]; then
 fi
 kubebuilder version
 
-export GOTOOLCHAIN=auto
-
 # kubebuilder assumes that main branch exists.
 git checkout -b main
+
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
 
 kubebuilder alpha update --force
 
