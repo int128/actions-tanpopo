@@ -31,7 +31,8 @@ You need to resolve the conflicts. For example:
 
 ```bash
 go mod tidy
+make generate
 make fmt
 make vet
-make generate manifests
+make manifests
 ```
