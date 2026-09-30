@@ -7,7 +7,7 @@ import type { Context } from '../github.ts'
 import type { Workspace as WorkspaceContext } from '../task.ts'
 
 export class CodingAgent {
-  private readonly agent
+  readonly agent
 
   constructor(githubContext: Context, workspaceContext: WorkspaceContext) {
     this.agent = new Agent({
