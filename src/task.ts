@@ -56,7 +56,6 @@ const parseRepositoriesFile = (s: string): Repository[] =>
 
 export const performTask = async (task: Task, workspace: Workspace, githubContext: Context) => {
   const codingAgent = new CodingAgent(githubContext, workspace)
-  await codingAgent.hello()
 
   const preconditionCode = await exec.exec('bash', [task.preconditionScriptPath], {
     cwd: workspace.workspace,

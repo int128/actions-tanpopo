@@ -5,9 +5,11 @@ import { LocalFilesystem, LocalSandbox, Workspace } from '@mastra/core/workspace
 import z from 'zod'
 import type { Context } from '../github.ts'
 import type { Workspace as WorkspaceContext } from '../task.ts'
+import { TokenProvider } from './provider.ts'
 
 export class CodingAgent {
   readonly agent
+  private readonly tokenProvider = new TokenProvider()
 
   constructor(githubContext: Context, workspaceContext: WorkspaceContext) {
     this.agent = new Agent({
@@ -19,7 +21,10 @@ Follow the given task.
 The current directory contains the workspace for your task.
 You can create a file or directory under the temporary directory ${githubContext.runnerTemp}.
 `,
-      model: 'openai/gpt-6-luna',
+      model: async () => ({
+        id: 'openai/gpt-6-luna',
+        apiKey: await this.tokenProvider.get(),
+      }),
       workspace: new Workspace({
         filesystem: new LocalFilesystem({
           basePath: workspaceContext.workspace,
@@ -30,11 +35,6 @@ You can create a file or directory under the temporary directory ${githubContext
         }),
       }),
     })
-  }
-
-  async hello() {
-    const response = await this.agent.generate('Hello')
-    core.info(response.text)
   }
 
   async run(taskInstruction: string) {
