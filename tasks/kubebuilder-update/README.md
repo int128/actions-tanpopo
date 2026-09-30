@@ -30,6 +30,7 @@ You need to resolve the conflicts. For example:
 ## Verification
 
 ```bash
+go mod tidy
 make fmt
 make vet
 make generate manifests
