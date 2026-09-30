@@ -26,7 +26,8 @@ You can create a file or directory under the temporary directory ${githubContext
         id: 'openai/gpt-6-luna',
         apiKey: await this.tokenProvider.get(),
       }),
-      errorProcessors: [new StreamErrorRetryProcessor()],
+      errorProcessors: [new StreamErrorRetryProcessor({ maxRetries: 3 })],
+      maxProcessorRetries: 3,
       workspace: new Workspace({
         filesystem: new LocalFilesystem({
           basePath: workspaceContext.workspace,
