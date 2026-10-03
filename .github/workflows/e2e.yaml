@@ -43,7 +43,7 @@ jobs:
           INPUT_TASKS: example
           INPUT_TOKEN: ${{ steps.token.outputs.token }}
 
-      - uses: int128/label-action@0babf4451713e3480d22b0dd162a53e9c864e441 # v1.48.0
+      - uses: int128/label-action@6237d3910371000af252c1f6a4f42014f76e15fc # v1.49.0
         id: require-smoke-test
         with:
           match-labels: |
