@@ -1,0 +1,6 @@
+# Environment Summary
+
+- **Distribution:** Ubuntu
+- **Description:** Ubuntu 24.04.5 LTS
+- **Release:** 24.04
+- **Codename:** noble
