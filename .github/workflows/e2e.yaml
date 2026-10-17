@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       id-token: write
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -30,18 +30,11 @@ jobs:
       - run: corepack enable
       - run: pnpm i --prod
 
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        id: token
-        with:
-          client-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
       - name: Run int128/actions-tanpopo (example)
         run: pnpm start
         env:
           INPUT_TASKS: example
-          INPUT_TOKEN: ${{ steps.token.outputs.token }}
+          INPUT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: int128/label-action@6237d3910371000af252c1f6a4f42014f76e15fc # v1.49.0
         id: require-smoke-test
@@ -53,7 +46,7 @@ jobs:
         run: pnpm start
         env:
           INPUT_TASKS: smoke-test
-          INPUT_TOKEN: ${{ steps.token.outputs.token }}
+          INPUT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_AUDIENCE: "https://api.openai.com"
           OPENAI_IDENTITY_PROVIDER_ID: ${{ secrets.OPENAI_IDENTITY_PROVIDER_ID }}
           OPENAI_SERVICE_ACCOUNT_ID: ${{ secrets.OPENAI_SERVICE_ACCOUNT_ID }}
