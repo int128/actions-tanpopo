@@ -33,7 +33,7 @@ git restore -s HEAD \
   .github/workflows \
   .devcontainer \
   .golangci.* \
-  go.* \
+  go.sum \
   test \
   AGENTS.md \
   README.md

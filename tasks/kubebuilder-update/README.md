@@ -21,15 +21,18 @@ You need to resolve the conflicts. For example:
 ### Rules
 
 - If a variable definition is duplicated, keep the new one.
+- For go.mod, only update `k8s.io` and `sigs.k8s.io/controller-runtime` packages.
+- For Dockerfile, keep the original image reference, `TARGETOS` and `TARGETARCH`.
 - If both parts contain versions, keep the new version.
-- For Dockerfile, keep the original `BUILDPLATFORM`, `TARGETOS` and `TARGETARCH`.
 - For a copyright comment, remove it.
 - If not sure, prefer the original part.
 
 ## Verification
 
 ```bash
+go mod tidy
+make generate
 make fmt
 make vet
-make generate manifests
+make manifests
 ```
