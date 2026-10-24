@@ -40,7 +40,7 @@ jobs:
         with:
           go-version: stable
 
-      - uses: int128/glob-changed-files-action@6b0e629b5da3501fe2d4155a1ce87d93b851be1a # v2.43.0
+      - uses: int128/glob-changed-files-action@da4390afc29a44befd3844d22a9d7968935b2eab # v2.46.0
         id: changed-tasks
         with:
           paths: |
