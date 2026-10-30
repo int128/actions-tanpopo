@@ -39,7 +39,7 @@ jobs:
           INPUT_TASKS: example
           INPUT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: int128/label-action@6237d3910371000af252c1f6a4f42014f76e15fc # v1.49.0
+      - uses: int128/label-action@90503f6bb517c831a74fac7af3fad60b03d1fe96 # v1.50.0
         id: require-smoke-test
         with:
           match-labels: |
