@@ -201,8 +201,8 @@ importers:
         specifier: 24.19.2
         version: 24.19.2
       mastra:
-        specifier: 1.35.0
-        version: 1.35.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)
+        specifier: 1.37.0
+        version: 1.37.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)
       pnpm:
         specifier: 12.15.0
         version: 12.15.0
@@ -684,11 +684,11 @@ packages:
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
-  '@mastra/deployer@1.80.0':
-    resolution: {integrity: sha512-qlGdx8UHZ+zQpIwa2WiBiaJXPbqgAMfM1JCF3HxVnJf4bZT+ZSdV2hVA8sxoWXFUhaw/4TjFQTiuzfPsugee2Q==}
+  '@mastra/deployer@1.82.0':
+    resolution: {integrity: sha512-lyyN8HFBUDM1Bb61AC1QtCMTT7ECC2CWPTVZDZl9BNtW1EP6Teqz0xlecWyLrapwLI5UWBVdB6XnXzHLNODL7Q==}
     engines: {node: '>=22.13.0'}
     peerDependencies:
-      '@mastra/core': '>=1.80.0-0 <2.0.0-0'
+      '@mastra/core': '>=1.81.0-0 <2.0.0-0'
 
   '@mastra/loggers@1.3.10':
     resolution: {integrity: sha512-gpUpNh5mIH//SgKENtZQ/qlBMNrZgzyzKHKswF4aIijztKLc03u1rBB4yFV4wO87r0E33OVCjw10mHxyMuWkCA==}
@@ -702,8 +702,8 @@ packages:
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
-  '@mastra/server@1.80.0':
-    resolution: {integrity: sha512-VbRNgfP02GnOUcuPsjvQPihC1AbWhT10CvjuB/ILo5zmJTQONucZfLUugetvAg9N67LcO+iAgqJRMsl3ITRFYw==}
+  '@mastra/server@1.82.0':
+    resolution: {integrity: sha512-ty0LDcIq+nv7wsfXzVui6OeSJ0ECbibT5IEIjwe7i6/70U2l7IgqCS532P4+dIGOgMGPHkzZ3Skj7Nqw/2heYQ==}
     engines: {node: '>=22.13.0'}
     peerDependencies:
       '@mastra/core': '>=1.80.0-0 <2.0.0-0'
@@ -1809,12 +1809,12 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  mastra@1.35.0:
-    resolution: {integrity: sha512-mlXPvOWIZkdrSv7RQ4dlIyu7lveL9hbjVosAyhhC2OVEL+Lf6BkjGJYgO0fh4gV5DbfXUR9bvBtatthpkK9QSQ==}
+  mastra@1.37.0:
+    resolution: {integrity: sha512-ydhcUXm0/Z3aSdytMuBDBLvVsDbrAoYyrWpEXVPjC3WGh1SDyMX9SXMgj0xsohTCM5j88QtDtKxRd69FQafqag==}
     engines: {node: '>=22.13.0'}
     hasBin: true
     peerDependencies:
-      '@mastra/core': '>=1.58.0-0 <2.0.0-0'
+      '@mastra/core': '>=1.81.0-0 <2.0.0-0'
 
   mdast-util-find-and-replace@3.0.4:
     resolution: {integrity: sha512-z4B5c6jrnJ1ltOQemhWYPBSAo6y42Z8Gt2yEgfgNTMcLSU59B8bfj8Z8AnAlJrBGLnqkdAUZ7jdDEqQw3KuipQ==}
@@ -2811,14 +2811,14 @@ snapshots:
       - zod-openapi
       - zod-to-json-schema
 
-  '@mastra/deployer@1.80.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)':
+  '@mastra/deployer@1.82.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)':
     dependencies:
       '@babel/core': 8.0.10
       '@babel/preset-typescript': 8.0.7(@babel/core@8.0.10)
       '@babel/traverse': 8.0.10
       '@hono/node-ws': 1.3.1(@hono/node-server@1.19.17(hono@4.13.14))(hono@4.13.14)
       '@mastra/core': 1.80.0(zod@4.6.7)
-      '@mastra/server': 1.80.0(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)
+      '@mastra/server': 1.82.0(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)
       '@optimize-lodash/rollup-plugin': 5.1.0(rollup@4.67.2)
       '@rollup/plugin-alias': 6.0.0(rollup@4.67.2)
       '@rollup/plugin-commonjs': 29.0.2(rollup@4.67.2)
@@ -2827,6 +2827,7 @@ snapshots:
       '@rollup/plugin-node-resolve': 16.0.3(rollup@4.67.2)
       '@rollup/plugin-virtual': 3.0.2(rollup@4.67.2)
       '@sindresorhus/slugify': 2.2.1
+      dotenv: 17.4.2
       empathic: 2.1.0
       esbuild: 0.28.2
       find-up-simple: 1.0.1
@@ -2859,7 +2860,7 @@ snapshots:
       zod: 4.6.7
       zod-from-json-schema: 0.5.2
 
-  '@mastra/server@1.80.0(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)':
+  '@mastra/server@1.82.0(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)':
     dependencies:
       '@mastra/core': 1.80.0(zod@4.6.7)
       hono: 4.13.14
@@ -3695,19 +3696,20 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  mastra@1.35.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7):
+  mastra@1.37.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7):
     dependencies:
       '@babel/parser': 8.0.10
       '@babel/types': 8.0.10
       '@clack/prompts': 1.8.1
       '@expo/devcert': 1.2.2
       '@mastra/core': 1.80.0(zod@4.6.7)
-      '@mastra/deployer': 1.80.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)
+      '@mastra/deployer': 1.82.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.80.0(zod@4.6.7))(zod@4.6.7)
       '@mastra/loggers': 1.3.10(@mastra/core@1.80.0(zod@4.6.7))
       archiver: 8.0.0
       commander: 14.0.3
       dotenv: 17.4.2
       execa: 9.6.1
+      fast-string-width: 3.0.2
       fs-extra: 11.4.1
       get-port: 7.2.0
       local-pkg: 1.2.1
