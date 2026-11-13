@@ -201,8 +201,8 @@ importers:
         specifier: 24.19.2
         version: 24.19.2
       mastra:
-        specifier: 1.37.0
-        version: 1.37.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.81.0(zod@4.6.7))(zod@4.6.7)
+        specifier: 1.38.0
+        version: 1.38.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.81.0(zod@4.6.7))(zod@4.6.7)
       pnpm:
         specifier: 12.15.0
         version: 12.15.0
@@ -1809,8 +1809,8 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  mastra@1.37.0:
-    resolution: {integrity: sha512-ydhcUXm0/Z3aSdytMuBDBLvVsDbrAoYyrWpEXVPjC3WGh1SDyMX9SXMgj0xsohTCM5j88QtDtKxRd69FQafqag==}
+  mastra@1.38.0:
+    resolution: {integrity: sha512-wv236WqbeMyR1luSSWgGixf5GZOeDzGA5ZADLwSEpxjAjbDiztGK9l6krxtgieDxk+pF4F8o4wqrhixHG0KYfQ==}
     engines: {node: '>=22.13.0'}
     hasBin: true
     peerDependencies:
@@ -3696,7 +3696,7 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  mastra@1.37.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.81.0(zod@4.6.7))(zod@4.6.7):
+  mastra@1.38.0(@hono/node-server@1.19.17(hono@4.13.14))(@mastra/core@1.81.0(zod@4.6.7))(zod@4.6.7):
     dependencies:
       '@babel/parser': 8.0.10
       '@babel/types': 8.0.10
