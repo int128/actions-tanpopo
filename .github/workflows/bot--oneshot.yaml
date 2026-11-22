@@ -16,7 +16,6 @@ jobs:
       contains(github.event.pull_request.labels.*.name, '/run-bot')
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: production
     permissions:
       id-token: write
       contents: read
@@ -31,11 +30,15 @@ jobs:
       - run: corepack enable
       - run: pnpm i --prod
 
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+      - uses: int128/aws-kms-github-app-token-action@244b9e7f5e76581cdb9310748263980b9da63f8a # v0.3.0
         id: token
         with:
-          client-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          role-to-assume: ${{ secrets.APP_AWS_IAM_ROLE_ARN }}
+          aws-region: us-west-2
+          kms-key-id: alias/github-app-int128-bot
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
           owner: ${{ github.repository_owner }}
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
