@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eux -o pipefail
 
-if [ -f biome.json ]; then
+if [ ! -f biome.json ]; then
   exit 99 # skip the task
 fi
 
