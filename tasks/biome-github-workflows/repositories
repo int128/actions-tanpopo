@@ -1,13 +1,13 @@
 # gh repo list --no-archived --source -l typescript --limit 100 | awk '{print $1}'
 
 int128/actions-tanpopo
-int128/math-drill
+# int128/math-drill
 int128/hide-comment-action
 int128/list-associated-pull-requests-action
-# int128/update-generated-files-action
-# int128/rerun-workflows-action
-# int128/deploy-lambda-action
-# int128/deployment-action
+int128/update-generated-files-action
+int128/rerun-workflows-action
+int128/deploy-lambda-action
+int128/deployment-action
 # int128/create-ecr-repository-action
 # int128/docker-build-cache-config-action
 # int128/create-commit-action
