@@ -3,7 +3,6 @@ name: e2e
 on:
   pull_request:
     paths:
-      - tasks/**
       - src/**
       - tests/**
       - '*.json'
