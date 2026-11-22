@@ -12,6 +12,8 @@ concurrency:
 
 jobs:
   run:
+    if: |
+      contains(github.event.pull_request.labels.*.name, '/run-bot')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: production
