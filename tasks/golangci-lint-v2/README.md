@@ -34,11 +34,14 @@ Here is the recommendation for the migration:
 - For `errcheck` error, you need to add error handling for the function.
   - Here is an example of how to add error handling.
     Before:
+
     ```go
     f, _ := os.Open("file.txt")
     defer f.Close()
     ```
+
     After:
+
     ```go
     f, _ := os.Open("file.txt")
     defer func() {
