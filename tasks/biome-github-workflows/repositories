@@ -9,9 +9,9 @@ int128/rerun-workflows-action
 int128/deploy-lambda-action
 int128/deployment-action
 int128/create-ecr-repository-action
-# int128/docker-build-cache-config-action
-# int128/create-commit-action
-# int128/datadog-actions-metrics
+int128/docker-build-cache-config-action
+int128/create-commit-action
+int128/datadog-actions-metrics
 # int128/send-datadog-action
 # int128/glob-changed-files-action
 # int128/workflow-run-summary-action
