@@ -11,9 +11,5 @@ Exclude `.github/workflows` from Biome.
 For example:
 
 ```yaml
-{
-  "files": {
-    "includes": ["**", "!.github/workflows"]
-  }
-}
+{ "files": { "includes": ["**", "!.github/workflows"] } }
 ```
