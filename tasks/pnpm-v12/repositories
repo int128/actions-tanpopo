@@ -1,5 +1,6 @@
 # gh repo list --no-archived --source -l typescript --limit 100 | awk '{print $1}'
 
+int128/react-template
 int128/typescript-action
 int128/actions-tanpopo
 int128/release-typescript-action
